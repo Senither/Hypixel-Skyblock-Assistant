@@ -21,6 +21,8 @@
 
 package com.senither.hypixel;
 
+import com.senither.hypixel.commands.CommandHandler;
+import com.senither.hypixel.commands.misc.PingCommand;
 import com.senither.hypixel.listeners.MessageEventListener;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -41,6 +43,8 @@ public class GuildSynchronize {
     GuildSynchronize(Configuration configuration) throws LoginException {
         this.configuration = configuration;
         this.shardManager = buildShardManager();
+
+        CommandHandler.registerCommand(new PingCommand(this));
     }
 
     public Configuration getConfiguration() {
