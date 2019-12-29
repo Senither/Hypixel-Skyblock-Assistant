@@ -21,19 +21,16 @@
 
 package com.senither.hypixel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class Configuration {
 
-class GuildSynchronize {
+    private String discord_token;
+    private String hypixel_token;
 
-    private static final Logger log = LoggerFactory.getLogger(GuildSynchronize.class);
+    public String getDiscordToken() {
+        return discord_token;
+    }
 
-    private final Configuration configuration;
-
-    GuildSynchronize(Configuration configuration) {
-        this.configuration = configuration;
-
-        log.info(configuration.getHypixelToken());
-        log.info(configuration.getDiscordToken());
+    public String getHypixelToken() {
+        return hypixel_token;
     }
 }

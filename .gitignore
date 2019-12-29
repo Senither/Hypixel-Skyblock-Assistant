@@ -21,3 +21,7 @@ HypixelGuildSynchronizer.jar
 target/
 build/
 out/
+config.json
+
+# Logging output
+storage/logs
