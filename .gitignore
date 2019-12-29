@@ -1,0 +1,23 @@
+# Package Files #
+*.jar
+!gradle-wrapper.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# Editor settings
+.idea/
+.ideaDataSources/
+/*.iws
+/*.ipr
+/*.iml
+/*.iml
+
+# Compile location
+HypixelGuildSynchronizer.jar
+.gradle/*
+target/
+build/
+out/
