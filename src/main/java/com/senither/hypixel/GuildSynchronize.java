@@ -21,19 +21,45 @@
 
 package com.senither.hypixel;
 
+import com.senither.hypixel.listeners.MessageEventListener;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.SessionControllerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class GuildSynchronize {
+import javax.security.auth.login.LoginException;
+
+public class GuildSynchronize {
 
     private static final Logger log = LoggerFactory.getLogger(GuildSynchronize.class);
 
     private final Configuration configuration;
+    private final ShardManager shardManager;
 
-    GuildSynchronize(Configuration configuration) {
+    GuildSynchronize(Configuration configuration) throws LoginException {
         this.configuration = configuration;
+        this.shardManager = buildShardManager();
+    }
 
-        log.info(configuration.getHypixelToken());
-        log.info(configuration.getDiscordToken());
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public ShardManager getShardManager() {
+        return shardManager;
+    }
+
+    private ShardManager buildShardManager() throws LoginException {
+        return new DefaultShardManagerBuilder()
+            .setSessionController(new SessionControllerAdapter())
+            .setToken(configuration.getDiscordToken())
+            .setActivity(Activity.watching("the server"))
+            .setBulkDeleteSplittingEnabled(false)
+            .setContextEnabled(true)
+            .addEventListeners(
+                new MessageEventListener(this)
+            ).build();
     }
 }
