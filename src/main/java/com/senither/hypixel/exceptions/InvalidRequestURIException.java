@@ -19,22 +19,11 @@
  *
  */
 
-package com.senither.hypixel.contracts.commands;
+package com.senither.hypixel.exceptions;
 
-import com.senither.hypixel.SkyblockAssistant;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+public class InvalidRequestURIException extends RuntimeException {
 
-import java.util.List;
-
-public abstract class Command {
-
-    protected final SkyblockAssistant app;
-
-    public Command(SkyblockAssistant app) {
-        this.app = app;
+    public InvalidRequestURIException(String message) {
+        super(message);
     }
-
-    public abstract List<String> getTriggers();
-
-    public abstract void onCommand(MessageReceivedEvent event, String[] args);
 }

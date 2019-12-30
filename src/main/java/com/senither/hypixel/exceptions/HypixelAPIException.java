@@ -19,22 +19,26 @@
  *
  */
 
-package com.senither.hypixel.contracts.commands;
+package com.senither.hypixel.exceptions;
 
-import com.senither.hypixel.SkyblockAssistant;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+public class HypixelAPIException extends RuntimeException {
 
-import java.util.List;
-
-public abstract class Command {
-
-    protected final SkyblockAssistant app;
-
-    public Command(SkyblockAssistant app) {
-        this.app = app;
+    public HypixelAPIException() {
     }
 
-    public abstract List<String> getTriggers();
+    public HypixelAPIException(String message) {
+        super(message);
+    }
 
-    public abstract void onCommand(MessageReceivedEvent event, String[] args);
+    public HypixelAPIException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public HypixelAPIException(Throwable cause) {
+        super(cause);
+    }
+
+    public HypixelAPIException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

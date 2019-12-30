@@ -19,22 +19,32 @@
  *
  */
 
-package com.senither.hypixel.contracts.commands;
+package com.senither.hypixel.contracts.hypixel;
 
-import com.senither.hypixel.SkyblockAssistant;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+public abstract class Response {
 
-import java.util.List;
+    protected boolean throttle;
+    protected boolean success;
+    protected String cause;
 
-public abstract class Command {
-
-    protected final SkyblockAssistant app;
-
-    public Command(SkyblockAssistant app) {
-        this.app = app;
+    public boolean isThrottle() {
+        return throttle;
     }
 
-    public abstract List<String> getTriggers();
+    public boolean isSuccess() {
+        return success;
+    }
 
-    public abstract void onCommand(MessageReceivedEvent event, String[] args);
+    public String getCause() {
+        return cause;
+    }
+
+    @Override
+    public String toString() {
+        return "Response{" +
+            "throttle=" + throttle +
+            ", success=" + success +
+            ", cause='" + cause + '\'' +
+            '}';
+    }
 }

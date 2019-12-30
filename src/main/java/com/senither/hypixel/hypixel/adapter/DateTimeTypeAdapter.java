@@ -19,22 +19,24 @@
  *
  */
 
-package com.senither.hypixel.contracts.commands;
+package com.senither.hypixel.hypixel.adapter;
 
-import com.senither.hypixel.SkyblockAssistant;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import com.google.gson.*;
 
-import java.util.List;
+import java.lang.reflect.Type;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
-public abstract class Command {
+public class DateTimeTypeAdapter implements JsonDeserializer<ZonedDateTime>, JsonSerializer<ZonedDateTime> {
 
-    protected final SkyblockAssistant app;
-
-    public Command(SkyblockAssistant app) {
-        this.app = app;
+    @Override
+    public JsonElement serialize(ZonedDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+        return new JsonPrimitive(src.toInstant().toEpochMilli());
     }
 
-    public abstract List<String> getTriggers();
-
-    public abstract void onCommand(MessageReceivedEvent event, String[] args);
+    @Override
+    public ZonedDateTime deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        return Instant.ofEpochMilli(Long.parseLong(json.getAsString())).atZone(ZoneId.of("America/New_York"));
+    }
 }
