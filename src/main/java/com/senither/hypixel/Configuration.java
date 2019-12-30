@@ -25,6 +25,7 @@ public class Configuration {
 
     private String discord_token;
     private String hypixel_token;
+    private Database database;
 
     public String getDiscordToken() {
         return discord_token;
@@ -32,5 +33,46 @@ public class Configuration {
 
     public String getHypixelToken() {
         return hypixel_token;
+    }
+
+    public Database getDatabase() {
+        return database;
+    }
+
+    public class Database {
+
+        private String hostname;
+        private String username;
+        private String password;
+        private String database;
+
+        public String getHostname() {
+            return hostname.split(":")[0];
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public String getDatabase() {
+            return database;
+        }
+
+        public int getPort() {
+            String[] parts = hostname.split(":");
+            if (parts.length == 1) {
+                return 3306;
+            }
+
+            try {
+                return Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                return 3306;
+            }
+        }
     }
 }

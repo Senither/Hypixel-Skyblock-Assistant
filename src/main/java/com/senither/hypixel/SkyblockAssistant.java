@@ -23,6 +23,7 @@ package com.senither.hypixel;
 
 import com.senither.hypixel.commands.CommandHandler;
 import com.senither.hypixel.commands.misc.PingCommand;
+import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.listeners.MessageEventListener;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -38,10 +39,13 @@ public class SkyblockAssistant {
     private static final Logger log = LoggerFactory.getLogger(SkyblockAssistant.class);
 
     private final Configuration configuration;
+    private final DatabaseManager databaseManager;
     private final ShardManager shardManager;
 
     SkyblockAssistant(Configuration configuration) throws LoginException {
         this.configuration = configuration;
+
+        this.databaseManager = new DatabaseManager(this);
         this.shardManager = buildShardManager();
 
         CommandHandler.registerCommand(new PingCommand(this));
