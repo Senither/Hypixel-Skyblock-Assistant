@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019.
  *
- * This file is part of Hypixel Guild Synchronizer.
+ * This file is part of Hypixel Skyblock Assistant.
  *
  * Hypixel Guild Synchronizer is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,14 +33,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
 
-public class GuildSynchronize {
+public class SkyblockAssistant {
 
-    private static final Logger log = LoggerFactory.getLogger(GuildSynchronize.class);
+    private static final Logger log = LoggerFactory.getLogger(SkyblockAssistant.class);
 
     private final Configuration configuration;
     private final ShardManager shardManager;
 
-    GuildSynchronize(Configuration configuration) throws LoginException {
+    SkyblockAssistant(Configuration configuration) throws LoginException {
         this.configuration = configuration;
         this.shardManager = buildShardManager();
 

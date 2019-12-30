@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019.
  *
- * This file is part of Hypixel Guild Synchronizer.
+ * This file is part of Hypixel Skyblock Assistant.
  *
  * Hypixel Guild Synchronizer is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 package com.senither.hypixel.listeners;
 
 import com.senither.hypixel.Constants;
-import com.senither.hypixel.GuildSynchronize;
+import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.commands.CommandHandler;
 import com.senither.hypixel.contracts.commands.Command;
 import net.dv8tion.jda.api.entities.Message;
@@ -44,10 +44,10 @@ public class MessageEventListener extends ListenerAdapter {
         + "\n\t\tChannel: %channel%"
         + "\n\t\tMessage: %message%";
 
-    private final GuildSynchronize guildSynchronize;
+    private final SkyblockAssistant app;
 
-    public MessageEventListener(GuildSynchronize guildSynchronize) {
-        this.guildSynchronize = guildSynchronize;
+    public MessageEventListener(SkyblockAssistant app) {
+        this.app = app;
     }
 
     @Override

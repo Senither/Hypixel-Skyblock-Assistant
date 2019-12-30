@@ -14,11 +14,11 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 shadowJar {
-    archiveName = "HypixelGuildSynchronizer.jar"
+    archiveName = "HypixelSkyblockAssistant.jar"
 
     doLast {
         copy {
-            from 'build/libs/HypixelGuildSynchronizer.jar'
+            from 'build/libs/HypixelSkyblockAssistant.jar'
             into '.'
         }
     }
@@ -32,7 +32,7 @@ tasks.withType(JavaCompile) {
 
 task fatJar(type: Jar) {
     manifest {
-        attributes 'Implementation-Title': 'HypixelGuildSynchronizer: Discord Bot',
+        attributes 'Implementation-Title': 'HypixelSkyblockAssistant: Discord Bot',
             'Implementation-Version': version,
             'Main-Class': mainClassName
     }

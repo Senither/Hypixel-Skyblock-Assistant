@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019.
  *
- * This file is part of Hypixel Guild Synchronizer.
+ * This file is part of Hypixel Skyblock Assistant.
  *
  * Hypixel Guild Synchronizer is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,17 +21,17 @@
 
 package com.senither.hypixel.contracts.commands;
 
-import com.senither.hypixel.GuildSynchronize;
+import com.senither.hypixel.SkyblockAssistant;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.List;
 
 public abstract class Command {
 
-    private final GuildSynchronize guildSynchronize;
+    private final SkyblockAssistant app;
 
-    public Command(GuildSynchronize guildSynchronize) {
-        this.guildSynchronize = guildSynchronize;
+    public Command(SkyblockAssistant app) {
+        this.app = app;
     }
 
     public abstract List<String> getTriggers();

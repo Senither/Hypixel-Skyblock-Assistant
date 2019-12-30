@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2019.
  *
- * This file is part of Hypixel Guild Synchronizer.
+ * This file is part of Hypixel Skyblock Assistant.
  *
  * Hypixel Guild Synchronizer is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 
 package com.senither.hypixel.commands.misc;
 
-import com.senither.hypixel.GuildSynchronize;
+import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.contracts.commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -32,8 +32,8 @@ import java.util.List;
 
 public class PingCommand extends Command {
 
-    public PingCommand(GuildSynchronize guildSynchronize) {
-        super(guildSynchronize);
+    public PingCommand(SkyblockAssistant app) {
+        super(app);
     }
 
     @Override

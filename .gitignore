@@ -16,7 +16,7 @@ hs_err_pid*
 /*.iml
 
 # Compile location
-HypixelGuildSynchronizer.jar
+HypixelSkyblockAssistant.jar
 .gradle/*
 target/
 build/
