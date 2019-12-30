@@ -67,6 +67,15 @@ public class VerifyCommand extends Command {
             return;
         }
 
+        if (!app.getHypixelAPI().isValidMinecraftUsername(args[0])) {
+            event.getChannel().sendMessage(new EmbedBuilder()
+                .setDescription("Invalid Minecraft username given! You must give a valid username to be verified.")
+                .setColor(MessageType.ERROR.getColor())
+                .build()
+            ).queue();
+            return;
+        }
+
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setTitle("Verifying Account")
             .setDescription("Loading Hypixel player data for " + args[0] + "!")

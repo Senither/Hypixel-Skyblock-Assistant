@@ -37,6 +37,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
+import javax.annotation.Nonnull;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -47,6 +48,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 public class HypixelAPI {
 
@@ -54,6 +56,8 @@ public class HypixelAPI {
         .registerTypeAdapter(UUID.class, new UUIDTypeAdapter())
         .registerTypeAdapter(ZonedDateTime.class, new DateTimeTypeAdapter())
         .create();
+
+    private static final Pattern minecraftUsernameRegex = Pattern.compile("^\\w+$", Pattern.CASE_INSENSITIVE);
 
     private static final String endpoint = "https://api.hypixel.net/";
 
@@ -70,6 +74,10 @@ public class HypixelAPI {
 
     public static Gson getGson() {
         return gson;
+    }
+
+    public boolean isValidMinecraftUsername(@Nonnull String username) {
+        return username.length() > 2 && username.length() < 17 && minecraftUsernameRegex.matcher(username).find();
     }
 
     public CompletableFuture<PlayerResponse> getPlayer(String username) {
