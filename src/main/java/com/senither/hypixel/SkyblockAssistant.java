@@ -45,14 +45,23 @@ public class SkyblockAssistant {
     SkyblockAssistant(Configuration configuration) throws LoginException {
         this.configuration = configuration;
 
-        this.databaseManager = new DatabaseManager(this);
-        this.shardManager = buildShardManager();
-
+        log.info("Registering commands...");
         CommandHandler.registerCommand(new PingCommand(this));
+        log.info("{} commands have been registered!", CommandHandler.getCommands().size());
+
+        log.info("Creating database manager");
+        this.databaseManager = new DatabaseManager(this);
+
+        log.info("Opening connection to Discord");
+        this.shardManager = buildShardManager();
     }
 
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 
     public ShardManager getShardManager() {

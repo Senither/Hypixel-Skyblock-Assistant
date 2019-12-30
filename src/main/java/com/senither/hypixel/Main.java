@@ -36,11 +36,15 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException, LoginException {
+        log.info("Loading configuration...");
+
         Configuration configuration = loadConfiguration();
         if (configuration == null) {
             log.info("Configuration returned null, failed to load the config.");
             shutdown(0);
         }
+
+        log.info("Configuration have been loaded, starting application");
         new SkyblockAssistant(configuration);
     }
 

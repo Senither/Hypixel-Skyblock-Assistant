@@ -23,6 +23,8 @@ package com.senither.hypixel.database;
 
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,14 +34,20 @@ import java.util.Set;
 
 public class DatabaseManager {
 
-    private final SkyblockAssistant app;
+    private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
 
     private MySQLConnection connection;
 
     public DatabaseManager(SkyblockAssistant app) {
-        this.app = app;
-
         connection = new MySQLConnection(app);
+
+        try {
+            connection.open();
+
+            log.info("Connected to database successfully");
+        } catch (SQLException e) {
+            log.error("Failed to open database connection: {}", e.getMessage(), e);
+        }
     }
 
     public Collection query(String sql, Object... binds) throws SQLException {

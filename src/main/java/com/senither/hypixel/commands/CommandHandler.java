@@ -72,6 +72,10 @@ public class CommandHandler {
         command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
     }
 
+    public static Set<Command> getCommands() {
+        return commands;
+    }
+
     private static String[] toArguments(String string) {
         List<String> arguments = new ArrayList<>();
 
