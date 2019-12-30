@@ -22,22 +22,29 @@
 package com.senither.hypixel.hypixel.responses;
 
 import com.senither.hypixel.contracts.hypixel.Response;
+import com.senither.hypixel.hypixel.HypixelAPI;
 
 import java.util.HashMap;
 
+@SuppressWarnings("WeakerAccess")
 public class PlayerResponse extends Response {
 
-    private Player player;
+    protected Player player;
 
     public Player getPlayer() {
         return player;
     }
 
+    @Override
+    public String toString() {
+        return HypixelAPI.getGson().toJson(this);
+    }
+
     public class Player {
 
-        private String displayname;
-        private SocialMedia socialMedia;
-        private Stats stats;
+        protected String displayname;
+        protected SocialMedia socialMedia;
+        protected Stats stats;
 
         public String getDisplayname() {
             return displayname;
@@ -54,7 +61,7 @@ public class PlayerResponse extends Response {
 
     public class SocialMedia {
 
-        private HashMap<String, String> links;
+        protected HashMap<String, String> links;
 
         public HashMap<String, String> getLinks() {
             return links;
@@ -63,7 +70,7 @@ public class PlayerResponse extends Response {
 
     public class Stats {
 
-        private SkyBlockStats SkyBlock;
+        protected SkyBlockStats SkyBlock;
 
         public SkyBlockStats getSkyBlock() {
             return SkyBlock;
@@ -72,7 +79,7 @@ public class PlayerResponse extends Response {
 
     public class SkyBlockStats {
 
-        private HashMap<String, SkyblockProfile> profiles;
+        protected HashMap<String, SkyblockProfile> profiles;
 
         public HashMap<String, SkyblockProfile> getProfiles() {
             return profiles;
@@ -81,8 +88,8 @@ public class PlayerResponse extends Response {
 
     private class SkyblockProfile {
 
-        private String profile_id;
-        private String cute_name;
+        protected String profile_id;
+        protected String cute_name;
 
         public String getProfileId() {
             return profile_id;

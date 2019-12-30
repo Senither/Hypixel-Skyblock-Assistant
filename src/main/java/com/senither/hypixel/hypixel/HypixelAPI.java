@@ -50,7 +50,7 @@ import java.util.concurrent.Executors;
 
 public class HypixelAPI {
 
-    private static final Gson GSON = new GsonBuilder()
+    private static final Gson gson = new GsonBuilder()
         .registerTypeAdapter(UUID.class, new UUIDTypeAdapter())
         .registerTypeAdapter(ZonedDateTime.class, new DateTimeTypeAdapter())
         .create();
@@ -66,6 +66,10 @@ public class HypixelAPI {
 
         this.executorService = Executors.newCachedThreadPool();
         this.httpClient = HttpClientBuilder.create().build();
+    }
+
+    public static Gson getGson() {
+        return gson;
     }
 
     public CompletableFuture<PlayerResponse> getPlayer(String username) {
@@ -84,9 +88,10 @@ public class HypixelAPI {
             }
 
             try {
+                // TODO: Create a Guava cache and check if the user was requested in the last 1 minute here instead of preforming more requests than necessary.
                 R response = httpClient.execute(new HttpGet(uri), obj -> {
                     String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
-                    return GSON.fromJson(content, clazz);
+                    return gson.fromJson(content, clazz);
                 });
 
                 if (!response.isSuccess()) {
