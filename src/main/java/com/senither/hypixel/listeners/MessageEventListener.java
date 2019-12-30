@@ -56,6 +56,11 @@ public class MessageEventListener extends ListenerAdapter {
             return;
         }
 
+        if (!event.getChannelType().isGuild()) {
+            // TODO: Send a message to the user here, describing the bot and what it does/how it us eit.
+            return;
+        }
+
         boolean isMentionable = isMentionableAction(event);
 
         String part = event.getMessage().getContentRaw().split(" ")[isMentionable ? 1 : 0];
@@ -73,8 +78,6 @@ public class MessageEventListener extends ListenerAdapter {
 
             CommandHandler.invokeCommand(event, command, isMentionable);
         }
-
-        log.info("{} said \"{}\"", event.getAuthor().getAsTag(), event.getMessage().getContentRaw());
     }
 
     private boolean isMentionableAction(MessageReceivedEvent event) {
