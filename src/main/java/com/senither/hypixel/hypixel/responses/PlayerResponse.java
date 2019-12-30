@@ -25,6 +25,7 @@ import com.senither.hypixel.contracts.hypixel.Response;
 import com.senither.hypixel.hypixel.HypixelAPI;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 @SuppressWarnings("WeakerAccess")
 public class PlayerResponse extends Response {
@@ -42,9 +43,14 @@ public class PlayerResponse extends Response {
 
     public class Player {
 
+        protected UUID uuid;
         protected String displayname;
         protected SocialMedia socialMedia;
         protected Stats stats;
+
+        public UUID getUuid() {
+            return uuid;
+        }
 
         public String getDisplayname() {
             return displayname;
@@ -88,10 +94,10 @@ public class PlayerResponse extends Response {
 
     private class SkyblockProfile {
 
-        protected String profile_id;
+        protected UUID profile_id;
         protected String cute_name;
 
-        public String getProfileId() {
+        public UUID getProfileId() {
             return profile_id;
         }
 

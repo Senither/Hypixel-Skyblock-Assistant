@@ -21,6 +21,8 @@
 
 package com.senither.hypixel.hypixel;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.senither.hypixel.Configuration;
@@ -48,9 +50,18 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class HypixelAPI {
+
+    private static final Cache<String, Response> responseCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(150, TimeUnit.SECONDS)
+        .build();
+
+    private static final Cache<String, UUID> uuidCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(1, TimeUnit.HOURS)
+        .build();
 
     private static final Gson gson = new GsonBuilder()
         .registerTypeAdapter(UUID.class, new UUIDTypeAdapter())
@@ -58,7 +69,6 @@ public class HypixelAPI {
         .create();
 
     private static final Pattern minecraftUsernameRegex = Pattern.compile("^\\w+$", Pattern.CASE_INSENSITIVE);
-
     private static final String endpoint = "https://api.hypixel.net/";
 
     private final Configuration configuration;
@@ -83,7 +93,12 @@ public class HypixelAPI {
     public CompletableFuture<PlayerResponse> getPlayer(String username) {
         return sendRequest(PlayerResponse.class, createRequestURI("player", new HashMap<String, String>() {{
             put("name", username);
-        }}));
+        }})).whenCompleteAsync((playerResponse, throwable) -> {
+            if (throwable == null) {
+                System.out.println(playerResponse.getPlayer().getUuid().toString() + " was cached for " + username);
+                uuidCache.put(username.toLowerCase(), playerResponse.getPlayer().getUuid());
+            }
+        });
     }
 
     private <R extends Response> CompletableFuture<R> sendRequest(Class<R> clazz, String uri) {
@@ -95,8 +110,14 @@ public class HypixelAPI {
                 return;
             }
 
+            Response cacheResult = responseCache.getIfPresent(uri.toLowerCase());
+            if (cacheResult != null) {
+                //noinspection unchecked
+                future.complete((R) cacheResult);
+                return;
+            }
+
             try {
-                // TODO: Create a Guava cache and check if the user was requested in the last 1 minute here instead of preforming more requests than necessary.
                 R response = httpClient.execute(new HttpGet(uri), obj -> {
                     String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
                     return gson.fromJson(content, clazz);
@@ -109,6 +130,8 @@ public class HypixelAPI {
                 if (response.isThrottle()) {
                     throw new RatelimiteReachedException();
                 }
+
+                responseCache.put(uri.toLowerCase(), response);
 
                 future.complete(response);
             } catch (Throwable e) {
