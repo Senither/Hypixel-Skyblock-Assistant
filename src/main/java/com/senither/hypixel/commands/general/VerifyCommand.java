@@ -32,9 +32,11 @@ import net.hypixel.api.reply.PlayerReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class VerifyCommand extends Command {
 
@@ -120,7 +122,16 @@ public class VerifyCommand extends Command {
             return;
         }
 
-        // TODO: Create a database entry here to store the users Discord ID and the Minecraft UUID for the user, so we an create a link between them that can be used later for other requests.
+        try {
+            UUID uuid = app.getHypixel().getUUIDFromName(player.get("displayname").getAsString());
+            if (uuid != null) {
+                app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `discord_id` = ? WHERE `uuid` = ?",
+                    event.getAuthor().getIdLong(), uuid.toString()
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         message.editMessage(embedBuilder
             .setDescription("Your account have now been verified!")

@@ -122,7 +122,7 @@ public class Hypixel {
         return future;
     }
 
-    private UUID getUUIDFromName(String name) throws SQLException {
+    public UUID getUUIDFromName(String name) throws SQLException {
         UUID cachedUUID = cache.getIfPresent(name.toLowerCase());
         if (cachedUUID != null) {
             log.debug("Found UUID for {} using the in-memory cache (ID: {})", name, cachedUUID);
