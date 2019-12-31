@@ -25,7 +25,7 @@ import com.senither.hypixel.commands.CommandHandler;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.PingCommand;
 import com.senither.hypixel.database.DatabaseManager;
-import com.senither.hypixel.hypixel.HypixelAPI;
+import com.senither.hypixel.hypixel.Hypixel;
 import com.senither.hypixel.listeners.MessageEventListener;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -42,7 +42,7 @@ public class SkyblockAssistant {
 
     private final Configuration configuration;
     private final DatabaseManager databaseManager;
-    private final HypixelAPI hypixelAPI;
+    private final Hypixel hypixel;
     private final ShardManager shardManager;
 
     SkyblockAssistant(Configuration configuration) throws LoginException {
@@ -57,7 +57,7 @@ public class SkyblockAssistant {
         this.databaseManager = new DatabaseManager(this);
 
         log.info("Creating Hypixel API factory");
-        this.hypixelAPI = new HypixelAPI(this);
+        this.hypixel = new Hypixel(this);
 
         log.info("Opening connection to Discord");
         this.shardManager = buildShardManager();
@@ -67,8 +67,8 @@ public class SkyblockAssistant {
         return configuration;
     }
 
-    public HypixelAPI getHypixelAPI() {
-        return hypixelAPI;
+    public Hypixel getHypixel() {
+        return hypixel;
     }
 
     public DatabaseManager getDatabaseManager() {

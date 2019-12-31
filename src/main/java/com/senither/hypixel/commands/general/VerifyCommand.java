@@ -21,13 +21,14 @@
 
 package com.senither.hypixel.commands.general;
 
+import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.contracts.commands.Command;
-import com.senither.hypixel.hypixel.responses.PlayerResponse;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.hypixel.api.reply.PlayerReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +68,7 @@ public class VerifyCommand extends Command {
             return;
         }
 
-        if (!app.getHypixelAPI().isValidMinecraftUsername(args[0])) {
+        if (!app.getHypixel().isValidMinecraftUsername(args[0])) {
             event.getChannel().sendMessage(new EmbedBuilder()
                 .setDescription("Invalid Minecraft username given! You must give a valid username to be verified.")
                 .setColor(MessageType.ERROR.getColor())
@@ -81,7 +82,8 @@ public class VerifyCommand extends Command {
             .setDescription("Loading Hypixel player data for " + args[0] + "!")
             .setColor(MessageType.INFO.getColor());
 
-        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> app.getHypixelAPI().getPlayer(args[0])
+
+        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> app.getHypixel().getAPI().getPlayerByName(args[0])
             .whenCompleteAsync(((playerResponse, throwable) -> {
                 if (throwable == null) {
                     handleResponse(event, message, playerResponse, embedBuilder);
@@ -97,7 +99,7 @@ public class VerifyCommand extends Command {
         );
     }
 
-    private void handleResponse(MessageReceivedEvent event, Message message, PlayerResponse playerResponse, EmbedBuilder embedBuilder) {
+    private void handleResponse(MessageReceivedEvent event, Message message, PlayerReply playerResponse, EmbedBuilder embedBuilder) {
         if (playerResponse.getPlayer() == null) {
             message.editMessage(embedBuilder
                 .setDescription("Found no Hypixel profile with the given username!")
@@ -107,14 +109,13 @@ public class VerifyCommand extends Command {
             return;
         }
 
-        PlayerResponse.Player player = playerResponse.getPlayer();
-
-        if (!hasSocialMediaLinked(player)) {
+        JsonObject player = playerResponse.getPlayer();
+        if (!hasDiscordLinked(player)) {
             sendNoSocialLinksMessage(message, embedBuilder, player);
             return;
         }
 
-        if (!player.getSocialMedia().getLinks().getOrDefault("DISCORD", "invalid").equalsIgnoreCase(event.getAuthor().getAsTag())) {
+        if (!player.getAsJsonObject("socialMedia").getAsJsonObject("links").get("DISCORD").getAsString().equalsIgnoreCase(event.getAuthor().getAsTag())) {
             sendNoSocialLinksMessage(message, embedBuilder, player);
             return;
         }
@@ -128,18 +129,18 @@ public class VerifyCommand extends Command {
         ).queue();
     }
 
-    private void sendNoSocialLinksMessage(Message message, EmbedBuilder embedBuilder, PlayerResponse.Player player) {
+    private void sendNoSocialLinksMessage(Message message, EmbedBuilder embedBuilder, JsonObject player) {
         message.editMessage(embedBuilder
-            .setDescription("Found no Discord social link that matches your Discord user for " + player.getDisplayname() + "!")
+            .setDescription("Found no Discord social link that matches your Discord user for " + player.get("displayname").getAsString() + "!")
             .setColor(MessageType.ERROR.getColor())
             .build()
         ).queue();
     }
 
-    private boolean hasSocialMediaLinked(PlayerResponse.Player player) {
+    private boolean hasDiscordLinked(JsonObject json) {
         try {
-            return !player.getSocialMedia().getLinks().isEmpty();
-        } catch (NullPointerException e) {
+            return json.getAsJsonObject("socialMedia").getAsJsonObject("links").has("DISCORD");
+        } catch (Exception e) {
             return false;
         }
     }

@@ -19,11 +19,30 @@
  *
  */
 
-package com.senither.hypixel.exceptions;
+package com.senither.hypixel.hypixel;
 
-public class RatelimiteReachedException extends HypixelAPIException {
+import com.senither.hypixel.SkyblockAssistant;
+import net.hypixel.api.HypixelAPI;
 
-    public RatelimiteReachedException() {
-        super("Ratelimit have been reached, please slow down the request rate to the API.");
+import javax.annotation.Nonnull;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
+public class Hypixel {
+
+    private static final Pattern minecraftUsernameRegex = Pattern.compile("^\\w+$", Pattern.CASE_INSENSITIVE);
+
+    private final HypixelAPI hypixelAPI;
+
+    public Hypixel(SkyblockAssistant app) {
+        hypixelAPI = new HypixelAPI(UUID.fromString(app.getConfiguration().getHypixelToken()));
+    }
+
+    public boolean isValidMinecraftUsername(@Nonnull String username) {
+        return username.length() > 2 && username.length() < 17 && minecraftUsernameRegex.matcher(username).find();
+    }
+
+    public HypixelAPI getAPI() {
+        return hypixelAPI;
     }
 }
