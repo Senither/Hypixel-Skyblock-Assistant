@@ -83,7 +83,7 @@ public class VerifyCommand extends Command {
             .setColor(MessageType.INFO.getColor());
 
 
-        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> app.getHypixel().getAPI().getPlayerByName(args[0])
+        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> app.getHypixel().getPlayerByName(args[0])
             .whenCompleteAsync(((playerResponse, throwable) -> {
                 if (throwable == null) {
                     handleResponse(event, message, playerResponse, embedBuilder);

@@ -19,32 +19,15 @@
  *
  */
 
-package com.senither.hypixel.contracts.hypixel;
+package com.senither.hypixel.hypixel;
 
-public abstract class Response {
+import java.util.UUID;
 
-    protected boolean throttle;
-    protected boolean success;
-    protected String cause;
+public class MojangPlayerUUID {
 
-    public boolean isThrottle() {
-        return throttle;
-    }
+    private UUID id;
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public String getCause() {
-        return cause;
-    }
-
-    @Override
-    public String toString() {
-        return "Response{" +
-            "throttle=" + throttle +
-            ", success=" + success +
-            ", cause='" + cause + '\'' +
-            '}';
+    public UUID getUUID() {
+        return id;
     }
 }
