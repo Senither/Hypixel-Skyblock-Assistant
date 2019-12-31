@@ -23,12 +23,14 @@ package com.senither.hypixel.database;
 
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
+import com.senither.hypixel.database.migrations.CreateUUIDsTableMigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,14 +39,21 @@ public class DatabaseManager {
     private static final Logger log = LoggerFactory.getLogger(DatabaseManager.class);
 
     private MySQLConnection connection;
+    private MigrationManager migrationManager;
 
     public DatabaseManager(SkyblockAssistant app) {
         connection = new MySQLConnection(app);
+        migrationManager = new MigrationManager(this);
 
         try {
             connection.open();
-
             log.info("Connected to database successfully");
+
+            log.info("Registering database migrations");
+            migrationManager.register(new CreateUUIDsTableMigration());
+
+            log.info("Running database migrations");
+            migrationManager.migrate();
         } catch (SQLException e) {
             log.error("Failed to open database connection: {}", e.getMessage(), e);
         }
@@ -89,7 +98,7 @@ public class DatabaseManager {
     }
 
     private PreparedStatement preparedStatement(String sql, Object... binds) throws SQLException {
-        PreparedStatement statement = getConnection().getRawConnection().prepareStatement(sql);
+        PreparedStatement statement = getConnection().getRawConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
         int index = 1;
         for (Object bind : binds) {

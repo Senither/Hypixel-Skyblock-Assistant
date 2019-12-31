@@ -27,9 +27,7 @@ import com.senither.hypixel.contracts.database.DatabaseConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.concurrent.Executors;
 
 public class MySQLConnection extends DatabaseConnection {
@@ -82,11 +80,39 @@ public class MySQLConnection extends DatabaseConnection {
 
     @Override
     public boolean hasTable(String table) {
+        try {
+            DatabaseMetaData md = getConnection().getMetaData();
+
+            try (ResultSet tables = md.getTables(null, null, table, new String[]{"TABLE"})) {
+                if (tables.next()) {
+                    tables.close();
+
+                    return true;
+                }
+            }
+        } catch (SQLException ex) {
+            log.error(String.format("Failed to check if table exists \"%s\": %s", table, ex.getMessage()), ex);
+        }
+
         return false;
     }
 
     @Override
     public boolean truncate(String table) {
+        try {
+            if (!hasTable(table)) {
+                return false;
+            }
+
+            try (Statement statement = getConnection().createStatement()) {
+                statement.executeUpdate(String.format("DELETE FROM `%s`;", table));
+            }
+
+            return true;
+        } catch (SQLException ex) {
+            log.error(String.format("Failed to truncate \"%s\": %s", table, ex.getMessage()), ex);
+        }
+
         return false;
     }
 
