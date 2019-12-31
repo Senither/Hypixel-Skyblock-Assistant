@@ -25,6 +25,8 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -34,6 +36,7 @@ import java.util.regex.Pattern;
 
 public class CommandHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(CommandHandler.class);
     private static final Set<Command> commands = new HashSet<>();
     private static final Pattern argumentsRegEX = Pattern.compile("([^\"]\\S*|\".+?\")\\s*", Pattern.MULTILINE);
 
@@ -68,8 +71,14 @@ public class CommandHandler {
     }
 
     public static void invokeCommand(@Nonnull MessageReceivedEvent event, @Nonnull Command command, boolean invokedThroughMentions) {
-        String[] arguments = toArguments(event.getMessage().getContentRaw());
-        command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
+        try {
+            String[] arguments = toArguments(event.getMessage().getContentRaw());
+            command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
+        } catch (Exception e) {
+            log.error("The {} command threw an {} exception, error: {}",
+                command.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage(), e
+            );
+        }
     }
 
     public static Set<Command> getCommands() {

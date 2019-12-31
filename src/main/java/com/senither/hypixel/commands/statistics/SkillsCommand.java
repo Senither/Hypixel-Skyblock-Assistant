@@ -1,0 +1,179 @@
+/*
+ * Copyright (c) 2019.
+ *
+ * This file is part of Hypixel Skyblock Assistant.
+ *
+ * Hypixel Guild Synchronizer is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Hypixel Guild Synchronizer is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Hypixel Guild Synchronizer.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *
+ */
+
+package com.senither.hypixel.commands.statistics;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.contracts.commands.Command;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.hypixel.api.reply.PlayerReply;
+import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.DecimalFormat;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+public class SkillsCommand extends Command {
+
+    private static final Logger log = LoggerFactory.getLogger(SkillsCommand.class);
+    private static final DecimalFormat niceFormatWithDecimal = new DecimalFormat("#,###.##");
+
+    public SkillsCommand(SkyblockAssistant app) {
+        super(app);
+    }
+
+    @Override
+    public List<String> getTriggers() {
+        return Arrays.asList("skills", "skill");
+    }
+
+    @Override
+    public void onCommand(MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            event.getChannel().sendMessage(new EmbedBuilder()
+                .setColor(MessageType.ERROR.getColor())
+                .setTitle("Missing username")
+                .setDescription(String.join("\n", Arrays.asList(
+                    "You must include the username of the user you want to see their skills from.",
+                    "",
+                    "Try again using `h!skills <username>`"
+                )))
+                .build()
+            ).queue();
+            return;
+        }
+
+        if (!app.getHypixel().isValidMinecraftUsername(args[0])) {
+            event.getChannel().sendMessage(new EmbedBuilder()
+                .setDescription("Invalid Minecraft username given! You must provide a valid to see the users skills.")
+                .setColor(MessageType.ERROR.getColor())
+                .build()
+            ).queue();
+            return;
+        }
+
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .setTitle(args[0] + "'s Skills")
+            .setDescription("Loading Skyblock profile data for " + args[0] + "!")
+            .setColor(MessageType.INFO.getColor());
+
+        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
+            app.getHypixel().getPlayerByName(args[0]).whenCompleteAsync((playerReply, throwable) -> {
+                if (throwable != null) {
+                    log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
+                    message.editMessage(embedBuilder
+                        .setDescription("Something went wrong: " + throwable.getMessage())
+                        .setColor(MessageType.ERROR.getColor())
+                        .build()
+                    ).queue();
+                    return;
+                }
+
+                JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
+
+                try {
+                    for (Map.Entry<String, JsonElement> profileEntry : profiles.entrySet()) {
+                        app.getHypixel().getAPI().getSkyBlockProfile(profileEntry.getKey()).whenCompleteAsync((skyBlockProfileReply, error) -> {
+                            handleSkyblockProfile(event, message, playerReply, skyBlockProfileReply, error);
+                        });
+                        break;
+                    }
+                } catch (Exception e) {
+                    log.error("Something went wrong while trying to fetch the player profile", e);
+                    message.editMessage(embedBuilder
+                        .setDescription("Failed to find a valid Skyblock profile for " + args[0])
+                        .setColor(MessageType.ERROR.getColor())
+                        .build()
+                    ).queue();
+                }
+            });
+        });
+    }
+
+    private void handleSkyblockProfile(MessageReceivedEvent event, Message message, PlayerReply playerReply, SkyBlockProfileReply profileReply, Throwable throwable) {
+        if (throwable != null) {
+            log.error("Profile from name request returned with an exception, error: {}", throwable.getMessage(), throwable);
+            return;
+        }
+
+        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
+
+        try {
+            double mining = member.get("experience_skill_mining").getAsDouble();
+            double foraging = member.get("experience_skill_foraging").getAsDouble();
+            double enchanting = member.get("experience_skill_enchanting").getAsDouble();
+            double farming = member.get("experience_skill_farming").getAsDouble();
+            double combat = member.get("experience_skill_combat").getAsDouble();
+            double fishing = member.get("experience_skill_fishing").getAsDouble();
+            double alchemy = member.get("experience_skill_alchemy").getAsDouble();
+
+            message.editMessage(new EmbedBuilder()
+                .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Skills")
+                .setDescription(String.format("**%s** has an average skill level of **%s**",
+                    playerReply.getPlayer().get("displayname").getAsString(), niceFormatWithDecimal.format(
+                        (
+                            app.getHypixel().getSkillLevelFromExperience(mining) +
+                                app.getHypixel().getSkillLevelFromExperience(foraging) +
+                                app.getHypixel().getSkillLevelFromExperience(enchanting) +
+                                app.getHypixel().getSkillLevelFromExperience(farming) +
+                                app.getHypixel().getSkillLevelFromExperience(combat) +
+                                app.getHypixel().getSkillLevelFromExperience(fishing) +
+                                app.getHypixel().getSkillLevelFromExperience(alchemy)
+                        ) / 7D)
+                ))
+                .setColor(MessageType.SUCCESS.getColor())
+                .addField("Mining", formatStatTextValue(mining), true)
+                .addField("Foraging", formatStatTextValue(foraging), true)
+                .addField("Enchanting", formatStatTextValue(enchanting), true)
+                .addField("Farming", formatStatTextValue(farming), true)
+                .addField("Combat", formatStatTextValue(combat), true)
+                .addField("Fishing", formatStatTextValue(fishing), true)
+                .addField("Alchemy", formatStatTextValue(alchemy), true)
+                .build()
+            ).queue();
+
+        } catch (Exception e) {
+            sendAPIIsDisabledMessage(message, new EmbedBuilder(), playerReply.getPlayer().get("displayname").getAsString());
+        }
+    }
+
+    private String formatStatTextValue(double value) {
+        return "**LvL:** " + niceFormatWithDecimal.format(app.getHypixel().getSkillLevelFromExperience(value))
+            + "\n**EXP:** " + niceFormatWithDecimal.format(value);
+    }
+
+    private void sendAPIIsDisabledMessage(Message message, EmbedBuilder embedBuilder, String username) {
+        message.editMessage(embedBuilder
+            .setColor(MessageType.WARNING.getColor())
+            .setTitle("Failed to load profile!")
+            .setDescription(username + " doesn't appear to have their skill API option enabled!\nYou can ask them nicely to enable it.")
+            .build()
+        ).queue();
+    }
+}
