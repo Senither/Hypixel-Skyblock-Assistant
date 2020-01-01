@@ -25,11 +25,14 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import net.hypixel.api.HypixelAPI;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
 import net.hypixel.api.reply.PlayerReply;
+import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -40,12 +43,8 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -105,12 +104,13 @@ public class Hypixel {
         return hypixelAPI;
     }
 
-    public CompletionStage<PlayerReply> getPlayerByName(String name) {
+    public CompletableFuture<PlayerReply> getPlayerByName(String name) {
         CompletableFuture<PlayerReply> future = new CompletableFuture<>();
 
         try {
             UUID uuid = getUUIDFromName(name);
             if (uuid != null) {
+                log.debug("Requesting for player profile for \"{}\" using the API", name);
                 return getAPI().getPlayerByUuid(uuid);
             }
 
@@ -120,6 +120,71 @@ public class Hypixel {
         }
 
         return future;
+    }
+
+    public CompletableFuture<SkyBlockProfileReply> getSelectedSkyBlockProfileFromUsername(String name) {
+        CompletableFuture<SkyBlockProfileReply> future = new CompletableFuture<>();
+
+        getPlayerByName(name).whenComplete((playerReply, throwable) -> {
+            if (throwable != null) {
+                log.debug("Failed to get selected skyblock profile for \"{}\" due to an exception while getting Hypixel profile.", name);
+                future.completeExceptionally(throwable);
+                return;
+            }
+
+            try {
+                JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
+
+                List<SkyBlockProfileReply> skyBlockProfileReplies = new ArrayList<>();
+                for (Map.Entry<String, JsonElement> profileEntry : profiles.entrySet()) {
+                    try {
+                        SkyBlockProfileReply profileReply = getSkyBlockProfile(profileEntry.getKey()).get(10, TimeUnit.SECONDS);
+                        if (!profileReply.isSuccess()) {
+                            continue;
+                        }
+
+                        skyBlockProfileReplies.add(profileReply);
+                    } catch (Exception e) {
+                        // Ignored
+                    }
+                }
+
+                if (skyBlockProfileReplies.isEmpty()) {
+                    log.debug("Failed to get selected skyblock profile for \"{}\" due to having found no valid profiles.", name);
+
+                    future.completeExceptionally(new RuntimeException("Failed to find any valid SkyBlock profiles!"));
+                    return;
+                }
+
+                //noinspection ConstantConditions
+                SkyBlockProfileReply skyBlockProfileReply = skyBlockProfileReplies.stream()
+                    .sorted((profileOne, profileTwo) -> {
+                        long profileOneSave = profileOne.getProfile().getAsJsonObject("members").getAsJsonObject(
+                            playerReply.getPlayer().get("uuid").getAsString()
+                        ).get("last_save").getAsLong();
+
+                        long profileTwoSave = profileTwo.getProfile().getAsJsonObject("members").getAsJsonObject(
+                            playerReply.getPlayer().get("uuid").getAsString()
+                        ).get("last_save").getAsLong();
+
+                        return profileOneSave < profileTwoSave ? 1 : -1;
+                    }).findFirst().get();
+
+                log.debug("Found selected SkyBlock profile for \"{}\"", name);
+
+                future.complete(skyBlockProfileReply);
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+            }
+        });
+
+        return future;
+    }
+
+    public CompletableFuture<SkyBlockProfileReply> getSkyBlockProfile(String name) {
+        log.debug("Requesting for SkyBlock profile with an ID of {} from the API", name);
+
+        return hypixelAPI.getSkyBlockProfile(name);
     }
 
     public UUID getUUIDFromName(String name) throws SQLException {

@@ -21,7 +21,6 @@
 
 package com.senither.hypixel.commands.statistics;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
@@ -37,7 +36,9 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class SkillsCommand extends Command {
 
@@ -84,44 +85,28 @@ public class SkillsCommand extends Command {
             .setColor(MessageType.INFO.getColor());
 
         event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
-            app.getHypixel().getPlayerByName(args[0]).whenCompleteAsync((playerReply, throwable) -> {
-                if (throwable != null) {
-                    log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
-                    message.editMessage(embedBuilder
-                        .setDescription("Something went wrong: " + throwable.getMessage())
-                        .setColor(MessageType.ERROR.getColor())
-                        .build()
-                    ).queue();
-                    return;
-                }
-
-                JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
-
-                try {
-                    for (Map.Entry<String, JsonElement> profileEntry : profiles.entrySet()) {
-                        app.getHypixel().getAPI().getSkyBlockProfile(profileEntry.getKey()).whenCompleteAsync((skyBlockProfileReply, error) -> {
-                            handleSkyblockProfile(event, message, playerReply, skyBlockProfileReply, error);
-                        });
-                        break;
+            app.getHypixel().getSelectedSkyBlockProfileFromUsername(args[0]).whenCompleteAsync((playerReply, throwable) -> {
+                if (throwable == null) {
+                    try {
+                        handleSkyblockProfile(message, playerReply, app.getHypixel().getPlayerByName(args[0]).get(10, TimeUnit.SECONDS));
+                        return;
+                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                        throwable = e;
                     }
-                } catch (Exception e) {
-                    log.error("Something went wrong while trying to fetch the player profile", e);
-                    message.editMessage(embedBuilder
-                        .setDescription("Failed to find a valid Skyblock profile for " + args[0])
-                        .setColor(MessageType.ERROR.getColor())
-                        .build()
-                    ).queue();
                 }
+
+                log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
+
+                message.editMessage(embedBuilder
+                    .setDescription("Something went wrong: " + throwable.getMessage())
+                    .setColor(MessageType.ERROR.getColor())
+                    .build()
+                ).queue();
             });
         });
     }
 
-    private void handleSkyblockProfile(MessageReceivedEvent event, Message message, PlayerReply playerReply, SkyBlockProfileReply profileReply, Throwable throwable) {
-        if (throwable != null) {
-            log.error("Profile from name request returned with an exception, error: {}", throwable.getMessage(), throwable);
-            return;
-        }
-
+    private void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
 
         try {
