@@ -31,6 +31,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import net.hypixel.api.HypixelAPI;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
+import net.hypixel.api.reply.AbstractReply;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 import org.apache.http.client.HttpClient;
@@ -51,8 +52,13 @@ import java.util.regex.Pattern;
 public class Hypixel {
 
     private static final Logger log = LoggerFactory.getLogger(Hypixel.class);
-    private static final Cache<String, UUID> cache = CacheBuilder.newBuilder()
+
+    private static final Cache<String, UUID> uuidCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
+        .build();
+
+    private static final Cache<String, AbstractReply> replyCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(90, TimeUnit.SECONDS)
         .build();
 
     private static final Gson gson = new GsonBuilder()
@@ -107,14 +113,35 @@ public class Hypixel {
     public CompletableFuture<PlayerReply> getPlayerByName(String name) {
         CompletableFuture<PlayerReply> future = new CompletableFuture<>();
 
+        final String cacheKey = "player-name-" + name;
         try {
             UUID uuid = getUUIDFromName(name);
-            if (uuid != null) {
-                log.debug("Requesting for player profile for \"{}\" using the API", name);
-                return getAPI().getPlayerByUuid(uuid);
+            if (uuid == null) {
+                future.completeExceptionally(new RuntimeException("Failed to find a valid UUID for the given username!"));
+                return future;
             }
 
-            future.completeExceptionally(new RuntimeException("Failed to find a valid UUID for the given username!"));
+            AbstractReply cachedPlayerProfile = replyCache.getIfPresent(cacheKey);
+            if (cachedPlayerProfile != null && cachedPlayerProfile instanceof PlayerReply) {
+                log.debug("Found player profile for {} using the in-memory cache (ID: {})", name, uuid.toString());
+
+                future.complete((PlayerReply) cachedPlayerProfile);
+                return future;
+            }
+
+            log.debug("Requesting for player profile for \"{}\" using the API", name);
+
+            getAPI().getPlayerByUuid(uuid).whenCompleteAsync((playerReply, throwable) -> {
+                if (throwable != null) {
+                    future.completeExceptionally(throwable);
+                    return;
+                }
+
+                replyCache.put(cacheKey, playerReply);
+
+                future.complete(playerReply);
+            });
+
         } catch (SQLException e) {
             future.completeExceptionally(e);
         }
@@ -182,13 +209,36 @@ public class Hypixel {
     }
 
     public CompletableFuture<SkyBlockProfileReply> getSkyBlockProfile(String name) {
+        CompletableFuture<SkyBlockProfileReply> future = new CompletableFuture<>();
+
+        final String cacheKey = "skyblock-profile-" + name;
+
+        AbstractReply cachedSkyBlockProfile = replyCache.getIfPresent(cacheKey);
+        if (cachedSkyBlockProfile != null && cachedSkyBlockProfile instanceof SkyBlockProfileReply) {
+            log.debug("Found SkyBlock profile {} using the in-memory cache", name);
+
+            future.complete((SkyBlockProfileReply) cachedSkyBlockProfile);
+            return future;
+        }
+
         log.debug("Requesting for SkyBlock profile with an ID of {} from the API", name);
 
-        return hypixelAPI.getSkyBlockProfile(name);
+        hypixelAPI.getSkyBlockProfile(name).whenComplete((skyBlockProfileReply, throwable) -> {
+            if (throwable != null) {
+                future.completeExceptionally(throwable);
+                return;
+            }
+
+            replyCache.put(cacheKey, skyBlockProfileReply);
+
+            future.complete(skyBlockProfileReply);
+        });
+
+        return future;
     }
 
     public UUID getUUIDFromName(String name) throws SQLException {
-        UUID cachedUUID = cache.getIfPresent(name.toLowerCase());
+        UUID cachedUUID = uuidCache.getIfPresent(name.toLowerCase());
         if (cachedUUID != null) {
             log.debug("Found UUID for {} using the in-memory cache (ID: {})", name, cachedUUID);
             return cachedUUID;
@@ -197,7 +247,7 @@ public class Hypixel {
         Collection result = app.getDatabaseManager().query("SELECT uuid FROM `uuids` WHERE `username` = ?", name);
         if (!result.isEmpty()) {
             UUID uuid = UUID.fromString(result.get(0).getString("uuid"));
-            cache.put(name.toLowerCase(), uuid);
+            uuidCache.put(name.toLowerCase(), uuid);
             log.debug("Found UUID for {} using the database cache (ID: {})", name, uuid);
 
             return uuid;
