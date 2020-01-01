@@ -129,6 +129,19 @@ public class Hypixel {
                 return future;
             }
 
+            Collection result = app.getDatabaseManager().query("SELECT data FROM `players` WHERE `uuid` = ?", uuid.toString());
+            if (!result.isEmpty()) {
+                PlayerReply playerReply = gson.fromJson(result.get(0).getString("data"), PlayerReply.class);
+                if (playerReply != null && playerReply.getPlayer() != null) {
+                    log.debug("Found player profile for {} using the database cache (ID: {})", name, uuid);
+
+                    replyCache.put(cacheKey, playerReply);
+                    future.complete(playerReply);
+
+                    return future;
+                }
+            }
+
             log.debug("Requesting for player profile for \"{}\" using the API", name);
 
             getAPI().getPlayerByUuid(uuid).whenCompleteAsync((playerReply, throwable) -> {
@@ -138,6 +151,14 @@ public class Hypixel {
                 }
 
                 replyCache.put(cacheKey, playerReply);
+
+                try {
+                    app.getDatabaseManager().queryInsert("INSERT INTO `players` SET `uuid` = ?, `data` = ?",
+                        uuid.toString(), gson.toJson(playerReply)
+                    );
+                } catch (Exception ignored) {
+                    //
+                }
 
                 future.complete(playerReply);
             });
@@ -221,6 +242,25 @@ public class Hypixel {
             return future;
         }
 
+        try {
+            Collection result = app.getDatabaseManager().query("SELECT data FROM `profiles` WHERE `uuid` = ?", name);
+            if (!result.isEmpty()) {
+                SkyBlockProfileReply skyblockProfile = gson.fromJson(result.get(0).getString("data"), SkyBlockProfileReply.class);
+                if (skyblockProfile != null && skyblockProfile.getProfile() != null) {
+                    log.debug("Found SkyBlock profile for {} using the database cache", name);
+
+                    replyCache.put(cacheKey, skyblockProfile);
+                    future.complete(skyblockProfile);
+
+                    return future;
+                }
+            }
+        } catch (SQLException e) {
+            log.error("An exception were thrown while trying to get the SkyBlock profile from the database cache, error: {}",
+                e.getMessage(), e
+            );
+        }
+
         log.debug("Requesting for SkyBlock profile with an ID of {} from the API", name);
 
         hypixelAPI.getSkyBlockProfile(name).whenComplete((skyBlockProfileReply, throwable) -> {
@@ -230,6 +270,14 @@ public class Hypixel {
             }
 
             replyCache.put(cacheKey, skyBlockProfileReply);
+
+            try {
+                app.getDatabaseManager().queryInsert("INSERT INTO `profiles` SET `uuid` = ?, `data` = ?",
+                    name, gson.toJson(skyBlockProfileReply)
+                );
+            } catch (Exception ignored) {
+                //
+            }
 
             future.complete(skyBlockProfileReply);
         });
