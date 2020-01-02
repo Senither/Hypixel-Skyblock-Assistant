@@ -21,7 +21,7 @@
 
 package com.senither.hypixel;
 
-import com.senither.hypixel.commands.CommandHandler;
+import com.senither.hypixel.commands.CommandManager;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.PingCommand;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
@@ -43,6 +43,7 @@ public class SkyblockAssistant {
 
     private final Configuration configuration;
     private final DatabaseManager databaseManager;
+    private final CommandManager commandManager;
     private final Hypixel hypixel;
     private final ShardManager shardManager;
 
@@ -50,10 +51,11 @@ public class SkyblockAssistant {
         this.configuration = configuration;
 
         log.info("Registering commands...");
-        CommandHandler.registerCommand(new VerifyCommand(this));
-        CommandHandler.registerCommand(new SkillsCommand(this));
-        CommandHandler.registerCommand(new PingCommand(this));
-        log.info("{} commands have been registered!", CommandHandler.getCommands().size());
+        this.commandManager = new CommandManager(this);
+        commandManager.registerCommand(new VerifyCommand(this));
+        commandManager.registerCommand(new SkillsCommand(this));
+        commandManager.registerCommand(new PingCommand(this));
+        log.info("{} commands have been registered!", commandManager.getCommands().size());
 
         log.info("Creating database manager");
         this.databaseManager = new DatabaseManager(this);
@@ -67,6 +69,10 @@ public class SkyblockAssistant {
 
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    public CommandManager getCommandManager() {
+        return commandManager;
     }
 
     public Hypixel getHypixel() {

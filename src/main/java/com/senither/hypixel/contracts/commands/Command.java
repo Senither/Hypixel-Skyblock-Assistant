@@ -29,12 +29,22 @@ import java.util.List;
 public abstract class Command {
 
     protected final SkyblockAssistant app;
+    protected final boolean verificationRequired;
 
     public Command(SkyblockAssistant app) {
+        this(app, true);
+    }
+
+    public Command(SkyblockAssistant app, boolean verificationRequired) {
         this.app = app;
+        this.verificationRequired = verificationRequired;
     }
 
     public abstract List<String> getTriggers();
 
     public abstract void onCommand(MessageReceivedEvent event, String[] args);
+
+    public final boolean isVerificationRequired() {
+        return verificationRequired;
+    }
 }

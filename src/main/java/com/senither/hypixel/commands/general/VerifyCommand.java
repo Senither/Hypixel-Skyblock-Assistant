@@ -43,7 +43,7 @@ public class VerifyCommand extends Command {
     private static final Logger log = LoggerFactory.getLogger(VerifyCommand.class);
 
     public VerifyCommand(SkyblockAssistant app) {
-        super(app);
+        super(app, false);
     }
 
     @Override
@@ -132,6 +132,8 @@ public class VerifyCommand extends Command {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        app.getCommandManager().clearVerificationCacheFor(event.getAuthor());
 
         message.editMessage(embedBuilder
             .setDescription("Your account have now been verified!")

@@ -23,7 +23,6 @@ package com.senither.hypixel.listeners;
 
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
-import com.senither.hypixel.commands.CommandHandler;
 import com.senither.hypixel.contracts.commands.Command;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -65,7 +64,7 @@ public class MessageEventListener extends ListenerAdapter {
 
         String part = event.getMessage().getContentRaw().split(" ")[isMentionable ? 1 : 0];
 
-        Command command = CommandHandler.getCommand((isMentionable ? Constants.COMMAND_PREFIX : "") + part);
+        Command command = app.getCommandManager().getCommand((isMentionable ? Constants.COMMAND_PREFIX : "") + part);
 
         if (command != null) {
             log.info(COMMAND_OUTPUT
@@ -76,7 +75,7 @@ public class MessageEventListener extends ListenerAdapter {
                 .replace("%message%", event.getMessage().getContentRaw())
             );
 
-            CommandHandler.invokeCommand(event, command, isMentionable);
+            app.getCommandManager().invokeCommand(event, command, isMentionable);
         }
     }
 

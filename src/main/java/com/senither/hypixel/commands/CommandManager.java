@@ -21,27 +21,44 @@
 
 package com.senither.hypixel.commands;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.Constants;
+import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CommandHandler {
+public class CommandManager {
 
-    private static final Logger log = LoggerFactory.getLogger(CommandHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(CommandManager.class);
     private static final Set<Command> commands = new HashSet<>();
     private static final Pattern argumentsRegEX = Pattern.compile("([^\"]\\S*|\".+?\")\\s*", Pattern.MULTILINE);
 
+    private static final Cache<Long, Boolean> verifyCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(30, TimeUnit.MINUTES)
+        .build();
+
+    private final SkyblockAssistant app;
+
+    public CommandManager(SkyblockAssistant app) {
+        this.app = app;
+    }
+
     @Nullable
-    public static Command getCommand(@Nonnull String message) {
+    public Command getCommand(@Nonnull String message) {
         if (!message.startsWith(Constants.COMMAND_PREFIX)) {
             return null;
         }
@@ -57,7 +74,7 @@ public class CommandHandler {
         return null;
     }
 
-    public static void registerCommand(@Nonnull Command command) {
+    public void registerCommand(@Nonnull Command command) {
         for (Command registeredCommand : commands) {
             for (String registeredCommandTrigger : registeredCommand.getTriggers()) {
                 for (String trigger : command.getTriggers()) {
@@ -70,10 +87,24 @@ public class CommandHandler {
         commands.add(command);
     }
 
-    public static void invokeCommand(@Nonnull MessageReceivedEvent event, @Nonnull Command command, boolean invokedThroughMentions) {
+    public void invokeCommand(@Nonnull MessageReceivedEvent event, @Nonnull Command command, boolean invokedThroughMentions) {
         try {
             String[] arguments = toArguments(event.getMessage().getContentRaw());
-            command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
+            if (!command.isVerificationRequired() || isUserVerified(event.getAuthor())) {
+                command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
+                return;
+            }
+
+            event.getChannel().sendMessage(new EmbedBuilder()
+                .setColor(com.senither.hypixel.chat.MessageType.ERROR.getColor())
+                .setTitle("Missing verification")
+                .setDescription(String.join("\n", Arrays.asList(
+                    "You must verify your account with the bot to use this command, you can do this by",
+                    "running `h!verify <username>`, where your username is your in-game Minecraft",
+                    "username that has your Discord account linked on Hypixel.net"
+                )))
+                .build()
+            ).queue();
         } catch (Exception e) {
             log.error("The {} command threw an {} exception, error: {}",
                 command.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage(), e
@@ -81,11 +112,31 @@ public class CommandHandler {
         }
     }
 
-    public static Set<Command> getCommands() {
+    public Set<Command> getCommands() {
         return commands;
     }
 
-    private static String[] toArguments(String string) {
+    public void clearVerificationCacheFor(User user) {
+        verifyCache.invalidate(user.getIdLong());
+    }
+
+    private boolean isUserVerified(User user) {
+        Boolean verificationState = verifyCache.getIfPresent(user.getIdLong());
+        if (verificationState != null) {
+            return verificationState;
+        }
+
+        try {
+            boolean hasResult = !app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `discord_id` = ?", user.getIdLong()).isEmpty();
+
+            verifyCache.put(user.getIdLong(), hasResult);
+            return hasResult;
+        } catch (SQLException ignored) {
+            return false;
+        }
+    }
+
+    private String[] toArguments(String string) {
         List<String> arguments = new ArrayList<>();
 
         Matcher matcher = argumentsRegEX.matcher(string.replaceAll("\"\"", "\" \""));
