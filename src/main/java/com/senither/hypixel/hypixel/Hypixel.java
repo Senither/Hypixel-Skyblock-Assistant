@@ -44,7 +44,10 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -66,18 +69,6 @@ public class Hypixel {
         .create();
 
     private static final Pattern minecraftUsernameRegex = Pattern.compile("^\\w+$", Pattern.CASE_INSENSITIVE);
-    private static final List<Integer> skillLevels = new ArrayList<>();
-
-    static {
-        skillLevels.addAll(Arrays.asList(
-            50, 125, 200, 300, 500, 750, 1000, 1500, 2000, 3500,
-            5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000
-        ));
-
-        for (int i = 1; i < 30; i++) {
-            skillLevels.add(100000 * i);
-        }
-    }
 
     private final SkyblockAssistant app;
     private final HypixelAPI hypixelAPI;
@@ -92,18 +83,6 @@ public class Hypixel {
 
     public boolean isValidMinecraftUsername(@Nonnull String username) {
         return username.length() > 2 && username.length() < 17 && minecraftUsernameRegex.matcher(username).find();
-    }
-
-    public double getSkillLevelFromExperience(double experience) {
-        int level = 0;
-        for (int toRemove : skillLevels) {
-            experience -= toRemove;
-            if (experience < 0) {
-                return level + (1D - (experience * -1) / (double) toRemove);
-            }
-            level++;
-        }
-        return 0;
     }
 
     public HypixelAPI getAPI() {

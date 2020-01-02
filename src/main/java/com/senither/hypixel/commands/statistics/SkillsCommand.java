@@ -24,29 +24,32 @@ package com.senither.hypixel.commands.statistics;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
-import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
-public class SkillsCommand extends Command {
+public class SkillsCommand extends SkillCommand {
 
-    private static final Logger log = LoggerFactory.getLogger(SkillsCommand.class);
-    private static final DecimalFormat niceFormatWithDecimal = new DecimalFormat("#,###.##");
+    private final List<Integer> skillLevels = new ArrayList<>();
 
     public SkillsCommand(SkyblockAssistant app) {
-        super(app);
+        super(app, "skill");
+
+        skillLevels.addAll(Arrays.asList(
+            50, 125, 200, 300, 500, 750, 1000, 1500, 2000, 3500,
+            5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000
+        ));
+
+        for (int i = 1; i < 30; i++) {
+            skillLevels.add(100000 * i);
+        }
     }
 
     @Override
@@ -55,58 +58,7 @@ public class SkillsCommand extends Command {
     }
 
     @Override
-    public void onCommand(MessageReceivedEvent event, String[] args) {
-        if (args.length == 0) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(MessageType.ERROR.getColor())
-                .setTitle("Missing username")
-                .setDescription(String.join("\n", Arrays.asList(
-                    "You must include the username of the user you want to see their skills from.",
-                    "",
-                    "Try again using `h!skills <username>`"
-                )))
-                .build()
-            ).queue();
-            return;
-        }
-
-        if (!app.getHypixel().isValidMinecraftUsername(args[0])) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setDescription("Invalid Minecraft username given! You must provide a valid to see the users skills.")
-                .setColor(MessageType.ERROR.getColor())
-                .build()
-            ).queue();
-            return;
-        }
-
-        EmbedBuilder embedBuilder = new EmbedBuilder()
-            .setTitle(args[0] + "'s Skills")
-            .setDescription("Loading Skyblock profile data for " + args[0] + "!")
-            .setColor(MessageType.INFO.getColor());
-
-        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
-            app.getHypixel().getSelectedSkyBlockProfileFromUsername(args[0]).whenCompleteAsync((playerReply, throwable) -> {
-                if (throwable == null) {
-                    try {
-                        handleSkyblockProfile(message, playerReply, app.getHypixel().getPlayerByName(args[0]).get(10, TimeUnit.SECONDS));
-                        return;
-                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                        throwable = e;
-                    }
-                }
-
-                log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
-
-                message.editMessage(embedBuilder
-                    .setDescription("Something went wrong: " + throwable.getMessage())
-                    .setColor(MessageType.ERROR.getColor())
-                    .build()
-                ).queue();
-            });
-        });
-    }
-
-    private void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
 
         double mining = getSkillExperience(member, "experience_skill_mining");
@@ -127,15 +79,15 @@ public class SkillsCommand extends Command {
         message.editMessage(new EmbedBuilder()
             .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Skills")
             .setDescription(String.format("**%s** has an average skill level of **%s**",
-                playerReply.getPlayer().get("displayname").getAsString(), niceFormatWithDecimal.format(
+                playerReply.getPlayer().get("displayname").getAsString(), NumberUtil.formatNicelyWithDecimals(
                     (
-                        app.getHypixel().getSkillLevelFromExperience(mining) +
-                            app.getHypixel().getSkillLevelFromExperience(foraging) +
-                            app.getHypixel().getSkillLevelFromExperience(enchanting) +
-                            app.getHypixel().getSkillLevelFromExperience(farming) +
-                            app.getHypixel().getSkillLevelFromExperience(combat) +
-                            app.getHypixel().getSkillLevelFromExperience(fishing) +
-                            app.getHypixel().getSkillLevelFromExperience(alchemy)
+                        getSkillLevelFromExperience(mining) +
+                            getSkillLevelFromExperience(foraging) +
+                            getSkillLevelFromExperience(enchanting) +
+                            getSkillLevelFromExperience(farming) +
+                            getSkillLevelFromExperience(combat) +
+                            getSkillLevelFromExperience(fishing) +
+                            getSkillLevelFromExperience(alchemy)
                     ) / 7D)
             ))
             .setColor(MessageType.SUCCESS.getColor())
@@ -154,8 +106,8 @@ public class SkillsCommand extends Command {
     }
 
     private String formatStatTextValue(double value) {
-        return "**LvL:** " + niceFormatWithDecimal.format(app.getHypixel().getSkillLevelFromExperience(value))
-            + "\n**EXP:** " + niceFormatWithDecimal.format(value);
+        return "**LvL:** " + NumberUtil.formatNicelyWithDecimals(getSkillLevelFromExperience(value))
+            + "\n**EXP:** " + NumberUtil.formatNicely(value);
     }
 
     private double getSkillExperience(JsonObject object, String name) {
@@ -164,6 +116,18 @@ public class SkillsCommand extends Command {
         } catch (Exception e) {
             return 0D;
         }
+    }
+
+    public double getSkillLevelFromExperience(double experience) {
+        int level = 0;
+        for (int toRemove : skillLevels) {
+            experience -= toRemove;
+            if (experience < 0) {
+                return level + (1D - (experience * -1) / (double) toRemove);
+            }
+            level++;
+        }
+        return 0;
     }
 
     private void sendAPIIsDisabledMessage(Message message, EmbedBuilder embedBuilder, String username) {
