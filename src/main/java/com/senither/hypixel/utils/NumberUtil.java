@@ -28,6 +28,10 @@ public class NumberUtil {
     private static final DecimalFormat niceFormat = new DecimalFormat("#,##0");
     private static final DecimalFormat niceFormatWithDecimal = new DecimalFormat("#,###.##");
 
+    public static String formatNicely(int value) {
+        return niceFormat.format(value);
+    }
+
     public static String formatNicely(double value) {
         return niceFormat.format(value);
     }
