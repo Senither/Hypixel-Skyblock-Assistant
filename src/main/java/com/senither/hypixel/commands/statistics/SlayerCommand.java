@@ -53,12 +53,22 @@ public class SlayerCommand extends SkillCommand {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
 
         JsonObject slayerBosses = member.getAsJsonObject("slayer_bosses");
+        int totalCoinsSpentOnSlayers = getTotalCoinsSpentOnSlayers(slayerBosses);
+        if (totalCoinsSpentOnSlayers == 0) {
+            message.editMessage(new EmbedBuilder()
+                .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Slayers")
+                .setDescription(playerReply.getPlayer().get("displayname").getAsString() + " haven't done any slayer quests yet, so there is nothing to display!")
+                .setColor(MessageType.WARNING.getColor())
+                .build()
+            ).queue();
+            return;
+        }
 
         message.editMessage(new EmbedBuilder()
             .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Slayers")
             .setDescription(String.format("%s has spent %s coins on slayer quests.",
                 playerReply.getPlayer().get("displayname").getAsString(),
-                NumberUtil.formatNicely(getTotalCoinsSpentOnSlayers(slayerBosses))
+                NumberUtil.formatNicely(totalCoinsSpentOnSlayers)
             ))
             .setColor(MessageType.SUCCESS.getColor())
             .addField("Revenant Horror", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("zombie")), true)
