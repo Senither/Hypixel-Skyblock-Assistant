@@ -24,7 +24,9 @@ package com.senither.hypixel.contracts.commands;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
+import com.senither.hypixel.database.collection.Collection;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.PlayerReply;
@@ -32,6 +34,7 @@ import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -51,39 +54,21 @@ public abstract class SkillCommand extends Command {
 
     @Override
     public final void onCommand(MessageReceivedEvent event, String[] args) {
-        if (args.length == 0) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(MessageType.ERROR.getColor())
-                .setTitle("Missing username")
-                .setDescription(String.format(String.join("\n", Arrays.asList(
-                    "You must include the username of the user you want to see %s stats for.",
-                    "",
-                    "Try again using `h!%s <username>`"
-                )), type, getTriggers().get(0)))
-                .build()
-            ).queue();
-            return;
-        }
-
-        if (!app.getHypixel().isValidMinecraftUsername(args[0])) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setDescription("Invalid Minecraft username given! You must provide a valid to see the users skills.")
-                .setColor(MessageType.ERROR.getColor())
-                .build()
-            ).queue();
+        final String username = getUsernameFromMessage(event, args);
+        if (username == null) {
             return;
         }
 
         EmbedBuilder embedBuilder = new EmbedBuilder()
-            .setTitle(args[0] + "'s " + type.substring(0, 1).toUpperCase() + type.substring(1, type.length()) + "s")
-            .setDescription("Loading Skyblock profile data for " + args[0] + "!")
+            .setTitle(username + "'s " + type.substring(0, 1).toUpperCase() + type.substring(1, type.length()) + "s")
+            .setDescription("Loading Skyblock profile data for " + username + "!")
             .setColor(MessageType.INFO.getColor());
 
         event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
-            app.getHypixel().getSelectedSkyBlockProfileFromUsername(args[0]).whenCompleteAsync((playerReply, throwable) -> {
+            app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).whenCompleteAsync((playerReply, throwable) -> {
                 if (throwable == null) {
                     try {
-                        handleSkyblockProfile(message, playerReply, app.getHypixel().getPlayerByName(args[0]).get(10, TimeUnit.SECONDS));
+                        handleSkyblockProfile(message, playerReply, app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS));
                         return;
                     } catch (InterruptedException | ExecutionException | TimeoutException e) {
                         throwable = e;
@@ -99,6 +84,55 @@ public abstract class SkillCommand extends Command {
                 ).queue();
             });
         });
+    }
+
+    private String getUsernameFromMessage(MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            event.getChannel().sendMessage(new EmbedBuilder()
+                .setColor(MessageType.ERROR.getColor())
+                .setTitle("Missing username")
+                .setDescription(String.format(String.join("\n", Arrays.asList(
+                    "You must include the username of the user you want to see %s stats for.",
+                    "",
+                    "Try again using `h!%s <username>`"
+                )), type, getTriggers().get(0)))
+                .build()
+            ).queue();
+
+            return null;
+        }
+
+        String username = args[0];
+        if (app.getHypixel().isValidMinecraftUsername(username)) {
+            return username;
+        }
+
+        if (!event.getMessage().getMentions(Message.MentionType.USER).isEmpty()) {
+            IMentionable mentionableUser = event.getMessage().getMentions(Message.MentionType.USER).get(
+                event.getMessage().isMentioned(event.getGuild().getSelfMember().getUser(), Message.MentionType.USER) ? 1 : 0
+            );
+
+            try {
+                Collection result = app.getDatabaseManager().query(
+                    "SELECT `username` FROM `uuids` WHERE `discord_id` = ?",
+                    mentionableUser.getIdLong()
+                );
+
+                if (!result.isEmpty()) {
+                    return result.first().getString("username");
+                }
+            } catch (SQLException e) {
+                //
+            }
+        }
+
+        event.getChannel().sendMessage(new EmbedBuilder()
+            .setDescription("Invalid Minecraft username given!\nYou must provide a valid username to see the users skills.")
+            .setColor(MessageType.ERROR.getColor())
+            .build()
+        ).queue();
+
+        return null;
     }
 
     protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply playerReply, PlayerReply reply);
