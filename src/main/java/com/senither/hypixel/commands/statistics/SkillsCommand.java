@@ -109,48 +109,61 @@ public class SkillsCommand extends Command {
     private void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
 
-        try {
-            double mining = member.get("experience_skill_mining").getAsDouble();
-            double foraging = member.get("experience_skill_foraging").getAsDouble();
-            double enchanting = member.get("experience_skill_enchanting").getAsDouble();
-            double farming = member.get("experience_skill_farming").getAsDouble();
-            double combat = member.get("experience_skill_combat").getAsDouble();
-            double fishing = member.get("experience_skill_fishing").getAsDouble();
-            double alchemy = member.get("experience_skill_alchemy").getAsDouble();
+        double mining = getSkillExperience(member, "experience_skill_mining");
+        double foraging = getSkillExperience(member, "experience_skill_foraging");
+        double enchanting = getSkillExperience(member, "experience_skill_enchanting");
+        double farming = getSkillExperience(member, "experience_skill_farming");
+        double combat = getSkillExperience(member, "experience_skill_combat");
+        double fishing = getSkillExperience(member, "experience_skill_fishing");
+        double alchemy = getSkillExperience(member, "experience_skill_alchemy");
+        double carpentry = getSkillExperience(member, "experience_skill_carpentry");
+        double runecrafting = getSkillExperience(member, "experience_skill_runecrafting");
 
-            message.editMessage(new EmbedBuilder()
-                .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Skills")
-                .setDescription(String.format("**%s** has an average skill level of **%s**",
-                    playerReply.getPlayer().get("displayname").getAsString(), niceFormatWithDecimal.format(
-                        (
-                            app.getHypixel().getSkillLevelFromExperience(mining) +
-                                app.getHypixel().getSkillLevelFromExperience(foraging) +
-                                app.getHypixel().getSkillLevelFromExperience(enchanting) +
-                                app.getHypixel().getSkillLevelFromExperience(farming) +
-                                app.getHypixel().getSkillLevelFromExperience(combat) +
-                                app.getHypixel().getSkillLevelFromExperience(fishing) +
-                                app.getHypixel().getSkillLevelFromExperience(alchemy)
-                        ) / 7D)
-                ))
-                .setColor(MessageType.SUCCESS.getColor())
-                .addField("Mining", formatStatTextValue(mining), true)
-                .addField("Foraging", formatStatTextValue(foraging), true)
-                .addField("Enchanting", formatStatTextValue(enchanting), true)
-                .addField("Farming", formatStatTextValue(farming), true)
-                .addField("Combat", formatStatTextValue(combat), true)
-                .addField("Fishing", formatStatTextValue(fishing), true)
-                .addField("Alchemy", formatStatTextValue(alchemy), true)
-                .build()
-            ).queue();
-
-        } catch (Exception e) {
+        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
             sendAPIIsDisabledMessage(message, new EmbedBuilder(), playerReply.getPlayer().get("displayname").getAsString());
+            return;
         }
+
+        message.editMessage(new EmbedBuilder()
+            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Skills")
+            .setDescription(String.format("**%s** has an average skill level of **%s**",
+                playerReply.getPlayer().get("displayname").getAsString(), niceFormatWithDecimal.format(
+                    (
+                        app.getHypixel().getSkillLevelFromExperience(mining) +
+                            app.getHypixel().getSkillLevelFromExperience(foraging) +
+                            app.getHypixel().getSkillLevelFromExperience(enchanting) +
+                            app.getHypixel().getSkillLevelFromExperience(farming) +
+                            app.getHypixel().getSkillLevelFromExperience(combat) +
+                            app.getHypixel().getSkillLevelFromExperience(fishing) +
+                            app.getHypixel().getSkillLevelFromExperience(alchemy)
+                    ) / 7D)
+            ))
+            .setColor(MessageType.SUCCESS.getColor())
+            .addField("Mining", formatStatTextValue(mining), true)
+            .addField("Foraging", formatStatTextValue(foraging), true)
+            .addField("Enchanting", formatStatTextValue(enchanting), true)
+            .addField("Farming", formatStatTextValue(farming), true)
+            .addField("Combat", formatStatTextValue(combat), true)
+            .addField("Fishing", formatStatTextValue(fishing), true)
+            .addField("Alchemy", formatStatTextValue(alchemy), true)
+            .addField("Carpentry", formatStatTextValue(carpentry), true)
+            .addField("Runecrafting", formatStatTextValue(runecrafting), true)
+            .setFooter("Note > Carpentry and Runecrafting are cosmetic skills, and are therefor not included in the average skill calculation.")
+            .build()
+        ).queue();
     }
 
     private String formatStatTextValue(double value) {
         return "**LvL:** " + niceFormatWithDecimal.format(app.getHypixel().getSkillLevelFromExperience(value))
             + "\n**EXP:** " + niceFormatWithDecimal.format(value);
+    }
+
+    private double getSkillExperience(JsonObject object, String name) {
+        try {
+            return object.get(name).getAsDouble();
+        } catch (Exception e) {
+            return 0D;
+        }
     }
 
     private void sendAPIIsDisabledMessage(Message message, EmbedBuilder embedBuilder, String username) {
