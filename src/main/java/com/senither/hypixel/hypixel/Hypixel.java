@@ -278,7 +278,51 @@ public class Hypixel {
     }
 
     public CompletableFuture<GuildReply> getGuildByName(String name) {
-        return getAPI().getGuildByName(name);
+        CompletableFuture<GuildReply> future = new CompletableFuture<>();
+
+        final String cacheKey = "skyblock-guild-" + name.trim().toLowerCase();
+
+        AbstractReply cachedSkyBlockGuild = replyCache.getIfPresent(cacheKey);
+        if (cachedSkyBlockGuild != null && cachedSkyBlockGuild instanceof GuildReply) {
+            log.debug("Found SkyBlock Guild {} using the in-memory cache", name);
+
+            future.complete((GuildReply) cachedSkyBlockGuild);
+            return future;
+        }
+
+        try {
+            Collection result = app.getDatabaseManager().query("SELECT `data` FROM `guilds` WHERE `name` = ?", name);
+            if (!result.isEmpty()) {
+                GuildReply skyblockGuild = gson.fromJson(result.get(0).getString("data"), GuildReply.class);
+                if (skyblockGuild != null && skyblockGuild.getGuild() != null) {
+                    log.debug("Found SkyBlock Guild for {} using the database cache", name);
+
+                    replyCache.put(cacheKey, skyblockGuild);
+                    future.complete(skyblockGuild);
+
+                    return future;
+                }
+            }
+        } catch (SQLException e) {
+            log.error("An exception were thrown while trying to get the SkyBlock profile from the database cache, error: {}",
+                e.getMessage(), e
+            );
+        }
+
+        log.debug("Requesting for SkyBlock Guild with a name of {} from the API", name);
+
+        hypixelAPI.getGuildByName(name).whenComplete((skyBlockGuildReply, throwable) -> {
+            if (throwable != null) {
+                future.completeExceptionally(throwable);
+                return;
+            }
+
+            replyCache.put(cacheKey, skyBlockGuildReply);
+
+            future.complete(skyBlockGuildReply);
+        });
+
+        return future;
     }
 
     public UUID getUUIDFromName(String name) throws SQLException {
