@@ -45,6 +45,20 @@ public class SlayerCommand extends SkillCommand {
     }
 
     @Override
+    public String getName() {
+        return "Slayer Statistics";
+    }
+
+    @Override
+    public List<String> getDescription() {
+        return Arrays.asList(
+            "Gets a players slayer statistics, like how many times they have",
+            "killed each boss, their slayer levels, and how many coins they",
+            "have spent on slayer quests in total."
+        );
+    }
+
+    @Override
     public List<String> getTriggers() {
         return Arrays.asList("slayers", "slayer");
     }

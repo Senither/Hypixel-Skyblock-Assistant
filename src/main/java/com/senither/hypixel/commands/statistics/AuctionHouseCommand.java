@@ -31,6 +31,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,6 +39,20 @@ public class AuctionHouseCommand extends SkillCommand {
 
     public AuctionHouseCommand(SkyblockAssistant app) {
         super(app, "Auction House Statistic");
+    }
+
+    @Override
+    public String getName() {
+        return "Auction House Statistics";
+    }
+
+    @Override
+    public List<String> getDescription() {
+        return Arrays.asList(
+            "Gets some general information about a users auction house activity, like",
+            "how much money they have earned, the amount of bids and auction they",
+            "have created, etc."
+        );
     }
 
     @Override

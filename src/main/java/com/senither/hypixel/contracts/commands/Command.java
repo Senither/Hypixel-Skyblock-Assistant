@@ -40,6 +40,10 @@ public abstract class Command {
         this.verificationRequired = verificationRequired;
     }
 
+    public abstract String getName();
+
+    public abstract List<String> getDescription();
+
     public abstract List<String> getTriggers();
 
     public abstract void onCommand(MessageReceivedEvent event, String[] args);

@@ -142,7 +142,6 @@ public class Hypixel {
 
                 future.complete(playerReply);
             });
-
         } catch (SQLException e) {
             future.completeExceptionally(e);
         }

@@ -47,6 +47,21 @@ public class VerifyCommand extends Command {
     }
 
     @Override
+    public String getName() {
+        return "Account Verification";
+    }
+
+    @Override
+    public List<String> getDescription() {
+        return Arrays.asList(
+            "This command is used to verify your in-game Minecraft username with the bot,",
+            "this is done by comparing your Hypixel profiles Discord social link with the",
+            "account that ran the command, if they both match then your account will,",
+            "be successfully verified."
+        );
+    }
+
+    @Override
     public List<String> getTriggers() {
         return Collections.singletonList("verify");
     }

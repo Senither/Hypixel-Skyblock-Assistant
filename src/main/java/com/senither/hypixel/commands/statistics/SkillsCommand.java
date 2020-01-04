@@ -53,6 +53,19 @@ public class SkillsCommand extends SkillCommand {
     }
 
     @Override
+    public String getName() {
+        return "Skills Statistics";
+    }
+
+    @Override
+    public List<String> getDescription() {
+        return Arrays.asList(
+            "Gets a players average skill level, as-well-as all their skill experience and levels.",
+            "\n\n**Note:** This command will only work for users who have enabled their skill API."
+        );
+    }
+
+    @Override
     public List<String> getTriggers() {
         return Arrays.asList("skills", "skill");
     }

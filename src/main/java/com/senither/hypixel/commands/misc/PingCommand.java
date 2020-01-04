@@ -27,6 +27,7 @@ import com.senither.hypixel.contracts.commands.Command;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,6 +35,21 @@ public class PingCommand extends Command {
 
     public PingCommand(SkyblockAssistant app) {
         super(app);
+    }
+
+    @Override
+    public String getName() {
+        return "Ping";
+    }
+
+    @Override
+    public List<String> getDescription() {
+        return Arrays.asList(
+            "Gets the latency between Discord and the bot, this should help",
+            "determine how quickly the bot will respond to commands, not",
+            "counting computing time for commands, the command can also",
+            "just be used to check if the bot is online"
+        );
     }
 
     @Override
