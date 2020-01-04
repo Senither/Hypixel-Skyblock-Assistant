@@ -37,18 +37,25 @@ import java.util.List;
 
 public class SkillsCommand extends SkillCommand {
 
-    private final List<Integer> skillLevels = new ArrayList<>();
+    private final List<Integer> generalSkillLevels = new ArrayList<>();
+    private final List<Integer> runecraftinSkillLevels = new ArrayList<>();
 
     public SkillsCommand(SkyblockAssistant app) {
         super(app, "skill");
 
-        skillLevels.addAll(Arrays.asList(
+        generalSkillLevels.addAll(Arrays.asList(
             50, 125, 200, 300, 500, 750, 1000, 1500, 2000, 3500,
             5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000
         ));
 
+        runecraftinSkillLevels.addAll(Arrays.asList(
+            50, 100, 125, 160, 200, 250, 315, 400, 500, 625,
+            785, 1000, 1250, 1600, 2000, 2465, 3125, 4000, 5000, 6200,
+            7800, 9800, 12200, 15300
+        ));
+
         for (int i = 1; i < 30; i++) {
-            skillLevels.add(100000 * i);
+            generalSkillLevels.add(100000 * i);
         }
     }
 
@@ -94,32 +101,32 @@ public class SkillsCommand extends SkillCommand {
             .setDescription(String.format("**%s** has an average skill level of **%s**",
                 playerReply.getPlayer().get("displayname").getAsString(), NumberUtil.formatNicelyWithDecimals(
                     (
-                        getSkillLevelFromExperience(mining) +
-                            getSkillLevelFromExperience(foraging) +
-                            getSkillLevelFromExperience(enchanting) +
-                            getSkillLevelFromExperience(farming) +
-                            getSkillLevelFromExperience(combat) +
-                            getSkillLevelFromExperience(fishing) +
-                            getSkillLevelFromExperience(alchemy)
+                        getSkillLevelFromExperience(mining, false) +
+                            getSkillLevelFromExperience(foraging, false) +
+                            getSkillLevelFromExperience(enchanting, false) +
+                            getSkillLevelFromExperience(farming, false) +
+                            getSkillLevelFromExperience(combat, false) +
+                            getSkillLevelFromExperience(fishing, false) +
+                            getSkillLevelFromExperience(alchemy, false)
                     ) / 7D)
             ))
             .setColor(MessageType.SUCCESS.getColor())
-            .addField("Mining", formatStatTextValue(mining), true)
-            .addField("Foraging", formatStatTextValue(foraging), true)
-            .addField("Enchanting", formatStatTextValue(enchanting), true)
-            .addField("Farming", formatStatTextValue(farming), true)
-            .addField("Combat", formatStatTextValue(combat), true)
-            .addField("Fishing", formatStatTextValue(fishing), true)
-            .addField("Alchemy", formatStatTextValue(alchemy), true)
-            .addField("Carpentry", formatStatTextValue(carpentry), true)
-            .addField("Runecrafting", formatStatTextValue(runecrafting), true)
+            .addField("Mining", formatStatTextValue(mining, false), true)
+            .addField("Foraging", formatStatTextValue(foraging, false), true)
+            .addField("Enchanting", formatStatTextValue(enchanting, false), true)
+            .addField("Farming", formatStatTextValue(farming, false), true)
+            .addField("Combat", formatStatTextValue(combat, false), true)
+            .addField("Fishing", formatStatTextValue(fishing, false), true)
+            .addField("Alchemy", formatStatTextValue(alchemy, false), true)
+            .addField("Carpentry", formatStatTextValue(carpentry, false), true)
+            .addField("Runecrafting", formatStatTextValue(runecrafting, true), true)
             .setFooter("Note > Carpentry and Runecrafting are cosmetic skills, and are therefor not included in the average skill calculation.")
             .build()
         ).queue();
     }
 
-    private String formatStatTextValue(double value) {
-        return "**LvL:** " + NumberUtil.formatNicelyWithDecimals(getSkillLevelFromExperience(value))
+    private String formatStatTextValue(double value, boolean isRunecrafting) {
+        return "**LvL:** " + NumberUtil.formatNicelyWithDecimals(getSkillLevelFromExperience(value, isRunecrafting))
             + "\n**EXP:** " + NumberUtil.formatNicely(value);
     }
 
@@ -131,16 +138,16 @@ public class SkillsCommand extends SkillCommand {
         }
     }
 
-    private double getSkillLevelFromExperience(double experience) {
+    private double getSkillLevelFromExperience(double experience, boolean isRunecrafting) {
         int level = 0;
-        for (int toRemove : skillLevels) {
+        for (int toRemove : isRunecrafting ? runecraftinSkillLevels : generalSkillLevels) {
             experience -= toRemove;
             if (experience < 0) {
                 return level + (1D - (experience * -1) / (double) toRemove);
             }
             level++;
         }
-        return 0;
+        return level;
     }
 
     private void sendAPIIsDisabledMessage(Message message, EmbedBuilder embedBuilder, String username) {
