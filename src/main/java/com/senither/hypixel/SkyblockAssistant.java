@@ -30,6 +30,8 @@ import com.senither.hypixel.commands.statistics.SlayerCommand;
 import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.hypixel.Hypixel;
 import com.senither.hypixel.listeners.MessageEventListener;
+import com.senither.hypixel.scheduler.ScheduleManager;
+import com.senither.hypixel.scheduler.jobs.DatabaseCacheCleanupJob;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -46,6 +48,7 @@ public class SkyblockAssistant {
     private final Configuration configuration;
     private final DatabaseManager databaseManager;
     private final CommandManager commandManager;
+    private final ScheduleManager scheduleManager;
     private final Hypixel hypixel;
     private final ShardManager shardManager;
 
@@ -60,6 +63,11 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new AuctionHouseCommand(this));
         commandManager.registerCommand(new PingCommand(this));
         log.info("{} commands have been registered!", commandManager.getCommands().size());
+
+        log.info("Registering jobs...");
+        this.scheduleManager = new ScheduleManager(this);
+        scheduleManager.registerJob(new DatabaseCacheCleanupJob(this));
+        log.info("{} jobs have been registered!", scheduleManager.entrySet().size());
 
         log.info("Creating database manager");
         this.databaseManager = new DatabaseManager(this);
