@@ -135,5 +135,5 @@ public abstract class SkillCommand extends Command {
         return null;
     }
 
-    protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply playerReply, PlayerReply reply);
+    protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply);
 }

@@ -118,7 +118,7 @@ public class SkillsCommand extends SkillCommand {
         }
     }
 
-    public double getSkillLevelFromExperience(double experience) {
+    private double getSkillLevelFromExperience(double experience) {
         int level = 0;
         for (int toRemove : skillLevels) {
             experience -= toRemove;
