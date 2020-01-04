@@ -95,6 +95,10 @@ public class HelpCommand extends Command {
     private void sendCommandList(MessageReceivedEvent event) {
         event.getChannel().sendMessage(
             String.join("\n", Arrays.asList(
+                "> __**General Commands**__```",
+                "> h!verify <username>  - Verifies your Discord account with the bot",
+                "> h!guild-setup <name> - Links the Discord server together with the given guild name through the bot",
+                "> ```",
                 "> __**Statistics Commands**__ ```",
                 "> h!skills <username> - Returns the Skill levels of a player",
                 "> h!slayer <username> - Returns the Slayer levels of a player",

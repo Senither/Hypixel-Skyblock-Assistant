@@ -31,8 +31,10 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
 import net.hypixel.api.HypixelAPI;
+import net.hypixel.api.adapters.DateTimeTypeAdapter;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
 import net.hypixel.api.reply.AbstractReply;
+import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 import org.apache.http.client.HttpClient;
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +70,7 @@ public class Hypixel {
 
     private static final Gson gson = new GsonBuilder()
         .registerTypeAdapter(UUID.class, new UUIDTypeAdapter())
+        .registerTypeAdapter(ZonedDateTime.class, new DateTimeTypeAdapter())
         .create();
 
     private static final Pattern minecraftUsernameRegex = Pattern.compile("^\\w+$", Pattern.CASE_INSENSITIVE);
@@ -88,6 +92,10 @@ public class Hypixel {
 
     public HypixelAPI getAPI() {
         return hypixelAPI;
+    }
+
+    public Gson getGson() {
+        return gson;
     }
 
     public CompletableFuture<PlayerReply> getPlayerByName(String name) {
@@ -267,6 +275,10 @@ public class Hypixel {
         });
 
         return future;
+    }
+
+    public CompletableFuture<GuildReply> getGuildByName(String name) {
+        return getAPI().getGuildByName(name);
     }
 
     public UUID getUUIDFromName(String name) throws SQLException {

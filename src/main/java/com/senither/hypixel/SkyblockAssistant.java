@@ -22,6 +22,7 @@
 package com.senither.hypixel;
 
 import com.senither.hypixel.commands.CommandManager;
+import com.senither.hypixel.commands.general.GuildSetupCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.HelpCommand;
 import com.senither.hypixel.commands.misc.PingCommand;
@@ -58,6 +59,7 @@ public class SkyblockAssistant {
 
         log.info("Registering commands...");
         this.commandManager = new CommandManager(this);
+        commandManager.registerCommand(new GuildSetupCommand(this));
         commandManager.registerCommand(new VerifyCommand(this));
         commandManager.registerCommand(new SkillsCommand(this));
         commandManager.registerCommand(new SlayerCommand(this));
