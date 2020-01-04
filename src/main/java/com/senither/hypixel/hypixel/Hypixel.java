@@ -29,6 +29,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
+import com.senither.hypixel.exceptions.FriendlyException;
 import net.hypixel.api.HypixelAPI;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
 import net.hypixel.api.reply.AbstractReply;
@@ -159,6 +160,11 @@ public class Hypixel {
                 return;
             }
 
+            if (playerReply.getPlayer() == null) {
+                future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
+                return;
+            }
+
             try {
                 JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
 
@@ -179,7 +185,7 @@ public class Hypixel {
                 if (skyBlockProfileReplies.isEmpty()) {
                     log.debug("Failed to get selected skyblock profile for \"{}\" due to having found no valid profiles.", name);
 
-                    future.completeExceptionally(new RuntimeException("Failed to find any valid SkyBlock profiles!"));
+                    future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
                     return;
                 }
 

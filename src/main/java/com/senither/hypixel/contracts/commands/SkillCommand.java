@@ -25,6 +25,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
 import com.senither.hypixel.database.collection.Collection;
+import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
@@ -72,13 +73,23 @@ public abstract class SkillCommand extends Command {
                         return;
                     } catch (InterruptedException | ExecutionException | TimeoutException e) {
                         throwable = e;
+                    } catch (Exception e) {
+                        log.error("An exception where thrown during the {} command, message: {}",
+                            getClass().getSimpleName(), e.getMessage(), e
+                        );
                     }
                 }
 
-                log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
+                if (!(throwable instanceof FriendlyException)) {
+                    log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
+                }
+
+                String exceptionMessage = (throwable instanceof FriendlyException)
+                    ? throwable.getMessage()
+                    : "Something went wrong: " + throwable.getMessage();
 
                 message.editMessage(embedBuilder
-                    .setDescription("Something went wrong: " + throwable.getMessage())
+                    .setDescription(exceptionMessage)
                     .setColor(MessageType.ERROR.getColor())
                     .build()
                 ).queue();
