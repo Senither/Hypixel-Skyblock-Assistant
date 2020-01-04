@@ -66,6 +66,8 @@ public class DatabaseManager {
     }
 
     public Collection query(String sql, Object... binds) throws SQLException {
+        log.debug("Running select query: {}", sql, binds);
+
         try (PreparedStatement statement = preparedStatement(sql, binds)) {
             if (!statement.execute()) {
                 return null;
@@ -76,6 +78,8 @@ public class DatabaseManager {
     }
 
     public Set<Integer> queryInsert(String sql, Object... binds) throws SQLException {
+        log.debug("Running insert query: {}", sql, binds);
+
         try (PreparedStatement statement = preparedStatement(sql, binds)) {
             statement.executeUpdate();
 
@@ -90,6 +94,8 @@ public class DatabaseManager {
     }
 
     public boolean queryUpdate(String sql, Object... binds) throws SQLException {
+        log.debug("Running update query: {}", sql, binds);
+
         try (PreparedStatement statement = preparedStatement(sql, binds)) {
             return statement.executeUpdate() > 0;
         }
