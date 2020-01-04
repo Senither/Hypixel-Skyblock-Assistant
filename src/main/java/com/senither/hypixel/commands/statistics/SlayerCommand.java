@@ -40,6 +40,10 @@ public class SlayerCommand extends SkillCommand {
 
     private static final Logger log = LoggerFactory.getLogger(SlayerCommand.class);
 
+    private final List<Integer> slayerLevels = Arrays.asList(
+        5, 15, 200, 1000, 10000, 20000, 100000, 400000
+    );
+
     public SlayerCommand(SkyblockAssistant app) {
         super(app, "slayer");
     }
@@ -106,7 +110,7 @@ public class SlayerCommand extends SkillCommand {
             NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_2")),
             NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_3")),
             NumberUtil.formatNicely(getEntryFromSlayerData(json, "xp")),
-            NumberUtil.formatNicely(getLevelFromExperience(json.getAsJsonObject("claimed_levels")))
+            NumberUtil.formatNicelyWithDecimals(getSlayerLevelFromExperience(getEntryFromSlayerData(json, "xp")))
         );
     }
 
@@ -136,6 +140,18 @@ public class SlayerCommand extends SkillCommand {
             log.error("Exception were thrown while getting total cost, error: {}", e.getMessage(), e);
             return 0;
         }
+    }
+
+    private double getSlayerLevelFromExperience(int experience) {
+        double level = 0;
+        for (int requirement : slayerLevels) {
+            if (experience < requirement) {
+                level += (double) experience / (double) requirement;
+                break;
+            }
+            level++;
+        }
+        return level;
     }
 
     private int getEntryFromSlayerData(JsonObject jsonpObject, String entry) {
