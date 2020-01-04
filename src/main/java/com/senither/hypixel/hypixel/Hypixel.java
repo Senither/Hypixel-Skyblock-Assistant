@@ -199,15 +199,11 @@ public class Hypixel {
                 //noinspection ConstantConditions
                 SkyBlockProfileReply skyBlockProfileReply = skyBlockProfileReplies.stream()
                     .sorted((profileOne, profileTwo) -> {
-                        long profileOneSave = profileOne.getProfile().getAsJsonObject("members").getAsJsonObject(
+                        return getLastSaveFromMember(profileOne.getProfile().getAsJsonObject("members").getAsJsonObject(
                             playerReply.getPlayer().get("uuid").getAsString()
-                        ).get("last_save").getAsLong();
-
-                        long profileTwoSave = profileTwo.getProfile().getAsJsonObject("members").getAsJsonObject(
+                        )) < getLastSaveFromMember(profileTwo.getProfile().getAsJsonObject("members").getAsJsonObject(
                             playerReply.getPlayer().get("uuid").getAsString()
-                        ).get("last_save").getAsLong();
-
-                        return profileOneSave < profileTwoSave ? 1 : -1;
+                        )) ? 1 : -1;
                     }).findFirst().get();
 
                 log.debug("Found selected SkyBlock profile for \"{}\"", name);
@@ -367,5 +363,9 @@ public class Hypixel {
         }
 
         return null;
+    }
+
+    private long getLastSaveFromMember(JsonObject object) {
+        return object.has("last_save") ? object.get("last_save").getAsLong() : Long.MIN_VALUE;
     }
 }
