@@ -21,9 +21,11 @@
 
 package com.senither.hypixel.listeners;
 
+import com.senither.hypixel.AppInfo;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.commands.CommandContainer;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -31,17 +33,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.awt.*;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 public class MessageEventListener extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(MessageEventListener.class);
     private static final Pattern userRegEX = Pattern.compile("<@(!|)+[0-9]{16,}+>", Pattern.CASE_INSENSITIVE);
+
     private final static String COMMAND_OUTPUT = "Executing Command \"%command%\""
         + "\n\t\tUser:\t %author%"
         + "\n\t\tServer:\t %server%"
         + "\n\t\tChannel: %channel%"
         + "\n\t\tMessage: %message%";
+
+    private static final String directMessage = String.join("\n", Arrays.asList(
+        "Hi there!",
+        "I'm **%s**, a [Hypixel Skyblock Assistant](https://github.com/Senither/Hypixel-Skyblock-Assistant) built for fun by **Senither#0001**!",
+        "You can see what commands I have by using the `%s` command.",
+        "",
+        "I am currently running **Version %s**",
+        "",
+        "You can find all of my source code on github:",
+        "https://github.com/Senither/Hypixel-Skyblock-Assistant"
+    ));
 
     private final SkyblockAssistant app;
 
@@ -56,7 +72,15 @@ public class MessageEventListener extends ListenerAdapter {
         }
 
         if (!event.getChannelType().isGuild()) {
-            // TODO: Send a message to the user here, describing the bot and what it does/how it us eit.
+            event.getChannel().sendMessage(new EmbedBuilder()
+                .setDescription(String.format(directMessage,
+                    event.getJDA().getSelfUser().getName(),
+                    Constants.COMMAND_PREFIX + "help",
+                    AppInfo.getAppInfo().version
+                ))
+                .setColor(Color.decode("#E91E63"))
+                .build()
+            ).queue();
             return;
         }
 
