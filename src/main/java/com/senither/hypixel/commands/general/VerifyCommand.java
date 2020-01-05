@@ -111,8 +111,7 @@ public class VerifyCommand extends Command {
             .setDescription("Loading Hypixel player data for " + args[0] + "!")
             .setColor(MessageType.INFO.getColor());
 
-
-        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> app.getHypixel().getPlayerByName(args[0])
+        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> app.getHypixel().getPlayerByName(args[0], true)
             .whenCompleteAsync(((playerResponse, throwable) -> {
                 if (throwable == null) {
                     handleResponse(event, message, playerResponse, embedBuilder);
@@ -163,7 +162,7 @@ public class VerifyCommand extends Command {
         app.getCommandManager().clearVerificationCacheFor(event.getAuthor());
 
         message.editMessage(embedBuilder
-            .setDescription("Your account have now been verified!")
+            .setDescription("Your account has now been verified!")
             .setColor(MessageType.SUCCESS.getColor())
             .build()
         ).queue();

@@ -99,6 +99,10 @@ public class Hypixel {
     }
 
     public CompletableFuture<PlayerReply> getPlayerByName(String name) {
+        return getPlayerByName(name, false);
+    }
+
+    public CompletableFuture<PlayerReply> getPlayerByName(String name, boolean ignoreDatabaseCache) {
         CompletableFuture<PlayerReply> future = new CompletableFuture<>();
 
         final String cacheKey = "player-name-" + name;
@@ -117,16 +121,18 @@ public class Hypixel {
                 return future;
             }
 
-            Collection result = app.getDatabaseManager().query("SELECT data FROM `players` WHERE `uuid` = ?", uuid.toString());
-            if (!result.isEmpty()) {
-                PlayerReply playerReply = gson.fromJson(result.get(0).getString("data"), PlayerReply.class);
-                if (playerReply != null && playerReply.getPlayer() != null) {
-                    log.debug("Found player profile for {} using the database cache (ID: {})", name, uuid);
+            if (!ignoreDatabaseCache) {
+                Collection result = app.getDatabaseManager().query("SELECT data FROM `players` WHERE `uuid` = ?", uuid.toString());
+                if (!result.isEmpty()) {
+                    PlayerReply playerReply = gson.fromJson(result.get(0).getString("data"), PlayerReply.class);
+                    if (playerReply != null && playerReply.getPlayer() != null) {
+                        log.debug("Found player profile for {} using the database cache (ID: {})", name, uuid);
 
-                    replyCache.put(cacheKey, playerReply);
-                    future.complete(playerReply);
+                        replyCache.put(cacheKey, playerReply);
+                        future.complete(playerReply);
 
-                    return future;
+                        return future;
+                    }
                 }
             }
 
@@ -141,9 +147,18 @@ public class Hypixel {
                 replyCache.put(cacheKey, playerReply);
 
                 try {
-                    app.getDatabaseManager().queryInsert("INSERT INTO `players` SET `uuid` = ?, `data` = ?",
-                        uuid.toString(), gson.toJson(playerReply)
-                    );
+                    if (ignoreDatabaseCache) {
+                        Collection result = app.getDatabaseManager().query("SELECT `data` FROM `players` WHERE `uuid` = ?", uuid.toString());
+
+                        app.getDatabaseManager().queryInsert(
+                            (result.isEmpty() ? "INSERT INTO" : "UPDATE") + " `players` SET `uuid` = ?, `data` = ?, `created_at` = NOW()",
+                            uuid.toString(), gson.toJson(playerReply)
+                        );
+                    } else {
+                        app.getDatabaseManager().queryInsert("INSERT INTO `players` SET `uuid` = ?, `data` = ?",
+                            uuid.toString(), gson.toJson(playerReply)
+                        );
+                    }
                 } catch (Exception ignored) {
                     //
                 }
