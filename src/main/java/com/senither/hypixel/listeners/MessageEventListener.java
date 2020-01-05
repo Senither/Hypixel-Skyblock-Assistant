@@ -23,7 +23,7 @@ package com.senither.hypixel.listeners;
 
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
-import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.commands.CommandContainer;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -64,18 +64,18 @@ public class MessageEventListener extends ListenerAdapter {
 
         String part = event.getMessage().getContentRaw().split(" ")[isMentionable ? 1 : 0];
 
-        Command command = app.getCommandManager().getCommand((isMentionable ? Constants.COMMAND_PREFIX : "") + part);
+        CommandContainer container = app.getCommandManager().getCommand((isMentionable ? Constants.COMMAND_PREFIX : "") + part);
 
-        if (command != null) {
+        if (container != null) {
             log.info(COMMAND_OUTPUT
-                .replace("%command%", command.getClass().getSimpleName())
+                .replace("%command%", container.getCommand().getClass().getSimpleName())
                 .replace("%author%", generateUsername(event.getMessage()))
                 .replace("%channel%", generateChannel(event.getMessage()))
                 .replace("%server%", generateServer(event.getMessage()))
                 .replace("%message%", event.getMessage().getContentRaw())
             );
 
-            app.getCommandManager().invokeCommand(event, command, isMentionable);
+            app.getCommandManager().invokeCommand(event, container.getCommand(), isMentionable);
         }
     }
 

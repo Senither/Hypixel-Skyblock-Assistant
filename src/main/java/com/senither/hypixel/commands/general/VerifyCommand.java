@@ -62,6 +62,18 @@ public class VerifyCommand extends Command {
     }
 
     @Override
+    public List<String> getUsageInstructions() {
+        return Collections.singletonList(
+            "`:command <username>` - Verifies your Discord account by checking if the given Minecraft username is linked to your Discord account."
+        );
+    }
+
+    @Override
+    public List<String> getExampleUsage() {
+        return Collections.singletonList("`:command Senither`");
+    }
+
+    @Override
     public List<String> getTriggers() {
         return Collections.singletonList("verify");
     }

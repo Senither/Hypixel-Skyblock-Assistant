@@ -65,6 +65,16 @@ public class GuildSetupCommand extends Command {
     }
 
     @Override
+    public List<String> getUsageInstructions() {
+        return Collections.singletonList("`:command <guild name>` - Setups the guild for the current Discord server.");
+    }
+
+    @Override
+    public List<String> getExampleUsage() {
+        return Collections.singletonList("`:command Rollback`");
+    }
+
+    @Override
     public List<String> getTriggers() {
         return Collections.singletonList("guild-setup");
     }

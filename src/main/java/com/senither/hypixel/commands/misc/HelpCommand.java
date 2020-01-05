@@ -21,15 +21,16 @@
 
 package com.senither.hypixel.commands.misc;
 
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.commands.CommandContainer;
 import com.senither.hypixel.contracts.commands.Command;
-import com.senither.hypixel.contracts.commands.SkillCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class HelpCommand extends Command {
 
@@ -52,6 +53,19 @@ public class HelpCommand extends Command {
     }
 
     @Override
+    public List<String> getUsageInstructions() {
+        return Arrays.asList(
+            "`:command` - Displays a list of all the commands in the bot.",
+            "`:command <command>` - Displays info for the given command."
+        );
+    }
+
+    @Override
+    public List<String> getExampleUsage() {
+        return Collections.singletonList("`:command verify`");
+    }
+
+    @Override
     public List<String> getTriggers() {
         return Arrays.asList("help");
     }
@@ -63,8 +77,11 @@ public class HelpCommand extends Command {
             return;
         }
 
-        Command command = app.getCommandManager().getCommand("h!" + args[0]);
-        if (command == null) {
+        CommandContainer container = app.getCommandManager().getCommand(
+            args[0].startsWith(Constants.COMMAND_PREFIX) ? args[0] : Constants.COMMAND_PREFIX + args[0]
+        );
+
+        if (container == null) {
             event.getChannel().sendMessage(new EmbedBuilder()
                 .setTitle("Couldn't find command")
                 .setDescription(String.format(
@@ -78,42 +95,57 @@ public class HelpCommand extends Command {
         }
 
         event.getChannel().sendMessage(new EmbedBuilder()
-            .setTitle(command.getName())
+            .setTitle(container.getName())
             .setColor(MessageType.INFO.getColor())
-            .setDescription(String.join(" ", command.getDescription()))
-            .addField("Usage", createCommandUsage(command), true)
+            .setDescription(String.join(" ", container.getDescription()))
+            .addField("Usage", formatCommandUsage(container, container.getCommand().getUsageInstructions()), false)
+            .addField("Example", formatCommandUsage(container, container.getCommand().getExampleUsage()), false)
             .build()
         ).queue();
     }
 
-    private String createCommandUsage(Command command) {
-        String commandArg = command instanceof SkillCommand ? " <username>" : "";
-
-        return "```h!" + String.join(commandArg + "\nh!", command.getTriggers()) + commandArg + "```";
+    private String formatCommandUsage(CommandContainer container, List<String> message) {
+        return String.join("\n", message)
+            .replaceAll(":command", Constants.COMMAND_PREFIX + container.getTriggers().get(0));
     }
 
     private void sendCommandList(MessageReceivedEvent event) {
-        event.getChannel().sendMessage(
-            String.join("\n", Arrays.asList(
-                "> __**General Commands**__```",
-                "> h!verify <username>  - Verifies your Discord account with the bot",
-                "> h!guild-setup <name> - Links the Discord server together with the given guild name through the bot",
-                "> ```",
-                "> __**Statistics Commands**__ ```",
-                "> h!skills <username> - Returns the Skill levels of a player",
-                "> h!slayer <username> - Returns the Slayer levels of a player",
-                "> h!ah <username>     - Returns the Auction House stats of a player",
-                "> ```",
-                "> __**Misc Commands**__ ```",
-                "> h!ping              - Can be used to get the ping of the bot to Discord",
-                "> h!help [command]    - Returns this list of commands, or info about a specific command",
-                "> ```",
-                "> __**General Information**__",
-                "> This bot was created by Senither, a self-hostable Hypixel Skyblock Assistant for your",
-                "> Discord server! You can find all the source code, as-well-as instructions on how to",
-                "> run your own version of the bot at:",
-                "> https://github.com/Senither/Hypixel-Skyblock-Assistant"
-            ))
-        ).queue();
+        EmbedBuilder embedBuilder = new EmbedBuilder()
+            .setTitle("Command List")
+            .setDescription(String.format(
+                "For more information about a command, use `%shelp <command>`\nFor example `%shelp verify`",
+                Constants.COMMAND_PREFIX, Constants.COMMAND_PREFIX
+            ));
+
+        List<CommandContainer> containers = app.getCommandManager().getCommands().stream()
+            .sorted(Comparator.comparing(CommandContainer::getCategory))
+            .collect(Collectors.toList());
+
+        Map<String, List<Command>> categoryCommands = new LinkedHashMap<>();
+
+        for (CommandContainer container : containers) {
+            final String category = container.getCategoryIcon() != null
+                ? container.getCategoryIcon().getIcon() + " " + container.getCategory()
+                : container.getCategory();
+
+            if (!categoryCommands.containsKey(category)) {
+                categoryCommands.put(category, new ArrayList<>());
+            }
+            categoryCommands.get(category).add(container.getCommand());
+        }
+
+        for (Map.Entry<String, List<Command>> commandEntry : categoryCommands.entrySet()) {
+            embedBuilder.addField(
+                commandEntry.getKey(),
+                "`" + String.join("`, `",
+                    commandEntry.getValue().stream()
+                        .map(command -> command.getTriggers().get(0))
+                        .collect(Collectors.toList())
+                ) + "`",
+                false
+            );
+        }
+
+        event.getChannel().sendMessage(embedBuilder.build()).queue();
     }
 }

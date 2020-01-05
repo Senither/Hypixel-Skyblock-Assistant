@@ -30,7 +30,6 @@ import com.senither.hypixel.commands.statistics.AuctionHouseCommand;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
 import com.senither.hypixel.commands.statistics.SlayerCommand;
 import com.senither.hypixel.database.DatabaseManager;
-import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.hypixel.Hypixel;
 import com.senither.hypixel.listeners.MessageEventListener;
 import com.senither.hypixel.scheduler.ScheduleManager;
@@ -44,9 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 
 public class SkyblockAssistant {
 

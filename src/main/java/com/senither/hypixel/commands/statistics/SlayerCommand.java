@@ -63,6 +63,22 @@ public class SlayerCommand extends SkillCommand {
     }
 
     @Override
+    public List<String> getUsageInstructions() {
+        return Arrays.asList(
+            "`:command <username>` - Gets slayer stats for the given username",
+            "`:command <mention>` - Gets slayer stats for the mentioned Discord user"
+        );
+    }
+
+    @Override
+    public List<String> getExampleUsage() {
+        return Arrays.asList(
+            "`:command Senither`",
+            "`:command @Senither`"
+        );
+    }
+
+    @Override
     public List<String> getTriggers() {
         return Arrays.asList("slayers", "slayer");
     }

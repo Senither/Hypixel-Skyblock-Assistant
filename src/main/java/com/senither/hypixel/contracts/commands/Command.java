@@ -29,7 +29,7 @@ import java.util.List;
 public abstract class Command {
 
     protected final SkyblockAssistant app;
-    protected final boolean verificationRequired;
+    private final boolean verificationRequired;
 
     public Command(SkyblockAssistant app) {
         this(app, true);
@@ -43,6 +43,10 @@ public abstract class Command {
     public abstract String getName();
 
     public abstract List<String> getDescription();
+
+    public abstract List<String> getUsageInstructions();
+
+    public abstract List<String> getExampleUsage();
 
     public abstract List<String> getTriggers();
 

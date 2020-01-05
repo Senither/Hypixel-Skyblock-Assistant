@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 public class CommandManager {
 
     private static final Logger log = LoggerFactory.getLogger(CommandManager.class);
-    private static final Set<Command> commands = new HashSet<>();
+    private static final Set<CommandContainer> commands = new HashSet<>();
     private static final Pattern argumentsRegEX = Pattern.compile("([^\"]\\S*|\".+?\")\\s*", Pattern.MULTILINE);
 
     private static final Cache<Long, Boolean> verifyCache = CacheBuilder.newBuilder()
@@ -58,16 +58,16 @@ public class CommandManager {
     }
 
     @Nullable
-    public Command getCommand(@Nonnull String message) {
+    public CommandContainer getCommand(@Nonnull String message) {
         if (!message.startsWith(Constants.COMMAND_PREFIX)) {
             return null;
         }
 
         String first = message.split(" ")[0];
-        for (Command command : commands) {
-            for (String trigger : command.getTriggers()) {
+        for (CommandContainer container : commands) {
+            for (String trigger : container.getTriggers()) {
                 if (first.equalsIgnoreCase(Constants.COMMAND_PREFIX + trigger)) {
-                    return command;
+                    return container;
                 }
             }
         }
@@ -75,7 +75,7 @@ public class CommandManager {
     }
 
     public void registerCommand(@Nonnull Command command) {
-        for (Command registeredCommand : commands) {
+        for (CommandContainer registeredCommand : commands) {
             for (String registeredCommandTrigger : registeredCommand.getTriggers()) {
                 for (String trigger : command.getTriggers()) {
                     if (registeredCommandTrigger.equalsIgnoreCase(trigger)) {
@@ -84,7 +84,7 @@ public class CommandManager {
                 }
             }
         }
-        commands.add(command);
+        commands.add(new CommandContainer(command));
     }
 
     public void invokeCommand(@Nonnull MessageReceivedEvent event, @Nonnull Command command, boolean invokedThroughMentions) {
@@ -112,7 +112,7 @@ public class CommandManager {
         }
     }
 
-    public Set<Command> getCommands() {
+    public Set<CommandContainer> getCommands() {
         return commands;
     }
 
