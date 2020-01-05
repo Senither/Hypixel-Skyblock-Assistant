@@ -25,6 +25,7 @@ import com.senither.hypixel.commands.CommandManager;
 import com.senither.hypixel.commands.general.GuildSetupCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.HelpCommand;
+import com.senither.hypixel.commands.misc.InformationCommand;
 import com.senither.hypixel.commands.misc.PingCommand;
 import com.senither.hypixel.commands.statistics.AuctionHouseCommand;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
@@ -66,6 +67,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new SlayerCommand(this));
         commandManager.registerCommand(new AuctionHouseCommand(this));
         commandManager.registerCommand(new PingCommand(this));
+        commandManager.registerCommand(new InformationCommand(this));
         commandManager.registerCommand(new HelpCommand(this));
         log.info("{} commands have been registered!", commandManager.getCommands().size());
 
