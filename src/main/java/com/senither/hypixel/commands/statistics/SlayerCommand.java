@@ -108,6 +108,10 @@ public class SlayerCommand extends SkillCommand {
             .addField("Revenant Horror", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("zombie")), true)
             .addField("Tarantula Broodfather", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("spider")), true)
             .addField("Sven Packmaster", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("wolf")), true)
+            .setFooter(String.format("%s has a total of %s Slayer experience.",
+                playerReply.getPlayer().get("displayname").getAsString(),
+                NumberUtil.formatNicely(getTotalCombinedSlayerExperience(slayerBosses))
+            ))
             .build()
         ).queue();
     }
@@ -130,15 +134,6 @@ public class SlayerCommand extends SkillCommand {
         );
     }
 
-    private int getLevelFromExperience(JsonObject jsonObject) {
-        for (int i = 9; i > 0; i--) {
-            if (jsonObject.has("level_" + i) && jsonObject.get("level_" + i).getAsBoolean()) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
     private int getTotalCoinsSpentOnSlayers(JsonObject jsonObject) {
         try {
             int totalCoins = 0;
@@ -154,6 +149,21 @@ public class SlayerCommand extends SkillCommand {
             return totalCoins;
         } catch (Exception e) {
             log.error("Exception were thrown while getting total cost, error: {}", e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    private int getTotalCombinedSlayerExperience(JsonObject jsonObject) {
+        try {
+            int totalExp = 0;
+
+            for (String type : jsonObject.keySet()) {
+                totalExp += getEntryFromSlayerData(jsonObject.getAsJsonObject(type).getAsJsonObject(), "xp");
+            }
+
+            return totalExp;
+        } catch (Exception e) {
+            log.error("Exception were thrown while getting total experience, error: {}", e.getMessage(), e);
             return 0;
         }
     }
