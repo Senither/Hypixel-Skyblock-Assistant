@@ -26,10 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 public class Main {
 
@@ -57,6 +54,7 @@ public class Main {
         File file = new File("config.json");
         if (!file.exists()) {
             log.info("The config.json file was not found!");
+            createConfigurationFromResource();
             shutdown(0);
         }
 
@@ -77,5 +75,21 @@ public class Main {
 
             return new Gson().fromJson(sb.toString(), Configuration.class);
         }
+    }
+
+    private static void createConfigurationFromResource() throws IOException {
+        log.info("Creating config.json file");
+
+        OutputStream outStream = new FileOutputStream(new File("config.json"));
+        try (InputStream stream = Main.class.getResourceAsStream("/config.json")) {
+            byte[] buffer = new byte[8 * 1024];
+
+            int bytesRead;
+            while ((bytesRead = stream.read(buffer)) != -1) {
+                outStream.write(buffer, 0, bytesRead);
+            }
+        }
+
+        log.info("The config.json file was created successfully!");
     }
 }
