@@ -22,9 +22,8 @@
 package com.senither.hypixel.commands.misc;
 
 import com.senither.hypixel.SkyblockAssistant;
-import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.Arrays;
@@ -57,7 +56,6 @@ public class PingCommand extends Command {
         return Collections.singletonList("`:command` - Returns the latency of the bot.");
     }
 
-
     @Override
     public List<String> getExampleUsage() {
         return Collections.singletonList("`:command`");
@@ -70,14 +68,12 @@ public class PingCommand extends Command {
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
+
         event.getJDA().getRestPing().queue(ping -> {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(MessageType.INFO.getColor())
-                .setDescription(String.format(
-                    "Pong! Time taken %d ms, websocket heartbeat %d ms.",
-                    ping, event.getJDA().getGatewayPing()
-                )).build()
-            ).queue();
+            MessageFactory.makeInfo(event.getMessage(), "Pong! Time taken :ping ms, websocket heartbeat :gateway ms.")
+                .set("gateway", event.getJDA().getGatewayPing())
+                .set("ping", String.valueOf(ping))
+                .queue();
         });
     }
 }

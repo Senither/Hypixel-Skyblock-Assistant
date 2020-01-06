@@ -23,9 +23,11 @@ package com.senither.hypixel.commands.general;
 
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.Command;
-import net.dv8tion.jda.api.EmbedBuilder;
+import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.PlayerReply;
@@ -81,58 +83,53 @@ public class VerifyCommand extends Command {
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(MessageType.ERROR.getColor())
-                .setTitle("Missing username")
-                .setDescription(String.join("\n", Arrays.asList(
-                    "You must include your in-game Minecraft username that is linked with your Discord account on Hypixel!",
-                    "",
-                    "If your account isn't linked you can set it up by logging into `mc.hypixel.net`, then going to your profile, followed by the social button, and then setting your Discord account up there.",
-                    "Please not it might take up to a minute before the bot is able to see the changes.",
-                    "",
-                    "Try again using `h!verify <username>`"
-                )))
-                .build()
-            ).queue();
+            MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
+                "You must include your in-game Minecraft username that is linked with your Discord account on Hypixel!",
+                "",
+                "If your account isn't linked you can set it up by logging into `mc.hypixel.net`, then going to your profile, followed by the social button, and then setting your Discord account up there.",
+                "Please not it might take up to a minute before the bot is able to see the changes.",
+                "",
+                "Try again using `h!verify <username>`"
+            ))).setTitle("Missing username").queue();
             return;
         }
 
         if (!app.getHypixel().isValidMinecraftUsername(args[0])) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setDescription("Invalid Minecraft username given! You must give a valid username to be verified.")
-                .setColor(MessageType.ERROR.getColor())
-                .build()
-            ).queue();
+            MessageFactory.makeError(event.getMessage(), "Invalid Minecraft username given! You must give a valid username to be verified.")
+                .queue();
             return;
         }
 
-        EmbedBuilder embedBuilder = new EmbedBuilder()
-            .setTitle("Verifying Account")
-            .setDescription("Loading Hypixel player data for " + args[0] + "!")
-            .setColor(MessageType.INFO.getColor());
+        PlaceholderMessage embedBuilder = MessageFactory.makeInfo(event.getMessage(), "Loading Hypixel player data for :name!")
+            .set("name", args[0])
+            .setTitle("Verifying Account");
 
-        event.getChannel().sendMessage(embedBuilder.build()).queue(message -> app.getHypixel().getPlayerByName(args[0], true)
+        embedBuilder.queue(message -> app.getHypixel().getPlayerByName(args[0], true)
             .whenCompleteAsync(((playerResponse, throwable) -> {
                 if (throwable == null) {
                     handleResponse(event, message, playerResponse, embedBuilder);
                     return;
                 }
 
+                String errorMessage = (throwable instanceof FriendlyException)
+                    ? throwable.getMessage()
+                    : "Something went wrong: " + throwable.getMessage();
+
                 message.editMessage(embedBuilder
-                    .setDescription("Something went wrong: " + throwable.getMessage())
+                    .setDescription(errorMessage)
                     .setColor(MessageType.ERROR.getColor())
-                    .build()
+                    .buildEmbed()
                 ).queue();
             }))
         );
     }
 
-    private void handleResponse(MessageReceivedEvent event, Message message, PlayerReply playerResponse, EmbedBuilder embedBuilder) {
+    private void handleResponse(MessageReceivedEvent event, Message message, PlayerReply playerResponse, PlaceholderMessage embedBuilder) {
         if (playerResponse.getPlayer() == null) {
             message.editMessage(embedBuilder
                 .setDescription("Found no Hypixel profile with the given username!")
                 .setColor(MessageType.ERROR.getColor())
-                .build()
+                .buildEmbed()
             ).queue();
             return;
         }
@@ -164,15 +161,15 @@ public class VerifyCommand extends Command {
         message.editMessage(embedBuilder
             .setDescription("Your account has now been verified!")
             .setColor(MessageType.SUCCESS.getColor())
-            .build()
+            .buildEmbed()
         ).queue();
     }
 
-    private void sendNoSocialLinksMessage(Message message, EmbedBuilder embedBuilder, JsonObject player) {
+    private void sendNoSocialLinksMessage(Message message, PlaceholderMessage embedBuilder, JsonObject player) {
         message.editMessage(embedBuilder
             .setDescription("Found no Discord social link that matches your Discord user for " + player.get("displayname").getAsString() + "!")
             .setColor(MessageType.ERROR.getColor())
-            .build()
+            .buildEmbed()
         ).queue();
     }
 

@@ -109,7 +109,7 @@ public class Hypixel {
         try {
             UUID uuid = getUUIDFromName(name);
             if (uuid == null) {
-                future.completeExceptionally(new RuntimeException("Failed to find a valid UUID for the given username!"));
+                future.completeExceptionally(new FriendlyException("Failed to find a valid UUID for the given username!"));
                 return future;
             }
 
@@ -375,6 +375,9 @@ public class Hypixel {
             return mojangPlayer.getUUID();
         } catch (IOException e) {
             log.error("Failed to fetch UUID for {} using the Mojang API, error: {}", name, e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            // We can ignore this exception since it should only be thrown if
+            // the Hypixel API returns null due to the player not existing.
         }
 
         return null;

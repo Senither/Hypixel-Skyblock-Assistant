@@ -24,6 +24,7 @@ package com.senither.hypixel.commands.statistics;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -117,21 +118,21 @@ public class SlayerCommand extends SkillCommand {
     }
 
     private String buildSlayerStatsFromType(JsonObject json) {
-        return String.format(String.join("\n", Arrays.asList(
-            "**Tier 1:** %s",
-            "**Tier 2:** %s",
-            "**Tier 3:** %s",
-            "**Tier 4:** %s",
-            "**EXP:** %s",
-            "**LvL:** %s"
-            )),
-            NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_0")),
-            NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_1")),
-            NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_2")),
-            NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_3")),
-            NumberUtil.formatNicely(getEntryFromSlayerData(json, "xp")),
-            NumberUtil.formatNicelyWithDecimals(getSlayerLevelFromExperience(getEntryFromSlayerData(json, "xp")))
-        );
+        return new PlaceholderMessage(null, String.join("\n", Arrays.asList(
+            "**Tier 1:** :boss1",
+            "**Tier 2:** :boss2",
+            "**Tier 3:** :boss3",
+            "**Tier 4:** :boss4",
+            "**EXP:** :experience",
+            "**LvL:** :level"
+        )))
+            .set("boss1", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_0")))
+            .set("boss2", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_1")))
+            .set("boss3", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_2")))
+            .set("boss4", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_3")))
+            .set("experience", NumberUtil.formatNicely(getEntryFromSlayerData(json, "xp")))
+            .set("level", NumberUtil.formatNicelyWithDecimals(getSlayerLevelFromExperience(getEntryFromSlayerData(json, "xp"))))
+            .toString();
     }
 
     private int getTotalCoinsSpentOnSlayers(JsonObject jsonObject) {

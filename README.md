@@ -1,12 +1,12 @@
-Hypixel Guild Assistant
+Hypixel Skyblock Assistant
 =======================
 
-Hypixel Guild Assistant is a Discord bot created for the [Hypixel Network](https://hypixel.net/), primarily the custom Skyblock gamemode they have created, the bots main focuses is to help guilds on Hypixel manage their Discord server by automatically synchronizing guild ranks, allowing users to verify themselves through the bot, and get stats about themselves or other people for the Skyblock gamemode.
+Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](https://hypixel.net/), primarily the custom Skyblock gamemode they have created, the bots main focuses is to help guilds on Hypixel manage their Discord server by automatically synchronizing guild ranks, allowing users to verify themselves through the bot, and get stats about themselves or other people for the Skyblock gamemode.
 
 ## Table of Content
 
  - [Prerequisites](#prerequisites)
- - [Installing Hypixel Guild Assistant](#installing-hypixel-guild-assistant)
+ - [Installing Hypixel Skyblock Assistant](#installing-hypixel-guild-assistant)
  - [Configuration](#configuration)
  
 ### Prerequisites
@@ -15,7 +15,7 @@ Hypixel Guild Assistant is a Discord bot created for the [Hypixel Network](https
  * Gradle >= 4
  * Git
 
-### Installing Hypixel Guild Assistant
+### Installing Hypixel Skyblock Assistant
 
 To get started, clone down the repository using:
 
@@ -49,7 +49,7 @@ The database properties are used to connect to the database that the bot should 
 
 ## Third Party Licenses
 
-Hypixel Guild Assistant relies on the following projects:
+Hypixel Skyblock Assistant relies on the following projects:
 
  Name | License  |
 |:---|:---|
@@ -60,6 +60,8 @@ Hypixel Guild Assistant relies on the following projects:
 | [logback-classic](https://github.com/qos-ch/logback/tree/master/logback-classic) | [Eclipse Public License v1.0](https://github.com/qos-ch/logback/blob/master/LICENSE.txt) and<br>[GNU Lesser General Public License version 2.1](https://github.com/qos-ch/logback/blob/master/LICENSE.txt) |
 | [MySQL Connector](https://dev.mysql.com/doc/connector-j/8.0/en/) | [GNU General Public License Version 2](https://github.com/mysql/mysql-connector-j/blob/release/8.0/LICENSE) |
 
+The project uses code from [avaire/avaire](https://github.com/avaire/avaire), primarily the chat functionality built for [JDA](https://github.com/DV8FromTheWorld/JDA), making messaging easier.
+
 ## License
 
-Hypixel Guild Assistant is open-sourced software licensed under the [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl.html).
+Hypixel Skyblock Assistant is open-sourced software licensed under the [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl.html).

@@ -22,8 +22,8 @@
 package com.senither.hypixel.commands.misc;
 
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -73,12 +73,10 @@ public class InformationCommand extends Command {
             author = memberById.getAsMention();
         }
 
-        event.getChannel().sendMessage(new EmbedBuilder()
+        MessageFactory.makeEmbeddedMessage(event.getChannel())
+            .set("author", author)
             .setTitle("Bot Information")
-            .setDescription(String.format(
-                "The bot was created by %s, you can find the source code for the project at: https://github.com/Senither/Hypixel-Skyblock-Assistant",
-                author
-            ))
+            .setDescription("The bot was created by :author, you can find the source code for the project at: https://github.com/Senither/Hypixel-Skyblock-Assistant")
             .addField("How does it work?", String.join(" ", Arrays.asList(
                 "The bot works by using [Hypixels API](https://api.hypixel.net) to request",
                 "information about users when they use commands, which is then stored in a",
@@ -98,7 +96,6 @@ public class InformationCommand extends Command {
                 "self-hosting it, you can find a guide on how to do this at",
                 "[Senither/Hypixel-Skyblock-Assistant](https://github.com/Senither/Hypixel-Skyblock-Assistant#table-of-content)"
             )), false)
-            .build()
-        ).queue();
+            .queue();
     }
 }

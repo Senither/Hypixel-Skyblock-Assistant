@@ -22,11 +22,10 @@
 package com.senither.hypixel.commands.general;
 
 import com.senither.hypixel.SkyblockAssistant;
-import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.time.Carbon;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -82,26 +81,18 @@ public class GuildSetupCommand extends Command {
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setTitle("Missing guild name")
-                .setColor(MessageType.ERROR.getColor())
-                .setDescription(
-                    "You must include the guild name for the guild you're the guild leader for!"
-                        + "\nSo that the bot is able to link the server and guild together!"
-                )
-                .build()
-            ).queue();
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the guild name for the guild you're the guild leader for!"
+                    + "\nSo that the bot is able to link the server and guild together!"
+            ).setTitle("Missing guild name").queue();
             return;
         }
 
         UUID uuid = getUUIDForUser(event.getAuthor());
         if (uuid == null) {
-            event.getChannel().sendMessage(new EmbedBuilder()
+            MessageFactory.makeError(event.getMessage(), "You must be verified through the bot to use this command!")
                 .setTitle("Must be verified!")
-                .setColor(MessageType.ERROR.getColor())
-                .setDescription("You must be verified through the bot to use this command!")
-                .build()
-            ).queue();
+                .queue();
             return;
         }
 
@@ -123,41 +114,29 @@ public class GuildSetupCommand extends Command {
                         event.getGuild().getIdLong()
                     );
 
-                    event.getChannel().sendMessage(new EmbedBuilder()
-                        .setTitle("Guild has been unlinked!")
-                        .setDescription(String.format(String.join(" ",
-                            "The **%s** have been unlinked with the bot, and will no longer",
-                            "be automatically updated or scanned for rank synchronization."
-                        ), guild.getGuild().getName()))
-                        .setColor(MessageType.SUCCESS.getColor())
-                        .build()
-                    ).queue();
+                    MessageFactory.makeSuccess(event.getMessage(),
+                        "The **:guildname** have been unlinked with the bot, and will no longer"
+                            + " be automatically updated or scanned for rank synchronization."
+                    ).setTitle("Guild has been unlinked!").queue();
                     return;
                 }
 
-                event.getChannel().sendMessage(new EmbedBuilder()
-                    .setTitle("Unable to unlink")
-                    .setDescription(String.format(String.join(" ",
-                        "You're not the guild master of the **%s** guild, or the guild is not linked to this Discord server!"
-                    ), guild.getGuild().getName()))
-                    .setColor(MessageType.ERROR.getColor())
-                    .build()
-                ).queue();
+                MessageFactory.makeError(event.getMessage(),
+                    "You're not the guild master of the **:guildname** guild, or the guild is not linked to this Discord server!"
+                ).setTitle("Unable to unlink").queue();
                 return;
             }
 
             if (!query.isEmpty()) {
-                event.getChannel().sendMessage(new EmbedBuilder()
+                MessageFactory.makeError(event.getMessage(), String.join(" ",
+                    "The **:name** guild is already linked with a Discord server, you can't link",
+                    "a guild twice, if you're the guild master of the guild you can unlink the server",
+                    "by using `h!guild-setup unlink-guild` in the Discord server the guild is",
+                    "currently linked to."
+                ))
                     .setTitle("Guild is already linked!")
-                    .setDescription(String.format(String.join(" ",
-                        "The **%s** guild is already linked with a Discord server, you can't link",
-                        "a guild twice, if you're the guild master of the guild you can unlink the server",
-                        "by using `h!guild-setup unlink-guild` in the Discord server the guild is",
-                        "currently linked to."
-                    ), String.join(" ", args)))
-                    .setColor(MessageType.ERROR.getColor())
-                    .build()
-                ).queue();
+                    .set("name", String.join(" ", args))
+                    .queue();
                 return;
             }
         } catch (SQLException e) {
@@ -165,72 +144,53 @@ public class GuildSetupCommand extends Command {
                 e.getMessage(), e
             );
 
-            event.getChannel().sendMessage(new EmbedBuilder()
+            MessageFactory.makeError(event.getMessage(),
+                "An error occurred while checking if the guild is already linked with a Discord server, error: :error"
+            )
                 .setTitle("An error occurred!")
-                .setDescription(String.format(
-                    "An error occurred while checking if the guild is already linked with a Discord server, error: %s",
-                    e.getMessage()
-                ))
-                .setColor(MessageType.ERROR.getColor())
-                .build()
-            ).queue();
+                .set("error", e.getMessage())
+                .queue();
             return;
         }
 
-        event.getChannel().sendMessage(new EmbedBuilder()
-            .setDescription("Loading guild information...")
+        MessageFactory.makeInfo(event.getMessage(), "Loading guild information...")
             .setTitle("Loading " + String.join(" ", args))
-            .setColor(MessageType.INFO.getColor())
-            .build()
-        ).queue(message -> app.getHypixel().getGuildByName(String.join(" ", args)).whenComplete((guildReply, throwable) -> {
-            try {
-                handleGuildRegistration(message, guildReply, throwable, uuid, args);
-            } catch (Exception e) {
-                log.error("An error occurred while trying to register a guild, error: {}",
-                    e.getMessage(), e
-                );
-            }
-        }));
+            .queue(message -> app.getHypixel().getGuildByName(String.join(" ", args)).whenComplete((guildReply, throwable) -> {
+                try {
+                    handleGuildRegistration(message, guildReply, throwable, uuid, args);
+                } catch (Exception e) {
+                    log.error("An error occurred while trying to register a guild, error: {}",
+                        e.getMessage(), e
+                    );
+                }
+            }));
     }
 
     private void handleGuildRegistration(Message message, GuildReply guildReply, Throwable throwable, UUID uuid, String[] args) {
         if (throwable != null || guildReply.getGuild() == null) {
-            message.editMessage(new EmbedBuilder()
+            message.editMessage(MessageFactory.makeError(message, "Failed to find any guild on Hypixel called `:error`")
+                .set("error", String.join(" ", args))
                 .setTitle("Couldn't find guild!")
-                .setColor(MessageType.ERROR.getColor())
-                .setDescription(String.format(
-                    "Failed to find any guild on Hypixel called `%s`",
-                    String.join(" ", args)
-                ))
-                .build()
+                .buildEmbed()
             ).queue();
             return;
         }
 
         GuildReply.Guild.Member currentMember = getMemberFromUUID(guildReply.getGuild(), uuid);
         if (currentMember == null) {
-            message.editMessage(new EmbedBuilder()
-                .setTitle("Failed to link guild!")
-                .setDescription(String.format(
-                    "You're not a member of the **%s** guild!\nYou can't link guilds to servers you're not a member of.",
-                    guildReply.getGuild().getName()
-                ))
-                .setColor(MessageType.ERROR.getColor())
-                .build()
-            ).queue();
+
+            message.editMessage(MessageFactory.makeError(message, String.join("\n",
+                "You're not a member of the **:guildname** guild!",
+                "You can't link guilds to servers you're not a member of."
+            )).setTitle("Failed to link guild!").buildEmbed()).queue();
             return;
         }
 
         if (!"Guild Master".equalsIgnoreCase(currentMember.getRank())) {
-            message.editMessage(new EmbedBuilder()
-                .setTitle("Failed to link guild!")
-                .setDescription(String.format(
-                    "You're not the Guild Master of the **%s** guild!\nYou can't link guilds to servers you're not the Guild Master of.",
-                    guildReply.getGuild().getName()
-                ))
-                .setColor(MessageType.ERROR.getColor())
-                .build()
-            ).queue();
+            message.editMessage(MessageFactory.makeError(message, String.join("\n",
+                "You're not the Guild Master of the **:guildname** guild!",
+                "You can't link guilds to servers you're not the Guild Master of."
+            )).setTitle("Failed to link guild!").buildEmbed()).queue();
             return;
         }
 
@@ -244,27 +204,22 @@ public class GuildSetupCommand extends Command {
                 Carbon.now().subMinutes(5).toDateTimeString()
             );
 
-            message.editMessage(new EmbedBuilder()
-                .setTitle("Guild has been linked!")
-                .setDescription(String.format(String.join(" ",
-                    "The **%s** guild have now been linked to the server, users who are already verified",
-                    "with the bot will soon get their guild rank on the server, and new users who are",
-                    "verifying themselves with the bot will get their rank when their verification",
-                    "process is completed successfully!"
-                ), guildReply.getGuild().getName()))
-                .setColor(MessageType.SUCCESS.getColor())
-                .build()
+            message.editMessage(MessageFactory.makeSuccess(message, String.join(" ",
+                "The **:guildname** guild have now been linked to the server, users who are already verified",
+                "with the bot will soon get their guild rank on the server, and new users who are",
+                "verifying themselves with the bot will get their rank when their verification",
+                "process is completed successfully!"
+                )).setTitle("Guild has been linked!").buildEmbed()
             ).queue();
         } catch (SQLException e) {
             log.error("Failed to create guilds entry for {}, error: {}",
                 message.getGuild().getId(), e.getMessage(), e
             );
 
-            message.editMessage(new EmbedBuilder()
-                .setTitle("Failed to link guild!")
-                .setDescription("Something went wrong while trying to create the guild link, error: " + e.getMessage())
-                .setColor(MessageType.ERROR.getColor())
-                .build()
+            message.editMessage(
+                MessageFactory.makeError(message, "Something went wrong while trying to create the guild link, error: " + e.getMessage())
+                    .setTitle("Failed to link guild!")
+                    .buildEmbed()
             ).queue();
         }
     }

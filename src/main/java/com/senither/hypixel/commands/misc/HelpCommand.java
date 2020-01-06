@@ -23,10 +23,10 @@ package com.senither.hypixel.commands.misc;
 
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
-import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.commands.CommandContainer;
 import com.senither.hypixel.contracts.commands.Command;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.*;
@@ -82,26 +82,18 @@ public class HelpCommand extends Command {
         );
 
         if (container == null) {
-            event.getChannel().sendMessage(new EmbedBuilder()
+            MessageFactory.makeError(event.getMessage(), "Couldn't find a command that uses the `:name` command trigger.")
                 .setTitle("Couldn't find command")
-                .setDescription(String.format(
-                    "Couldn't find a command that uses the `%s` command trigger.",
-                    args[0]
-                ))
-                .setColor(MessageType.ERROR.getColor())
-                .build()
-            ).queue();
+                .set("name", args[0])
+                .queue();
             return;
         }
 
-        event.getChannel().sendMessage(new EmbedBuilder()
+        MessageFactory.makeInfo(event.getMessage(), String.join(" ", container.getDescription()))
             .setTitle(container.getName())
-            .setColor(MessageType.INFO.getColor())
-            .setDescription(String.join(" ", container.getDescription()))
             .addField("Usage", formatCommandUsage(container, container.getCommand().getUsageInstructions()), false)
             .addField("Example", formatCommandUsage(container, container.getCommand().getExampleUsage()), false)
-            .build()
-        ).queue();
+            .queue();
     }
 
     private String formatCommandUsage(CommandContainer container, List<String> message) {
@@ -110,12 +102,10 @@ public class HelpCommand extends Command {
     }
 
     private void sendCommandList(MessageReceivedEvent event) {
-        EmbedBuilder embedBuilder = new EmbedBuilder()
+        PlaceholderMessage message = MessageFactory.makeEmbeddedMessage(event.getChannel())
+            .setDescription("For more information about a command, use `:prefixhelp <command>`\nFor example `:prefixhelp verify`")
             .setTitle("Command List")
-            .setDescription(String.format(
-                "For more information about a command, use `%shelp <command>`\nFor example `%shelp verify`",
-                Constants.COMMAND_PREFIX, Constants.COMMAND_PREFIX
-            ));
+            .set("prefix", Constants.COMMAND_PREFIX);
 
         List<CommandContainer> containers = app.getCommandManager().getCommands().stream()
             .sorted(Comparator.comparing(CommandContainer::getCategory))
@@ -135,7 +125,7 @@ public class HelpCommand extends Command {
         }
 
         for (Map.Entry<String, List<Command>> commandEntry : categoryCommands.entrySet()) {
-            embedBuilder.addField(
+            message.addField(
                 commandEntry.getKey(),
                 "`" + String.join("`, `",
                     commandEntry.getValue().stream()
@@ -146,6 +136,6 @@ public class HelpCommand extends Command {
             );
         }
 
-        event.getChannel().sendMessage(embedBuilder.build()).queue();
+        message.queue();
     }
 }
