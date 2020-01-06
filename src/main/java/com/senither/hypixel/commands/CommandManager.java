@@ -25,6 +25,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -59,7 +60,7 @@ public class CommandManager {
 
     @Nullable
     public CommandContainer getCommand(@Nonnull String message) {
-        if (!message.startsWith(Constants.COMMAND_PREFIX)) {
+        if (!message.toLowerCase().startsWith(Constants.COMMAND_PREFIX)) {
             return null;
         }
 
@@ -96,7 +97,7 @@ public class CommandManager {
             }
 
             event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(com.senither.hypixel.chat.MessageType.ERROR.getColor())
+                .setColor(MessageType.ERROR.getColor())
                 .setTitle("Missing verification")
                 .setDescription(String.join("\n", Arrays.asList(
                     "You must verify your account with the bot to use this command, you can do this by",
