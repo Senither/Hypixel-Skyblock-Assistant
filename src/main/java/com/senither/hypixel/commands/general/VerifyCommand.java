@@ -27,18 +27,19 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.PlayerReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class VerifyCommand extends Command {
 
@@ -145,8 +146,9 @@ public class VerifyCommand extends Command {
             return;
         }
 
+        UUID uuid = null;
         try {
-            UUID uuid = app.getHypixel().getUUIDFromName(player.get("displayname").getAsString());
+            uuid = app.getHypixel().getUUIDFromName(player.get("displayname").getAsString());
             if (uuid != null) {
                 app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `discord_id` = ? WHERE `uuid` = ?",
                     event.getAuthor().getIdLong(), uuid.toString()
@@ -163,6 +165,69 @@ public class VerifyCommand extends Command {
             .setColor(MessageType.SUCCESS.getColor())
             .buildEmbed()
         ).queue();
+
+        handleAutomaticRoleAssignment(event, uuid);
+    }
+
+    private void handleAutomaticRoleAssignment(MessageReceivedEvent event, UUID uuid) {
+        if (uuid == null) {
+            return;
+        }
+
+        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
+        if (guildEntry == null) {
+            return;
+        }
+
+        GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
+        if (guildReply == null || guildReply.getGuild() == null) {
+            return;
+        }
+
+        GuildReply.Guild.Member member = guildReply.getGuild().getMembers().stream()
+            .filter(guildMember -> guildMember.getUuid().equals(uuid))
+            .findFirst().orElseGet(null);
+
+        HashMap<String, Role> discordRoles = new HashMap<>();
+        for (GuildReply.Guild.Member guildMember : guildReply.getGuild().getMembers()) {
+            if ("Guild Master".equalsIgnoreCase(guildMember.getRank())) {
+                continue;
+            }
+
+            if (discordRoles.containsKey(guildMember.getRank())) {
+                continue;
+            }
+
+            List<Role> rolesByName = event.getGuild().getRolesByName(guildMember.getRank(), false);
+            if (rolesByName.isEmpty()) {
+                continue;
+            }
+
+            discordRoles.put(guildMember.getRank(), rolesByName.get(0));
+        }
+
+        Role role = discordRoles.getOrDefault(member.getRank(), null);
+        if (role == null) {
+            return;
+        }
+
+        List<Role> rolesToRemove = discordRoles.values().stream()
+            .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
+            .collect(Collectors.toList());
+
+        if (guildEntry.getDefaultRole() != null) {
+            Role defaultRole = event.getGuild().getRoleById(guildEntry.getDefaultRole());
+            if (defaultRole != null) {
+                rolesToRemove.add(defaultRole);
+            }
+        }
+
+        //noinspection ConstantConditions
+        event.getGuild().modifyMemberRoles(event.getMember(), Collections.singletonList(role), rolesToRemove).queue(null, throwable -> {
+            log.error("Failed to assign {} role to {} due to an error: {}",
+                role.getName(), event.getMember().getEffectiveName(), throwable.getMessage(), throwable
+            );
+        });
     }
 
     private void sendNoSocialLinksMessage(Message message, PlaceholderMessage embedBuilder, JsonObject player) {
