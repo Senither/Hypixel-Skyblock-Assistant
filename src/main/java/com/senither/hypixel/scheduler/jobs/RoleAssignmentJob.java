@@ -25,6 +25,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.scheduler.Job;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
+import com.senither.hypixel.database.controller.GuildController;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -64,7 +65,12 @@ public class RoleAssignmentJob extends Job {
                     continue;
                 }
 
-                handleGuildRoleAssignments(guild, guildReply);
+                GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), guild.getIdLong());
+                if (guildEntry == null) {
+                    continue;
+                }
+
+                handleGuildRoleAssignments(guild, guildReply, guildEntry);
 
                 Thread.sleep(500L);
             }
@@ -80,10 +86,11 @@ public class RoleAssignmentJob extends Job {
         }
     }
 
-    private void handleGuildRoleAssignments(Guild guild, GuildReply guildReply) throws SQLException {
+    private void handleGuildRoleAssignments(Guild guild, GuildReply guildReply, GuildController.GuildEntry guildEntry) throws SQLException {
         GuildReply.Guild hypixelGuild = guildReply.getGuild();
         HashMap<String, Role> discordRoles = new HashMap<>();
         List<String> memberUuids = new ArrayList<>();
+        Role defaultRole = guildEntry.getDefaultRole() == null ? null : guild.getRoleById(guildEntry.getDefaultRole());
 
         // Populates the Discord Roles cache list
         for (GuildReply.Guild.Member member : hypixelGuild.getMembers()) {
@@ -110,33 +117,36 @@ public class RoleAssignmentJob extends Job {
             stringifiedParams.append("?, ");
         }
 
+        // Gets every verified user from the guild from the database.
         Collection rows = app.getDatabaseManager().query(String.format(
             "SELECT * FROM `uuids` WHERE `uuid` IN (%s) AND `discord_id` IS NOT NULL",
             stringifiedParams.toString().substring(0, stringifiedParams.length() - 2)
         ), memberUuids.toArray());
 
-        if (rows.isEmpty()) {
-            return;
-        }
-
-        for (GuildReply.Guild.Member member : hypixelGuild.getMembers()) {
-            if ("Guild Master".equalsIgnoreCase(member.getRank())) {
+        for (Member member : guild.getMembers()) {
+            if (member.getUser().isBot() || member.getUser().isFake()) {
                 continue;
             }
 
-            List<DataRow> dataRows = rows.where("uuid", member.getUuid().toString());
+            List<DataRow> dataRows = rows.where("discord_id", member.getIdLong());
             if (dataRows.isEmpty()) {
+                markUserAsGuest(guild, member, discordRoles.values(), defaultRole);
                 continue;
             }
 
-            DataRow row = dataRows.get(0);
+            DataRow dataRow = dataRows.get(0);
+            String memberUUID = dataRow.getString("uuid");
 
-            Member discordMember = guild.getMemberById(row.getLong("discord_id"));
-            if (discordMember == null) {
+            GuildReply.Guild.Member guildMember = hypixelGuild.getMembers().stream()
+                .filter(filterMember -> filterMember.getUuid().toString().equals(memberUUID))
+                .findFirst().orElseGet(null);
+
+            if (guildMember == null) {
+                markUserAsGuest(guild, member, discordRoles.values(), defaultRole);
                 continue;
             }
 
-            Role role = discordRoles.getOrDefault(member.getRank(), null);
+            Role role = discordRoles.getOrDefault(guildMember.getRank(), null);
             if (role == null) {
                 continue;
             }
@@ -145,11 +155,49 @@ public class RoleAssignmentJob extends Job {
                 .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
                 .collect(Collectors.toList());
 
-            guild.modifyMemberRoles(discordMember, Collections.singletonList(role), rolesToRemove).queue(null, throwable -> {
+            if (defaultRole != null) {
+                rolesToRemove.add(defaultRole);
+            }
+
+            if (hasRole(member, role) && !hasRoles(member, rolesToRemove)) {
+                continue;
+            }
+
+            guild.modifyMemberRoles(member, Collections.singletonList(role), rolesToRemove).queue(null, throwable -> {
                 log.error("Failed to assign {} role to {} due to an error: {}",
-                    role.getName(), discordMember.getEffectiveName(), throwable.getMessage(), throwable
+                    role.getName(), member.getEffectiveName(), throwable.getMessage(), throwable
                 );
             });
         }
+    }
+
+    private void markUserAsGuest(Guild guild, Member member, java.util.Collection<Role> values, Role defaultRole) {
+        if (defaultRole == null) {
+            return;
+        }
+
+        if (hasRole(member, defaultRole) && !hasRoles(member, values)) {
+            return;
+        }
+
+        guild.modifyMemberRoles(member, Collections.singletonList(defaultRole), values).queue();
+    }
+
+    private boolean hasRoles(Member member, java.util.Collection<Role> roles) {
+        for (Role role : roles) {
+            if (!hasRole(member, role)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean hasRole(Member member, Role role) {
+        for (Role memberRole : member.getRoles()) {
+            if (memberRole.getId().equals(role.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
