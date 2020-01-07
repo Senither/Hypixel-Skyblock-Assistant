@@ -33,6 +33,7 @@ import com.senither.hypixel.commands.statistics.SkillsCommand;
 import com.senither.hypixel.commands.statistics.SlayerCommand;
 import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.hypixel.Hypixel;
+import com.senither.hypixel.listeners.MemberActivityEventListener;
 import com.senither.hypixel.listeners.MessageEventListener;
 import com.senither.hypixel.scheduler.ScheduleManager;
 import com.senither.hypixel.scheduler.jobs.DatabaseCacheCleanupJob;
@@ -117,7 +118,8 @@ public class SkyblockAssistant {
             .setBulkDeleteSplittingEnabled(false)
             .setContextEnabled(true)
             .addEventListeners(
-                new MessageEventListener(this)
+                new MessageEventListener(this),
+                new MemberActivityEventListener(this)
             ).build();
     }
 }
