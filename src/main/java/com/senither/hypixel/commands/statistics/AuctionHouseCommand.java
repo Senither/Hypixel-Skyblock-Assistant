@@ -99,9 +99,9 @@ public class AuctionHouseCommand extends SkillCommand {
         ).queue();
     }
 
-    private int getStatsTypeFromObject(JsonObject json, String name) {
+    private long getStatsTypeFromObject(JsonObject json, String name) {
         try {
-            return json.get(name).getAsInt();
+            return json.get(name).getAsLong();
         } catch (NullPointerException e) {
             return 0;
         }

@@ -36,6 +36,10 @@ public class NumberUtil {
         return niceFormat.format(value);
     }
 
+    public static String formatNicely(long value) {
+        return niceFormat.format(value);
+    }
+
     public static String formatNicelyWithDecimals(double value) {
         return niceFormatWithDecimal.format(value);
     }
