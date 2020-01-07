@@ -23,10 +23,7 @@ package com.senither.hypixel.database;
 
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
-import com.senither.hypixel.database.migrations.CreateGuildsTableMigration;
-import com.senither.hypixel.database.migrations.CreatePlayersTableMigration;
-import com.senither.hypixel.database.migrations.CreateProfilesTableMigration;
-import com.senither.hypixel.database.migrations.CreateUUIDsTableMigration;
+import com.senither.hypixel.database.migrations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +54,7 @@ public class DatabaseManager {
             migrationManager.register(new CreatePlayersTableMigration());
             migrationManager.register(new CreateProfilesTableMigration());
             migrationManager.register(new CreateGuildsTableMigration());
+            migrationManager.register(new AddDefaultRoleColumnToGuildsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();
