@@ -21,6 +21,7 @@
 
 package com.senither.hypixel.commands.general;
 
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
@@ -107,11 +108,12 @@ public class GuildSetupCommand extends Command {
             MessageFactory.makeError(event.getMessage(), String.join(" ",
                 "The **:name** guild is already linked with a Discord server, you can't link",
                 "a guild twice, if you're the guild master of the guild you can unlink the server",
-                "by using `h!guild-setup unlink-guild` in the Discord server the guild is",
+                "by using `:prefixguild-setup unlink-guild` in the Discord server the guild is",
                 "currently linked to."
             ))
                 .setTitle("Guild is already linked!")
                 .set("name", guildEntry.getName())
+                .set("prefix", Constants.COMMAND_PREFIX)
                 .queue();
             return;
         }

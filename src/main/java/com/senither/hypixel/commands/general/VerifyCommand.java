@@ -22,6 +22,7 @@
 package com.senither.hypixel.commands.general;
 
 import com.google.gson.JsonObject;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
@@ -90,8 +91,8 @@ public class VerifyCommand extends Command {
                 "If your account isn't linked you can set it up by logging into `mc.hypixel.net`, then going to your profile, followed by the social button, and then setting your Discord account up there.",
                 "Please not it might take up to a minute before the bot is able to see the changes.",
                 "",
-                "Try again using `h!verify <username>`"
-            ))).setTitle("Missing username").queue();
+                "Try again using `:prefixverify <username>`"
+            ))).set("prefix", Constants.COMMAND_PREFIX).setTitle("Missing username").queue();
             return;
         }
 

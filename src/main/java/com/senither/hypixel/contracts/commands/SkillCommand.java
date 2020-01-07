@@ -21,7 +21,9 @@
 
 package com.senither.hypixel.contracts.commands;
 
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
 import com.senither.hypixel.database.collection.Collection;
@@ -99,17 +101,15 @@ public abstract class SkillCommand extends Command {
 
     private String getUsernameFromMessage(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(MessageType.ERROR.getColor())
+            MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
+                "You must include the username of the user you want to see :type stats for.",
+                "",
+                "Try again using `:command <username>`"
+            )))
                 .setTitle("Missing username")
-                .setDescription(String.format(String.join("\n", Arrays.asList(
-                    "You must include the username of the user you want to see %s stats for.",
-                    "",
-                    "Try again using `h!%s <username>`"
-                )), type, getTriggers().get(0)))
-                .build()
-            ).queue();
-
+                .set("command", Constants.COMMAND_PREFIX + getTriggers().get(0))
+                .set("type", type)
+                .queue();
             return null;
         }
 

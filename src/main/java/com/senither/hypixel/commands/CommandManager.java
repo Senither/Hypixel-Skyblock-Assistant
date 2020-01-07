@@ -25,10 +25,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
-import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
@@ -96,16 +95,11 @@ public class CommandManager {
                 return;
             }
 
-            event.getChannel().sendMessage(new EmbedBuilder()
-                .setColor(MessageType.ERROR.getColor())
-                .setTitle("Missing verification")
-                .setDescription(String.join("\n", Arrays.asList(
-                    "You must verify your account with the bot to use this command, you can do this by",
-                    "running `h!verify <username>`, where your username is your in-game Minecraft",
-                    "username that has your Discord account linked on Hypixel.net"
-                )))
-                .build()
-            ).queue();
+            MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
+                "You must verify your account with the bot to use this command, you can do this by",
+                "running `:prefixverify <username>`, where your username is your in-game Minecraft",
+                "username that has your Discord account linked on Hypixel.net"
+            ))).set("prefix", Constants.COMMAND_PREFIX).setTitle("Missing verification").queue();
         } catch (Exception e) {
             log.error("The {} command threw an {} exception, error: {}",
                 command.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage(), e
