@@ -31,6 +31,8 @@ import com.senither.hypixel.commands.misc.PingCommand;
 import com.senither.hypixel.commands.statistics.AuctionHouseCommand;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
 import com.senither.hypixel.commands.statistics.SlayerCommand;
+import com.senither.hypixel.config.Configuration;
+import com.senither.hypixel.config.ConfigurationLoader;
 import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.hypixel.Hypixel;
 import com.senither.hypixel.listeners.MemberActivityEventListener;
@@ -46,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
+import java.io.IOException;
 
 public class SkyblockAssistant {
 
@@ -58,8 +61,12 @@ public class SkyblockAssistant {
     private final Hypixel hypixel;
     private final ShardManager shardManager;
 
-    SkyblockAssistant(Configuration configuration) throws LoginException {
-        this.configuration = configuration;
+    SkyblockAssistant() throws LoginException, IOException {
+        log.debug("====================================================");
+        log.debug("Starting the application with debug logging enabled!");
+        log.debug("====================================================\n");
+
+        this.configuration = new ConfigurationLoader(this).get();
 
         log.info("Registering commands...");
         this.commandManager = new CommandManager(this);
@@ -121,5 +128,10 @@ public class SkyblockAssistant {
                 new MessageEventListener(this),
                 new MemberActivityEventListener(this)
             ).build();
+    }
+
+    public void shutdown(int code) {
+        log.info("Shutting down process with code {}", code);
+        System.exit(code);
     }
 }

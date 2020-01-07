@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019.
+ * Copyright (c) 2020.
  *
  * This file is part of Hypixel Skyblock Assistant.
  *
@@ -19,7 +19,7 @@
  *
  */
 
-package com.senither.hypixel;
+package com.senither.hypixel.config;
 
 public class Configuration {
 

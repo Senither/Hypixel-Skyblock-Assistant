@@ -1,7 +1,7 @@
 <!--
-  ~ Copyright (c) 2019.
+  ~ Copyright (c) 2020.
   ~
-  ~ This file is part of Hypixel Guild Synchronizer.
+  ~ This file is part of Hypixel Skyblock Assistant.
   ~
   ~ Hypixel Guild Synchronizer is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -99,6 +99,7 @@
     <logger name="com.senither" level="DEBUG" additivity="true">
         <appender-ref ref="DEBUG"/>
         <appender-ref ref="ERROR"/>
+        <appender-ref ref="BOT_STDOUT_DEBUG"/>
     </logger>
 
     <!-- Gives us a nice JDA log with only JDA output -->

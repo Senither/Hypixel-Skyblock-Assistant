@@ -21,7 +21,7 @@
 
 package com.senither.hypixel.database;
 
-import com.senither.hypixel.Configuration;
+import com.senither.hypixel.config.Configuration;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.database.DatabaseConnection;
 import org.slf4j.Logger;
