@@ -25,6 +25,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
+import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -36,9 +37,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class DefaultRoleCommand extends Command {
 
@@ -96,8 +94,8 @@ public class DefaultRoleCommand extends Command {
             return;
         }
 
-        String guildName = getGuildNameFromServerId(event.getGuild().getIdLong());
-        if (guildName == null) {
+        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
+        if (guildEntry == null) {
             MessageFactory.makeError(event.getMessage(),
                 "The server is not currently setup with a guild, you must setup "
                     + "the server with a guild before you can use this command!"
@@ -106,21 +104,12 @@ public class DefaultRoleCommand extends Command {
         }
 
         try {
-            if (!isGuildMasterOfServerGuild(event, guildName)) {
+            if (!isGuildMasterOfServerGuild(event, guildEntry)) {
                 MessageFactory.makeError(event.getMessage(),
                     "You must be the guild master to use this command!"
                 ).setTitle("Missing argument").queue();
                 return;
             }
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            log.error("Failed to fetch guild information for {} from the API, error: {}",
-                guildName, e.getMessage(), e
-            );
-
-            MessageFactory.makeError(event.getMessage(),
-                "Failed to fetch guild information for the server, unable to continue processing the command!"
-            ).queue();
-            return;
         } catch (FriendlyException e) {
             MessageFactory.makeError(event.getMessage(), e.getMessage()).queue();
             return;
@@ -146,6 +135,8 @@ public class DefaultRoleCommand extends Command {
                 selectedRole.getIdLong(), event.getGuild().getIdLong()
             );
 
+            GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
             MessageFactory.makeSuccess(event.getMessage(),
                 "The :role role will now be used as the default role!"
                     + "\nNew users who join the server will automatically be given the "
@@ -168,6 +159,8 @@ public class DefaultRoleCommand extends Command {
         try {
             app.getDatabaseManager().queryUpdate("UPDATE `guilds` SET `default_role` = NULL WHERE `discord_id` = ?", event.getGuild().getIdLong());
 
+            GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
             MessageFactory.makeSuccess(event.getMessage(), "The default role have now been disabled!").queue();
         } catch (SQLException e) {
             log.error("Failed to set the default role for {} to null during reset, error: {}",
@@ -178,24 +171,9 @@ public class DefaultRoleCommand extends Command {
         }
     }
 
-    private String getGuildNameFromServerId(long guildId) {
-        try {
-            Collection result = app.getDatabaseManager().query("SELECT `name` from `guilds` WHERE `discord_id` = ?", guildId);
-
-            if (!result.isEmpty()) {
-                return result.first().getString("name");
-            }
-        } catch (SQLException ignored) {
-        }
-        return null;
-    }
-
-    private boolean isGuildMasterOfServerGuild(MessageReceivedEvent event, String guildName) throws InterruptedException, ExecutionException, TimeoutException {
-        GuildReply guildReply = app.getHypixel().getGuildByName(guildName).get(10, TimeUnit.SECONDS);
+    private boolean isGuildMasterOfServerGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
+        GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         if (guildReply == null || guildReply.getGuild() == null) {
-            // This error should only be thrown if something went wrong with
-            // the database cache, since we're checking the database for
-            // the guild entry prior to calling this piece of code.
             throw new FriendlyException("The request to the API returned null for a guild with the given name, try again later.");
         }
 

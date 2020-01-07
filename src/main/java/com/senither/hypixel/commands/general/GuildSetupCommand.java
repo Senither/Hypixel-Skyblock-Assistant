@@ -25,6 +25,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
+import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -96,59 +97,21 @@ public class GuildSetupCommand extends Command {
             return;
         }
 
-        try {
-            Collection query = app.getDatabaseManager().query(
-                "SELECT `id`, `data` FROM `guilds` WHERE `discord_id` = ?",
-                event.getGuild().getIdLong()
-            );
+        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
+        if (guildEntry != null && "unlink-guild".equalsIgnoreCase(args[0])) {
+            handleUnlinkGuild(event, guildEntry, uuid);
+            return;
+        }
 
-            if (!query.isEmpty() && "unlink-guild".equalsIgnoreCase(args[0])) {
-                GuildReply guild = app.getHypixel().getGson().fromJson(
-                    query.first().getString("data"), GuildReply.class
-                );
-
-                GuildReply.Guild.Member fromUUID = getMemberFromUUID(guild.getGuild(), uuid);
-                if (fromUUID != null && "Guild Master".equalsIgnoreCase(fromUUID.getRank())) {
-                    app.getDatabaseManager().queryUpdate(
-                        "DELETE FROM `guilds` WHERE `discord_id` = ?",
-                        event.getGuild().getIdLong()
-                    );
-
-                    MessageFactory.makeSuccess(event.getMessage(),
-                        "The **:guildname** have been unlinked with the bot, and will no longer"
-                            + " be automatically updated or scanned for rank synchronization."
-                    ).setTitle("Guild has been unlinked!").queue();
-                    return;
-                }
-
-                MessageFactory.makeError(event.getMessage(),
-                    "You're not the guild master of the **:guildname** guild, or the guild is not linked to this Discord server!"
-                ).setTitle("Unable to unlink").queue();
-                return;
-            }
-
-            if (!query.isEmpty()) {
-                MessageFactory.makeError(event.getMessage(), String.join(" ",
-                    "The **:name** guild is already linked with a Discord server, you can't link",
-                    "a guild twice, if you're the guild master of the guild you can unlink the server",
-                    "by using `h!guild-setup unlink-guild` in the Discord server the guild is",
-                    "currently linked to."
-                ))
-                    .setTitle("Guild is already linked!")
-                    .set("name", String.join(" ", args))
-                    .queue();
-                return;
-            }
-        } catch (SQLException e) {
-            log.error("Failed to check if guild is already synced with the bot, error: {}",
-                e.getMessage(), e
-            );
-
-            MessageFactory.makeError(event.getMessage(),
-                "An error occurred while checking if the guild is already linked with a Discord server, error: :error"
-            )
-                .setTitle("An error occurred!")
-                .set("error", e.getMessage())
+        if (guildEntry != null) {
+            MessageFactory.makeError(event.getMessage(), String.join(" ",
+                "The **:name** guild is already linked with a Discord server, you can't link",
+                "a guild twice, if you're the guild master of the guild you can unlink the server",
+                "by using `h!guild-setup unlink-guild` in the Discord server the guild is",
+                "currently linked to."
+            ))
+                .setTitle("Guild is already linked!")
+                .set("name", guildEntry.getName())
                 .queue();
             return;
         }
@@ -166,6 +129,27 @@ public class GuildSetupCommand extends Command {
             }));
     }
 
+    private void handleUnlinkGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, UUID uuid) {
+        GuildReply guild = app.getHypixel().getGson().fromJson(
+            guildEntry.getData(), GuildReply.class
+        );
+
+        GuildReply.Guild.Member fromUUID = getMemberFromUUID(guild.getGuild(), uuid);
+        if (fromUUID != null && "Guild Master".equalsIgnoreCase(fromUUID.getRank())) {
+            GuildController.deleteGuildWithId(app.getDatabaseManager(), event.getGuild().getIdLong());
+
+            MessageFactory.makeSuccess(event.getMessage(),
+                "The **:guildname** have been unlinked with the bot, and will no longer"
+                    + " be automatically updated or scanned for rank synchronization."
+            ).setTitle("Guild has been unlinked!").queue();
+            return;
+        }
+
+        MessageFactory.makeError(event.getMessage(),
+            "You're not the guild master of the **:guildname** guild, or the guild is not linked to this Discord server!"
+        ).setTitle("Unable to unlink").queue();
+    }
+
     private void handleGuildRegistration(Message message, GuildReply guildReply, Throwable throwable, UUID uuid, String[] args) {
         if (throwable != null || guildReply.getGuild() == null) {
             message.editMessage(MessageFactory.makeError(message, "Failed to find any guild on Hypixel called `:error`")
@@ -178,7 +162,6 @@ public class GuildSetupCommand extends Command {
 
         GuildReply.Guild.Member currentMember = getMemberFromUUID(guildReply.getGuild(), uuid);
         if (currentMember == null) {
-
             message.editMessage(MessageFactory.makeError(message, String.join("\n",
                 "You're not a member of the **:guildname** guild!",
                 "You can't link guilds to servers you're not a member of."

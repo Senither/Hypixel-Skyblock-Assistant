@@ -70,6 +70,7 @@ public class AuctionHouseCommand extends SkillCommand {
             "`:command @Senither`"
         );
     }
+
     @Override
     public List<String> getTriggers() {
         return Collections.singletonList("ah");
