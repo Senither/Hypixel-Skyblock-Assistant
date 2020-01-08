@@ -170,15 +170,14 @@ public class SlayerCommand extends SkillCommand {
     }
 
     private double getSlayerLevelFromExperience(int experience) {
-        double level = 0;
-        for (int requirement : slayerLevels) {
+        for (int level = 0; level < slayerLevels.size(); level++) {
+            double requirement = slayerLevels.get(level);
             if (experience < requirement) {
-                level += (double) experience / (double) requirement;
-                break;
+                double lastRequirement = level == 0 ? 0D : slayerLevels.get(level - 1);
+                return level + (experience - lastRequirement) / (requirement - lastRequirement);
             }
-            level++;
         }
-        return level;
+        return 0;
     }
 
     private int getEntryFromSlayerData(JsonObject jsonpObject, String entry) {
