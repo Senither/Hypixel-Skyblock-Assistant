@@ -224,6 +224,8 @@ public class Hypixel {
                 log.debug("Found selected SkyBlock profile for \"{}\"", name);
 
                 future.complete(skyBlockProfileReply);
+            } catch (NullPointerException e) {
+                future.completeExceptionally(new FriendlyException("Found no SkyBlock profiles for " + name));
             } catch (Exception e) {
                 future.completeExceptionally(e);
             }

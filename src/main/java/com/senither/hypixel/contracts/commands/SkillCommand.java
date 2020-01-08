@@ -21,6 +21,8 @@
 
 package com.senither.hypixel.contracts.commands;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
@@ -46,6 +48,10 @@ import java.util.concurrent.TimeoutException;
 public abstract class SkillCommand extends Command {
 
     private static final Logger log = LoggerFactory.getLogger(SkillsCommand.class);
+
+    private static final Cache<Long, String> cache = CacheBuilder.newBuilder()
+        .expireAfterAccess(5, TimeUnit.MINUTES)
+        .build();
 
     private final String type;
 
@@ -101,6 +107,11 @@ public abstract class SkillCommand extends Command {
 
     private String getUsernameFromMessage(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
+            String username = getUsernameFromUser(event.getAuthor());
+            if (username != null) {
+                return username;
+            }
+
             MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
                 "You must include the username of the user you want to see :type stats for.",
                 "",
@@ -110,6 +121,7 @@ public abstract class SkillCommand extends Command {
                 .set("command", Constants.COMMAND_PREFIX + getTriggers().get(0))
                 .set("type", type)
                 .queue();
+
             return null;
         }
 
@@ -123,17 +135,9 @@ public abstract class SkillCommand extends Command {
                 event.getMessage().isMentioned(event.getGuild().getSelfMember().getUser(), Message.MentionType.USER) ? 1 : 0
             );
 
-            try {
-                Collection result = app.getDatabaseManager().query(
-                    "SELECT `username` FROM `uuids` WHERE `discord_id` = ?",
-                    mentionableUser.getIdLong()
-                );
-
-                if (!result.isEmpty()) {
-                    return result.first().getString("username");
-                }
-            } catch (SQLException e) {
-                //
+            username = getUsernameFromUser(mentionableUser);
+            if (username != null) {
+                return username;
             }
         }
 
@@ -144,6 +148,31 @@ public abstract class SkillCommand extends Command {
         ).queue();
 
         return null;
+    }
+
+    private String getUsernameFromUser(IMentionable user) {
+        String username = cache.getIfPresent(user.getIdLong());
+        if (username != null) {
+            return username;
+        }
+
+        try {
+            Collection result = app.getDatabaseManager().query(
+                "SELECT `username` FROM `uuids` WHERE `discord_id` = ?",
+                user.getIdLong()
+            );
+
+            if (result.isEmpty()) {
+                return null;
+            }
+
+            username = result.first().getString("username");
+            cache.put(user.getIdLong(), username);
+
+            return username;
+        } catch (SQLException e) {
+            return null;
+        }
     }
 
     protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply);
