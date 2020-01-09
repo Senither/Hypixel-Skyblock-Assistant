@@ -70,7 +70,13 @@ public class RoleAssignmentJob extends Job {
                     continue;
                 }
 
-                handleGuildRoleAssignments(guild, guildReply, guildEntry);
+                try {
+                    handleGuildRoleAssignments(guild, guildReply, guildEntry);
+                } catch (Exception e) {
+                    log.error("An error was thrown in the role assignment job while trying to handle guild with an ID of {}, error: {}",
+                        guild.getId(), e.getMessage(), e
+                    );
+                }
 
                 Thread.sleep(500L);
             }
@@ -88,17 +94,13 @@ public class RoleAssignmentJob extends Job {
 
     private void handleGuildRoleAssignments(Guild guild, GuildReply guildReply, GuildController.GuildEntry guildEntry) throws SQLException {
         GuildReply.Guild hypixelGuild = guildReply.getGuild();
-        HashMap<String, Role> discordRoles = new HashMap<>();
-        List<String> memberUuids = new ArrayList<>();
-        Role defaultRole = guildEntry.getDefaultRole() == null ? null : guild.getRoleById(guildEntry.getDefaultRole());
 
         // Populates the Discord Roles cache list
+        HashMap<String, Role> discordRoles = new HashMap<>();
         for (GuildReply.Guild.Member member : hypixelGuild.getMembers()) {
             if ("Guild Master".equalsIgnoreCase(member.getRank())) {
                 continue;
             }
-
-            memberUuids.add(member.getUuid().toString());
 
             if (discordRoles.containsKey(member.getRank())) {
                 continue;
@@ -112,16 +114,22 @@ public class RoleAssignmentJob extends Job {
             discordRoles.put(member.getRank(), rolesByName.get(0));
         }
 
+        List<String> memberIds = new ArrayList<>();
+        guild.getMembers().forEach(member -> memberIds.add(member.getId()));
+
         StringBuilder stringifiedParams = new StringBuilder();
-        for (String ignored : memberUuids) {
+        for (String ignored : memberIds) {
             stringifiedParams.append("?, ");
         }
 
         // Gets every verified user from the guild from the database.
         Collection rows = app.getDatabaseManager().query(String.format(
-            "SELECT * FROM `uuids` WHERE `uuid` IN (%s) AND `discord_id` IS NOT NULL",
+            "SELECT * FROM `uuids` WHERE `discord_id` IN (%s)",
             stringifiedParams.toString().substring(0, stringifiedParams.length() - 2)
-        ), memberUuids.toArray());
+        ), memberIds.toArray());
+
+        // Sets up the default role that should be given the users if they're not in the guild
+        Role defaultRole = guildEntry.getDefaultRole() == null ? null : guild.getRoleById(guildEntry.getDefaultRole());
 
         for (Member member : guild.getMembers()) {
             if (member.getUser().isBot() || member.getUser().isFake()) {
@@ -137,9 +145,18 @@ public class RoleAssignmentJob extends Job {
             DataRow dataRow = dataRows.get(0);
             String memberUUID = dataRow.getString("uuid");
 
-            GuildReply.Guild.Member guildMember = hypixelGuild.getMembers().stream()
-                .filter(filterMember -> filterMember.getUuid().toString().equals(memberUUID))
-                .findFirst().orElseGet(null);
+            if (guildEntry.isAutoRename() && !member.getEffectiveName().equals(dataRow.getString("username"))) {
+                guild.modifyNickname(member, dataRow.getString("username")).queue();
+            }
+
+            GuildReply.Guild.Member guildMember;
+            try {
+                guildMember = hypixelGuild.getMembers().stream()
+                    .filter(filterMember -> filterMember.getUuid().toString().equals(memberUUID))
+                    .findFirst().orElseGet(null);
+            } catch (NullPointerException ignored) {
+                guildMember = null;
+            }
 
             if (guildMember == null) {
                 markUserAsGuest(guild, member, discordRoles.values(), defaultRole);
