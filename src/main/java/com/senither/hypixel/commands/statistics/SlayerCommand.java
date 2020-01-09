@@ -42,7 +42,7 @@ public class SlayerCommand extends SkillCommand {
     private static final Logger log = LoggerFactory.getLogger(SlayerCommand.class);
 
     private final List<Integer> slayerLevels = Arrays.asList(
-        5, 15, 200, 1000, 10000, 20000, 100000, 400000
+        5, 15, 200, 1000, 10000, 20000, 100000, 400000, 1000000
     );
 
     public SlayerCommand(SkyblockAssistant app) {
@@ -177,7 +177,7 @@ public class SlayerCommand extends SkillCommand {
                 return level + (experience - lastRequirement) / (requirement - lastRequirement);
             }
         }
-        return 0;
+        return 9;
     }
 
     private int getEntryFromSlayerData(JsonObject jsonpObject, String entry) {
