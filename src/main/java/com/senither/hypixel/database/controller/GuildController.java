@@ -89,12 +89,14 @@ public class GuildController {
         private final String name;
         private final String data;
         private final Long defaultRole;
+        private final boolean autoRename;
 
         GuildEntry(DataRow row) {
             id = row.getString("id");
             discordId = row.getLong("discord_id");
             name = row.getString("name");
             data = row.getString("data");
+            autoRename = row.getBoolean("auto_rename");
 
             long defaultRole = row.getLong("default_role", 0L);
             this.defaultRole = defaultRole == 0L ? null : defaultRole;
@@ -118,6 +120,10 @@ public class GuildController {
 
         public Long getDefaultRole() {
             return defaultRole;
+        }
+
+        public boolean isAutoRename() {
+            return autoRename;
         }
     }
 }

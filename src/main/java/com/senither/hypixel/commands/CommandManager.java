@@ -28,6 +28,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
+import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
@@ -100,6 +101,8 @@ public class CommandManager {
                 "running `:prefixverify <username>`, where your username is your in-game Minecraft",
                 "username that has your Discord account linked on Hypixel.net"
             ))).set("prefix", Constants.COMMAND_PREFIX).setTitle("Missing verification").queue();
+        } catch (FriendlyException e) {
+            MessageFactory.makeError(event.getMessage(), e.getMessage()).queue();
         } catch (Exception e) {
             log.error("The {} command threw an {} exception, error: {}",
                 command.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage(), e

@@ -55,6 +55,7 @@ public class DatabaseManager {
             migrationManager.register(new CreateProfilesTableMigration());
             migrationManager.register(new CreateGuildsTableMigration());
             migrationManager.register(new AddDefaultRoleColumnToGuildsTableMigration());
+            migrationManager.register(new AddAutoRenameColumnToGuildsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();

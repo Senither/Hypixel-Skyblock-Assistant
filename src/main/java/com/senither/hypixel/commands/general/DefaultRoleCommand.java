@@ -24,19 +24,15 @@ package com.senither.hypixel.commands.general;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
-import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.controller.GuildController;
-import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 public class DefaultRoleCommand extends Command {
 
@@ -103,15 +99,10 @@ public class DefaultRoleCommand extends Command {
             return;
         }
 
-        try {
-            if (!isGuildMasterOfServerGuild(event, guildEntry)) {
-                MessageFactory.makeError(event.getMessage(),
-                    "You must be the guild master to use this command!"
-                ).setTitle("Missing argument").queue();
-                return;
-            }
-        } catch (FriendlyException e) {
-            MessageFactory.makeError(event.getMessage(), e.getMessage()).queue();
+        if (!isGuildMasterOfServerGuild(event, guildEntry)) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must be the guild master to use this command!"
+            ).setTitle("Missing argument").queue();
             return;
         }
 
@@ -169,35 +160,5 @@ public class DefaultRoleCommand extends Command {
 
             MessageFactory.makeError(event.getMessage(), "Something went wrong while trying to reset the servers default role!").queue();
         }
-    }
-
-    private boolean isGuildMasterOfServerGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
-        GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
-        if (guildReply == null || guildReply.getGuild() == null) {
-            throw new FriendlyException("The request to the API returned null for a guild with the given name, try again later.");
-        }
-
-        UUID userUUID;
-        try {
-            Collection result = app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `discord_id` = ?", event.getAuthor().getIdLong());
-            if (result.isEmpty()) {
-                return false;
-            }
-
-            userUUID = UUID.fromString(result.first().getString("uuid"));
-        } catch (SQLException e) {
-            log.error("Failed to get the UUID for {} from the database, error: {}",
-                event.getAuthor().getAsTag(), e.getMessage(), e
-            );
-            return false;
-        }
-
-        for (GuildReply.Guild.Member member : guildReply.getGuild().getMembers()) {
-            if (member.getRank().equals("Guild Master")) {
-                return member.getUuid().equals(userUUID);
-            }
-        }
-
-        return false;
     }
 }
