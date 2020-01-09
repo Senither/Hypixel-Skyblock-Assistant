@@ -87,8 +87,8 @@ public class AutoRenameCommand extends Command {
 
         if (!isGuildMasterOfServerGuild(event, guildEntry)) {
             MessageFactory.makeError(event.getMessage(),
-                "You must be the guild master to use this command!"
-            ).setTitle("Missing argument").queue();
+                "You must be the guild master of the :name guild to use this command!"
+            ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
             return;
         }
 

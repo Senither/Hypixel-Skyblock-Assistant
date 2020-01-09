@@ -83,7 +83,7 @@ public class DefaultRoleCommand extends Command {
     public void onCommand(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
-                "You must include the name of the role you wish to use as"
+                "You must include the name of the role you wish to use as "
                     + "the default role for the server, or `disable` to disable the "
                     + "default role feature."
             ).setTitle("Missing argument").queue();
@@ -101,8 +101,8 @@ public class DefaultRoleCommand extends Command {
 
         if (!isGuildMasterOfServerGuild(event, guildEntry)) {
             MessageFactory.makeError(event.getMessage(),
-                "You must be the guild master to use this command!"
-            ).setTitle("Missing argument").queue();
+                "You must be the guild master of the :name guild to use this command!"
+            ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
             return;
         }
 
