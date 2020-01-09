@@ -54,8 +54,9 @@ public class SkillsCommand extends SkillCommand {
             7800, 9800, 12200, 15300
         ));
 
-        for (int i = 1; i < 30; i++) {
-            generalSkillLevels.add(100000 * i);
+        int index = 1;
+        while (generalSkillLevels.size() < 50) {
+            generalSkillLevels.add(100000 * index++);
         }
     }
 
