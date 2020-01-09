@@ -65,6 +65,10 @@ public class RoleAssignmentJob extends Job {
                     continue;
                 }
 
+                app.getDatabaseManager().queryUpdate("UPDATE `guilds` SET `data` = ?, last_updated_at = NOW() WHERE `id` = ?",
+                    app.getHypixel().getGson().toJson(guildReply), row.getString("id")
+                );
+
                 GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), guild.getIdLong());
                 if (guildEntry == null) {
                     continue;
