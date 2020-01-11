@@ -95,6 +95,7 @@ public class AuctionHouseCommand extends SkillCommand {
             .addField("Auctions Won", NumberUtil.formatNicely(getStatsTypeFromObject(stats, "auctions_won")), true)
             .addField("Auctions Created", NumberUtil.formatNicely(getStatsTypeFromObject(stats, "auctions_created")), true)
             .addField("Creation Fees", NumberUtil.formatNicely(getStatsTypeFromObject(stats, "auctions_fees")), true)
+            .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
             .build()
         ).queue();
     }

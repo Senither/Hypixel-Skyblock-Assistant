@@ -23,6 +23,7 @@ package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
@@ -90,11 +91,12 @@ public class SlayerCommand extends SkillCommand {
         JsonObject slayerBosses = member.getAsJsonObject("slayer_bosses");
         int totalCoinsSpentOnSlayers = getTotalCoinsSpentOnSlayers(slayerBosses);
         if (totalCoinsSpentOnSlayers == 0) {
-            message.editMessage(new EmbedBuilder()
+            message.editMessage(MessageFactory.makeEmbeddedMessage(message.getChannel())
                 .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Slayers")
-                .setDescription(playerReply.getPlayer().get("displayname").getAsString() + " haven't done any slayer quests yet, so there is nothing to display!")
+                .setDescription(playerReply.getPlayer().get("displayname").getAsString() + " haven't done any slayer quests on their :profile profile yet, so there is nothing to display!")
                 .setColor(MessageType.WARNING.getColor())
-                .build()
+                .set("profile", profileReply.getProfile().get("cute_name").getAsString())
+                .buildEmbed()
             ).queue();
             return;
         }
@@ -109,9 +111,10 @@ public class SlayerCommand extends SkillCommand {
             .addField("Revenant Horror", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("zombie")), true)
             .addField("Tarantula Broodfather", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("spider")), true)
             .addField("Sven Packmaster", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("wolf")), true)
-            .setFooter(String.format("%s has a total of %s Slayer experience.",
+            .setFooter(String.format("%s has a total of %s Slayer experience. | Profile: %s",
                 playerReply.getPlayer().get("displayname").getAsString(),
-                NumberUtil.formatNicely(getTotalCombinedSlayerExperience(slayerBosses))
+                NumberUtil.formatNicely(getTotalCombinedSlayerExperience(slayerBosses)),
+                profileReply.getProfile().get("cute_name").getAsString()
             ))
             .build()
         ).queue();

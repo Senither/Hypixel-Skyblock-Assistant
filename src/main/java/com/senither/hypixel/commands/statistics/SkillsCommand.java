@@ -109,7 +109,7 @@ public class SkillsCommand extends SkillCommand {
         double runecrafting = getSkillExperience(member, "experience_skill_runecrafting");
 
         if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            sendAPIIsDisabledMessage(message, new EmbedBuilder(), playerReply.getPlayer().get("displayname").getAsString());
+            sendAPIIsDisabledMessage(message, profileReply, playerReply.getPlayer().get("displayname").getAsString());
             return;
         }
 
@@ -137,7 +137,10 @@ public class SkillsCommand extends SkillCommand {
             .addField("Alchemy", formatStatTextValue(alchemy, false), true)
             .addField("Carpentry", formatStatTextValue(carpentry, false), true)
             .addField("Runecrafting", formatStatTextValue(runecrafting, true), true)
-            .setFooter("Note > Carpentry and Runecrafting are cosmetic skills, and are therefor not included in the average skill calculation.")
+            .setFooter(String.format(
+                "Note > Carpentry and Runecrafting are cosmetic skills, and are therefor not included in the average skill calculation. | Profile: %s",
+                profileReply.getProfile().get("cute_name").getAsString()
+            ))
             .build()
         ).queue();
     }
@@ -167,11 +170,14 @@ public class SkillsCommand extends SkillCommand {
         return level;
     }
 
-    private void sendAPIIsDisabledMessage(Message message, EmbedBuilder embedBuilder, String username) {
-        message.editMessage(embedBuilder
+    private void sendAPIIsDisabledMessage(Message message, SkyBlockProfileReply profileReply, String username) {
+        message.editMessage(new EmbedBuilder()
             .setColor(MessageType.WARNING.getColor())
             .setTitle("Failed to load profile!")
-            .setDescription(username + " doesn't appear to have their skill API option enabled!\nYou can ask them nicely to enable it.")
+            .setDescription(String.format(
+                "%s has their skills API disabled for their %s profile!\nYou can ask them nicely to enable it.",
+                username, profileReply.getProfile().get("cute_name").getAsString()
+            ))
             .build()
         ).queue();
     }
