@@ -198,6 +198,8 @@ public class Hypixel {
                             continue;
                         }
 
+                        profileReply.getProfile().add("cute_name", profileEntry.getValue().getAsJsonObject().get("cute_name"));
+
                         skyBlockProfileReplies.add(profileReply);
                     } catch (Exception e) {
                         // Ignored
@@ -221,7 +223,9 @@ public class Hypixel {
                         )) ? 1 : -1;
                     }).findFirst().get();
 
-                log.debug("Found selected SkyBlock profile for \"{}\"", name);
+                log.debug("Found selected SkyBlock profile for \"{}\" it was \"{}\" with UUID \"{}\"",
+                    name, skyBlockProfileReply.getProfile().get("cute_name").getAsString(), skyBlockProfileReply.getProfile().get("profile_id").getAsString()
+                );
 
                 future.complete(skyBlockProfileReply);
             } catch (NullPointerException e) {
