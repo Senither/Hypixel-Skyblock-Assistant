@@ -115,6 +115,10 @@ public class RoleAssignmentJob extends Job {
                 continue;
             }
 
+            if (!guild.getSelfMember().canInteract(rolesByName.get(0))) {
+                continue;
+            }
+
             discordRoles.put(member.getRank(), rolesByName.get(0));
         }
 
