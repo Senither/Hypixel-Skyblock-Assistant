@@ -99,8 +99,16 @@ public class CommandManager {
             MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
                 "You must verify your account with the bot to use this command, you can do this by",
                 "running `:prefixverify <username>`, where your username is your in-game Minecraft",
-                "username that has your Discord account linked on Hypixel.net"
-            ))).set("prefix", Constants.COMMAND_PREFIX).setTitle("Missing verification").queue();
+                "username that has your Discord account linked on Hypixel.net",
+                "",
+                "If you haven't already linked your Discord account on Hypixel you can login to",
+                "the server, go to your Hypixel social settings, click on Discord, and set",
+                "your username to `:user`"
+            )))
+                .set("prefix", Constants.COMMAND_PREFIX)
+                .set("user", event.getAuthor().getAsTag())
+                .setTitle("Missing verification")
+                .queue();
         } catch (FriendlyException e) {
             MessageFactory.makeError(event.getMessage(), e.getMessage()).queue();
         } catch (Exception e) {
