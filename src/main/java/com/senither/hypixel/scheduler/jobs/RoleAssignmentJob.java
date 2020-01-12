@@ -153,7 +153,7 @@ public class RoleAssignmentJob extends Job {
             DataRow dataRow = dataRows.get(0);
             String memberUUID = dataRow.getString("uuid");
 
-            if (guildEntry.isAutoRename() && !member.getEffectiveName().equals(dataRow.getString("username"))) {
+            if (shouldRename(guildEntry, member, dataRow) && guild.getSelfMember().canInteract(member)) {
                 guild.modifyNickname(member, dataRow.getString("username")).queue();
             }
 
@@ -194,6 +194,10 @@ public class RoleAssignmentJob extends Job {
                 );
             });
         }
+    }
+
+    private boolean shouldRename(GuildController.GuildEntry guildEntry, Member member, DataRow dataRow) {
+        return guildEntry.isAutoRename() && !member.getEffectiveName().equals(dataRow.getString("username"));
     }
 
     private void markUserAsGuest(Guild guild, Member member, java.util.Collection<Role> values, Role defaultRole) {
