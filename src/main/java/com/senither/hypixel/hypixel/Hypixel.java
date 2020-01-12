@@ -53,7 +53,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 
 public class Hypixel {
@@ -61,6 +63,10 @@ public class Hypixel {
     private static final Logger log = LoggerFactory.getLogger(Hypixel.class);
 
     private static final Cache<String, UUID> uuidCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(30, TimeUnit.MINUTES)
+        .build();
+
+    private static final Cache<UUID, String> usernameCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
         .build();
 
@@ -384,6 +390,55 @@ public class Hypixel {
         } catch (IllegalArgumentException e) {
             // We can ignore this exception since it should only be thrown if
             // the Hypixel API returns null due to the player not existing.
+        }
+
+        return null;
+    }
+
+    public String getUsernameFromUuid(UUID uuid) throws SQLException {
+        String cachedUsername = usernameCache.getIfPresent(uuid);
+        if (cachedUsername != null) {
+            log.debug("Found Username for {} using the in-memory cache (Username: {})", uuid, cachedUsername);
+            return cachedUsername;
+        }
+
+        Collection result = app.getDatabaseManager().query("SELECT username FROM `uuids` WHERE `uuid` = ?", uuid.toString());
+        if (!result.isEmpty()) {
+            String username = result.get(0).getString("username");
+            usernameCache.put(uuid, username);
+            log.debug("Found Username for {} using the database cache (Username: {})", uuid, username);
+
+            return username;
+        }
+
+        try {
+            PlayerReply playerReply = getAPI().getPlayerByUuid(uuid).get(10, TimeUnit.SECONDS);
+
+            if (playerReply == null || playerReply.getPlayer() == null) {
+                return null;
+            }
+
+            String username = playerReply.getPlayer().get("displayname").getAsString();
+
+            usernameCache.put(uuid, username);
+
+            log.debug("Found Username for {} using the Hypixel API (Username: {})", uuid, username);
+
+            try {
+                app.getDatabaseManager().queryInsert("INSERT INTO `uuids` SET `uuid` = ?, `username` = ?",
+                    uuid, username
+                );
+
+                app.getDatabaseManager().queryInsert("INSERT INTO `players` SET `uuid` = ?, `data` = ?",
+                    uuid, getGson().toJson(playerReply)
+                );
+            } catch (Exception ignored) {
+                //
+            }
+
+            return username;
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            log.error("Failed to fetch Username for {} using the Hypixel API, error: {}", uuid, e.getMessage(), e);
         }
 
         return null;
