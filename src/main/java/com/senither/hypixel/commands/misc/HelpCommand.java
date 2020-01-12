@@ -89,11 +89,23 @@ public class HelpCommand extends Command {
             return;
         }
 
-        MessageFactory.makeInfo(event.getMessage(), String.join(" ", container.getDescription()))
+        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(), String.join(" ", container.getDescription()))
             .setTitle(container.getName())
             .addField("Usage", formatCommandUsage(container, container.getCommand().getUsageInstructions()), false)
-            .addField("Example", formatCommandUsage(container, container.getCommand().getExampleUsage()), false)
-            .queue();
+            .addField("Example", formatCommandUsage(container, container.getCommand().getExampleUsage()), false);
+
+        if (container.getTriggers().size() > 1) {
+            StringBuilder aliases = new StringBuilder();
+            for (int i = 1; i < container.getTriggers().size(); i++) {
+                aliases.append(String.format("`%s%s`, ",
+                    Constants.COMMAND_PREFIX,
+                    container.getTriggers().get(i)
+                ));
+            }
+            message.addField("Aliases", aliases.substring(0, aliases.length() - 2), false);
+        }
+
+        message.queue();
     }
 
     private String formatCommandUsage(CommandContainer container, List<String> message) {
