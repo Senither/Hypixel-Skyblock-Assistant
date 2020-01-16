@@ -22,6 +22,8 @@
 package com.senither.hypixel.contracts.inventory;
 
 import com.github.steveice10.opennbt.NBTIO;
+import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.google.common.io.ByteSource;
 
@@ -30,9 +32,9 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 
-public abstract class Inventory {
+public interface InventoryDecoder {
 
-    protected Tag decodeInventoryString(String inventory) throws IOException {
+    default Tag decodeInventoryString(String inventory) throws IOException {
         final byte[] decodedInventory = Base64.getDecoder().decode(inventory);
         if (decodedInventory == null || decodedInventory.length == 0) {
             throw new IOException("Failed to decode inventory, inventory can't be empty or null!");
@@ -44,7 +46,16 @@ public abstract class Inventory {
         return NBTIO.readTag(new GZIPInputStream(new ByteArrayInputStream(decodedInventory)));
     }
 
-    private boolean isCompressed(final byte[] compressed) {
+    default ByteArrayTag getInventoryDataFromAttributes(CompoundTag tag) {
+        for (String key : tag.getValue().keySet()) {
+            if (key.endsWith("_backpack_data")) {
+                return tag.get(key);
+            }
+        }
+        return null;
+    }
+
+    default boolean isCompressed(final byte[] compressed) {
         return (compressed[0] == (byte) (GZIPInputStream.GZIP_MAGIC))
             && (compressed[1] == (byte) (GZIPInputStream.GZIP_MAGIC >> 8));
     }
