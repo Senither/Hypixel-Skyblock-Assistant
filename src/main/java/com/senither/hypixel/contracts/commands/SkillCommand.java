@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -74,10 +75,22 @@ public abstract class SkillCommand extends Command {
             .setColor(MessageType.INFO.getColor());
 
         event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
-            app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).whenCompleteAsync((playerReply, throwable) -> {
+            app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).whenCompleteAsync((profileReply, throwable) -> {
                 if (throwable == null) {
                     try {
-                        handleSkyblockProfile(message, playerReply, app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS));
+                        PlayerReply playerReply = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
+                        if (playerReply != null && playerReply.getPlayer() != null) {
+                            UUID uuid = convertStringifiedUUID(playerReply.getPlayer().get("uuid").getAsString());
+
+                            String cachedUsername = app.getHypixel().getUsernameFromUuid(uuid);
+                            String currentUsername = playerReply.getPlayer().get("displayname").getAsString();
+
+                            if (cachedUsername != null && !cachedUsername.equalsIgnoreCase(currentUsername)) {
+                                updateUsernameForUuidEntry(uuid, currentUsername);
+                            }
+                        }
+
+                        handleSkyblockProfile(message, profileReply, playerReply);
                         return;
                     } catch (InterruptedException | ExecutionException | TimeoutException e) {
                         throwable = e;
@@ -173,6 +186,30 @@ public abstract class SkillCommand extends Command {
         } catch (SQLException e) {
             return null;
         }
+    }
+
+    private void updateUsernameForUuidEntry(UUID uuid, String newUsername) {
+        try {
+            app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `username` = ? WHERE `uuid` = ?",
+                newUsername, uuid
+            );
+
+            app.getHypixel().forgetUsernameCacheEntry(uuid);
+        } catch (SQLException e) {
+            log.error("Failed to update username for {}, can't set new username to {}, error: {}",
+                uuid, newUsername, e.getMessage(), e
+            );
+        }
+    }
+
+    private UUID convertStringifiedUUID(String uuid) {
+        return UUID.fromString("" +
+            uuid.substring(0, 8) + "-" +
+            uuid.substring(8, 12) + "-" +
+            uuid.substring(12, 16) + "-" +
+            uuid.substring(16, 20) + "-" +
+            uuid.substring(20, 32)
+        );
     }
 
     protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply);

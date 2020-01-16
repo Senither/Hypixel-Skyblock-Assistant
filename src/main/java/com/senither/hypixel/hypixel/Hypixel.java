@@ -395,6 +395,10 @@ public class Hypixel {
         return null;
     }
 
+    public void forgetUsernameCacheEntry(UUID uuid) {
+        usernameCache.invalidate(uuid);
+    }
+
     public String getUsernameFromUuid(UUID uuid) throws SQLException {
         String cachedUsername = usernameCache.getIfPresent(uuid);
         if (cachedUsername != null) {
