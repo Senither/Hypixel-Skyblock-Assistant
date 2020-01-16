@@ -151,8 +151,8 @@ public class VerifyCommand extends Command {
         try {
             uuid = app.getHypixel().getUUIDFromName(player.get("displayname").getAsString());
             if (uuid != null) {
-                app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `discord_id` = ? WHERE `uuid` = ?",
-                    event.getAuthor().getIdLong(), uuid.toString()
+                app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `discord_id` = ?, `username` = ? WHERE `uuid` = ?",
+                    event.getAuthor().getIdLong(), player.get("displayname").getAsString(), uuid.toString()
                 );
             }
         } catch (SQLException e) {
