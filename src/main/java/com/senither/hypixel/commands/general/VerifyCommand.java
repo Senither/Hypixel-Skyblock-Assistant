@@ -167,10 +167,10 @@ public class VerifyCommand extends Command {
             .buildEmbed()
         ).queue();
 
-        handleAutomaticRoleAssignment(event, uuid);
+        handleAutomaticAssignments(event, uuid, player.get("displayname").getAsString());
     }
 
-    private void handleAutomaticRoleAssignment(MessageReceivedEvent event, UUID uuid) {
+    private void handleAutomaticAssignments(MessageReceivedEvent event, UUID uuid, String username) {
         if (uuid == null) {
             return;
         }
@@ -178,6 +178,13 @@ public class VerifyCommand extends Command {
         GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
         if (guildEntry == null) {
             return;
+        }
+
+        if (guildEntry.isAutoRename()) {
+            //noinspection ConstantConditions
+            if (!event.getMember().getEffectiveName().equalsIgnoreCase(username)) {
+                event.getGuild().modifyNickname(event.getMember(), username).queue(null, null);
+            }
         }
 
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
