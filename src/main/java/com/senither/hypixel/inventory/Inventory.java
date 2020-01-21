@@ -85,4 +85,19 @@ public class Inventory implements Searchable, InventoryDecoder {
     public List<Item> getItems() {
         return items;
     }
+
+    public List<Item> getItemsWithType(ItemType type) {
+        List<Item> itemsWithType = new ArrayList<>();
+        if (type == null) {
+            return itemsWithType;
+        }
+
+        for (Item item : getItems()) {
+            if (item.getType() == type) {
+                itemsWithType.add(item);
+            }
+        }
+
+        return itemsWithType;
+    }
 }

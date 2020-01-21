@@ -23,13 +23,25 @@ package com.senither.hypixel.inventory;
 
 public enum ItemRarity {
 
-    COMMON,
-    UNCOMMON,
-    RARE,
-    EPIC,
-    LEGENDARY,
-    SPECIAL,
-    UNKNOWN;
+    SPECIAL("Special"),
+    LEGENDARY("Legendary"),
+    EPIC("Epic"),
+    RARE("Rare"),
+    UNCOMMON("Uncommon"),
+    COMMON("Common"),
+    UNKNOWN(true, "Unknown");
+
+    private final boolean isDefault;
+    private final String name;
+
+    ItemRarity(String name) {
+        this(false, name);
+    }
+
+    ItemRarity(boolean isDefault, String name) {
+        this.isDefault = isDefault;
+        this.name = name;
+    }
 
     public static ItemRarity fromName(String name) {
         if (name == null) {
@@ -42,5 +54,13 @@ public enum ItemRarity {
             }
         }
         return UNKNOWN;
+    }
+
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public String getName() {
+        return name;
     }
 }
