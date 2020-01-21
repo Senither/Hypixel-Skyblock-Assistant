@@ -57,11 +57,10 @@ public class GuildSetupCommand extends Command {
     @Override
     public List<String> getDescription() {
         return Arrays.asList(
-            "Allows the guild leader to sync their guild with the Discord server when the guild is",
-            "synchronized with the Discord server, users who verify themselves will automatically",
+            "Allows the guild leader to sync their guild with the Discord server, when the guild is",
+            "synchronized with the Discord server users who verify themselves will automatically",
             "be giving their in-game guild rank, and the bot will periodically re-scan the guild",
             "to promote or demote users depending on their in-game rank."
-
         );
     }
 

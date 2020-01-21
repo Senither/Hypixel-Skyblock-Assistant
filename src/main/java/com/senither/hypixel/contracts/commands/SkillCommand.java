@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +61,14 @@ public abstract class SkillCommand extends Command {
         super(app);
 
         this.type = type.trim().toLowerCase();
+    }
+
+    @Override
+    public List<String> getExampleUsage() {
+        return Arrays.asList(
+            "`:command Senither`",
+            "`:command @Senither`"
+        );
     }
 
     @Override

@@ -48,8 +48,8 @@ public class AutoRenameCommand extends Command {
         return Arrays.asList(
             "This command allows the guild master of the guild the server is linked to,",
             "to toggle the auto rename feature on or off, when the feature is enabled,",
-            "users with a different Discord name than their in-game Minecraft",
-            "username will automatically be renamed to their Minecraft name."
+            "users with a different Discord name than their in-game Minecraft username",
+            "will automatically be renamed to their Minecraft username."
         );
     }
 

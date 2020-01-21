@@ -47,8 +47,7 @@ public class HelpCommand extends Command {
     public List<String> getDescription() {
         return Arrays.asList(
             "Displays a list of commands that can be use in the bot,",
-            "as-well-as some general information about the bot and ",
-            "its creator, and where to find the code for the bot."
+            "as-well-as more information about individual commands."
         );
     }
 

@@ -64,14 +64,6 @@ public class AuctionHouseCommand extends SkillCommand {
     }
 
     @Override
-    public List<String> getExampleUsage() {
-        return Arrays.asList(
-            "`:command Senither`",
-            "`:command @Senither`"
-        );
-    }
-
-    @Override
     public List<String> getTriggers() {
         return Collections.singletonList("ah");
     }
