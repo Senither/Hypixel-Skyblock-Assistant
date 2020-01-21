@@ -24,6 +24,7 @@ package com.senither.hypixel.inventory;
 import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.senither.hypixel.contracts.inventory.InventoryDecoder;
 
 import java.io.IOException;
@@ -32,6 +33,8 @@ public class Item implements InventoryDecoder {
 
     private final String name;
     private final int tagId;
+    private final ItemRarity rarity;
+    private final ItemType type;
 
     Item(Inventory inventory, CompoundTag compoundTag) throws IOException {
         if (!compoundTag.contains("tag")) {
@@ -52,7 +55,19 @@ public class Item implements InventoryDecoder {
         }
 
         CompoundTag display = tag.get("display");
-        this.name = display.get("Name").getValue().toString().replaceAll("^([!|#|%]?[§]+[a-f|0-9])", "");
+        this.name = display.get("Name").getValue().toString().replaceAll("([!|#|%]?[§]+[a-f|0-9])", "");
+
+        ListTag lore = display.get("Lore");
+
+        String metaString = lore.get(lore.size() - 1)
+            .getValue()
+            .toString()
+            .replaceAll("([!|#|%]?[§]+[a-f|0-9])", "");
+
+        String[] itemMeta = metaString.split(" ");
+
+        this.rarity = ItemRarity.fromName(itemMeta[0].substring(2, itemMeta[0].length()));
+        this.type = ItemType.fromName(itemMeta.length == 1 ? null : itemMeta[1]);
     }
 
     public String getName() {
@@ -61,5 +76,13 @@ public class Item implements InventoryDecoder {
 
     public int getTagId() {
         return tagId;
+    }
+
+    public ItemRarity getRarity() {
+        return rarity;
+    }
+
+    public ItemType getType() {
+        return type;
     }
 }
