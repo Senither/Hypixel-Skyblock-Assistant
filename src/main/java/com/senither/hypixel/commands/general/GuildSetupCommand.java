@@ -140,15 +140,15 @@ public class GuildSetupCommand extends Command {
             GuildController.deleteGuildWithId(app.getDatabaseManager(), event.getGuild().getIdLong());
 
             MessageFactory.makeSuccess(event.getMessage(),
-                "The **:guildname** have been unlinked with the bot, and will no longer"
+                "The **:name** have been unlinked with the bot, and will no longer"
                     + " be automatically updated or scanned for rank synchronization."
-            ).setTitle("Guild has been unlinked!").queue();
+            ).set("name", guildEntry.getName()).setTitle("Guild has been unlinked!").queue();
             return;
         }
 
         MessageFactory.makeError(event.getMessage(),
-            "You're not the guild master of the **:guildname** guild, or the guild is not linked to this Discord server!"
-        ).setTitle("Unable to unlink").queue();
+            "You're not the guild master of the **:name** guild, or the guild is not linked to this Discord server!"
+        ).set("name", guildEntry.getName()).setTitle("Unable to unlink").queue();
     }
 
     private void handleGuildRegistration(Message message, GuildReply guildReply, Throwable throwable, UUID uuid, String[] args) {
@@ -164,17 +164,25 @@ public class GuildSetupCommand extends Command {
         GuildReply.Guild.Member currentMember = getMemberFromUUID(guildReply.getGuild(), uuid);
         if (currentMember == null) {
             message.editMessage(MessageFactory.makeError(message, String.join("\n",
-                "You're not a member of the **:guildname** guild!",
+                "You're not a member of the **:name** guild!",
                 "You can't link guilds to servers you're not a member of."
-            )).setTitle("Failed to link guild!").buildEmbed()).queue();
+                ))
+                    .set("name", guildReply.getGuild().getName())
+                    .setTitle("Failed to link guild!")
+                    .buildEmbed()
+            ).queue();
             return;
         }
 
         if (!"Guild Master".equalsIgnoreCase(currentMember.getRank())) {
             message.editMessage(MessageFactory.makeError(message, String.join("\n",
-                "You're not the Guild Master of the **:guildname** guild!",
+                "You're not the Guild Master of the **:name** guild!",
                 "You can't link guilds to servers you're not the Guild Master of."
-            )).setTitle("Failed to link guild!").buildEmbed()).queue();
+                ))
+                    .set("name", guildReply.getGuild().getName())
+                    .setTitle("Failed to link guild!")
+                    .buildEmbed()
+            ).queue();
             return;
         }
 
@@ -189,11 +197,14 @@ public class GuildSetupCommand extends Command {
             );
 
             message.editMessage(MessageFactory.makeSuccess(message, String.join(" ",
-                "The **:guildname** guild have now been linked to the server, users who are already verified",
+                "The **:name** guild have now been linked to the server, users who are already verified",
                 "with the bot will soon get their guild rank on the server, and new users who are",
                 "verifying themselves with the bot will get their rank when their verification",
                 "process is completed successfully!"
-                )).setTitle("Guild has been linked!").buildEmbed()
+                ))
+                    .set("name", guildReply.getGuild().getName())
+                    .setTitle("Guild has been linked!")
+                    .buildEmbed()
             ).queue();
         } catch (SQLException e) {
             log.error("Failed to create guilds entry for {}, error: {}",
