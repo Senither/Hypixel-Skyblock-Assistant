@@ -23,6 +23,7 @@ package com.senither.hypixel.commands;
 
 public enum CategoryIcons {
 
+    ADMINISTRATION("\u2699"),
     GENERAL("\uD83D\uDEE0"),
     MISC("\uD83D\uDD0E"),
     STATISTICS("\uD83D\uDEE1");

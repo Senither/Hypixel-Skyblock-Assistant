@@ -19,7 +19,7 @@
  *
  */
 
-package com.senither.hypixel.commands.misc;
+package com.senither.hypixel.commands.general;
 
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;

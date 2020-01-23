@@ -22,11 +22,11 @@
 package com.senither.hypixel;
 
 import com.senither.hypixel.commands.CommandManager;
-import com.senither.hypixel.commands.general.AutoRenameCommand;
-import com.senither.hypixel.commands.general.DefaultRoleCommand;
-import com.senither.hypixel.commands.general.GuildSetupCommand;
+import com.senither.hypixel.commands.administration.AutoRenameCommand;
+import com.senither.hypixel.commands.administration.DefaultRoleCommand;
+import com.senither.hypixel.commands.administration.GuildSetupCommand;
+import com.senither.hypixel.commands.general.HelpCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
-import com.senither.hypixel.commands.misc.HelpCommand;
 import com.senither.hypixel.commands.misc.InformationCommand;
 import com.senither.hypixel.commands.misc.PingCommand;
 import com.senither.hypixel.commands.statistics.*;
