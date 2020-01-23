@@ -119,7 +119,7 @@ public class GuildSetupCommand extends Command {
 
         MessageFactory.makeInfo(event.getMessage(), "Loading guild information...")
             .setTitle("Loading " + String.join(" ", args))
-            .queue(message -> app.getHypixel().getGuildByName(String.join(" ", args)).whenComplete((guildReply, throwable) -> {
+            .queue(message -> app.getHypixel().getGuildByName(String.join("+", args)).whenComplete((guildReply, throwable) -> {
                 try {
                     handleGuildRegistration(message, guildReply, throwable, uuid, args);
                 } catch (Exception e) {
