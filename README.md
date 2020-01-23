@@ -54,6 +54,7 @@ Hypixel Skyblock Assistant relies on the following projects:
  Name | License  |
 |:---|:---|
 | [Hypixel API](https://github.com/HypixelDev/PublicAPI) | [MIT](https://github.com/HypixelDev/PublicAPI/blob/master/LICENSE) |
+| [OpenNBT](https://github.com/Steveice10/OpenNBT) | [MIT](https://github.com/Steveice10/OpenNBT/blob/master/LICENSE.txt) |
 | [JDA (Java Discord API)](https://github.com/DV8FromTheWorld/JDA) | [Apache License 2.0](https://github.com/DV8FromTheWorld/JDA/blob/master/LICENSE) |
 | [google-gson](https://github.com/google/gson) | [Apache License 2.0](https://github.com/google/gson/blob/master/LICENSE) |
 | [Guava](https://github.com/google/guava) | [Apache License 2.0](https://github.com/google/guava/blob/master/COPYING) |
