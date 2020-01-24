@@ -448,6 +448,23 @@ public class Hypixel {
         return null;
     }
 
+    public HypixelRank getRankFromPlayer(PlayerReply playerReply) {
+        if (playerReply == null || playerReply.getPlayer() == null) {
+            return HypixelRank.getDefaultRank();
+        }
+
+        JsonObject player = playerReply.getPlayer();
+        if (player.has("monthlyPackageRank")) {
+            return HypixelRank.getFromType(player.get("monthlyPackageRank").getAsString());
+        } else if (player.has("newPackageRank")) {
+            return HypixelRank.getFromType(player.get("newPackageRank").getAsString());
+        } else if (player.has("packageRank")) {
+            return HypixelRank.getFromType(player.get("packageRank").getAsString());
+        }
+
+        return HypixelRank.DEFAULT;
+    }
+
     private long getLastSaveFromMember(JsonObject object) {
         return object.has("last_save") ? object.get("last_save").getAsLong() : Long.MIN_VALUE;
     }

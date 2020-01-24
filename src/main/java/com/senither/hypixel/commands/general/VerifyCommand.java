@@ -30,6 +30,7 @@ import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.hypixel.HypixelRank;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -167,10 +168,10 @@ public class VerifyCommand extends Command {
             .buildEmbed()
         ).queue();
 
-        handleAutomaticAssignments(event, uuid, player.get("displayname").getAsString());
+        handleAutomaticAssignments(event, uuid, playerResponse);
     }
 
-    private void handleAutomaticAssignments(MessageReceivedEvent event, UUID uuid, String username) {
+    private void handleAutomaticAssignments(MessageReceivedEvent event, UUID uuid, PlayerReply playerReply) {
         if (uuid == null) {
             return;
         }
@@ -180,6 +181,8 @@ public class VerifyCommand extends Command {
             return;
         }
 
+        final String username = playerReply.getPlayer().get("displayname").getAsString();
+
         if (guildEntry.isAutoRename()) {
             //noinspection ConstantConditions
             if (!event.getMember().getEffectiveName().equalsIgnoreCase(username)) {
@@ -187,8 +190,20 @@ public class VerifyCommand extends Command {
             }
         }
 
+        List<Role> rolesToAdd = new ArrayList<>();
+        HypixelRank rank = app.getHypixel().getRankFromPlayer(playerReply);
+        if (!rank.isDefault()) {
+            List<Role> roles = event.getGuild().getRolesByName(rank.getName(), true);
+            if (!roles.isEmpty() && event.getGuild().getSelfMember().canInteract(roles.get(0))) {
+                rolesToAdd.add(roles.get(0));
+            }
+        }
+
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         if (guildReply == null || guildReply.getGuild() == null) {
+            if (!rolesToAdd.isEmpty()) {
+                event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, null).queue();
+            }
             return;
         }
 
@@ -216,6 +231,9 @@ public class VerifyCommand extends Command {
 
         Role role = discordRoles.getOrDefault(member.getRank(), null);
         if (role == null) {
+            if (!rolesToAdd.isEmpty()) {
+                event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, null).queue();
+            }
             return;
         }
 
@@ -230,8 +248,10 @@ public class VerifyCommand extends Command {
             }
         }
 
+        rolesToAdd.add(role);
+
         //noinspection ConstantConditions
-        event.getGuild().modifyMemberRoles(event.getMember(), Collections.singletonList(role), rolesToRemove).queue(null, throwable -> {
+        event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, rolesToRemove).queue(null, throwable -> {
             log.error("Failed to assign {} role to {} due to an error: {}",
                 role.getName(), event.getMember().getEffectiveName(), throwable.getMessage(), throwable
             );
