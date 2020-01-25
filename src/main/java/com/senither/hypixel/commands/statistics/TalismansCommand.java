@@ -61,8 +61,8 @@ public class TalismansCommand extends SkillCommand {
     @Override
     public List<String> getUsageInstructions() {
         return Arrays.asList(
-            "`:command <username>` - Gets all talismans for the given username",
-            "`:command <mention>` - Gets all talismans for the mentioned Discord user"
+            "`:command <username> [profile]` - Gets all talismans for the given username",
+            "`:command <mention> [profile]` - Gets all talismans for the mentioned Discord user"
         );
     }
 

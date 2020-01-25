@@ -58,8 +58,8 @@ public class AuctionHouseCommand extends SkillCommand {
     @Override
     public List<String> getUsageInstructions() {
         return Arrays.asList(
-            "`:command <username>` - Gets AH stats for the given username",
-            "`:command <mention>` - Gets AH stats for the mentioned Discord user"
+            "`:command <username> [profile]` - Gets AH stats for the given username",
+            "`:command <mention> [profile]` - Gets AH stats for the mentioned Discord user"
         );
     }
 

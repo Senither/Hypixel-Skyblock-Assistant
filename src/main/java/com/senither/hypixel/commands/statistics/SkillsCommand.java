@@ -76,8 +76,8 @@ public class SkillsCommand extends SkillCommand {
     @Override
     public List<String> getUsageInstructions() {
         return Arrays.asList(
-            "`:command <username>` - Gets skill stats for the given username",
-            "`:command <mention>` - Gets skill stats for the mentioned Discord user"
+            "`:command <username> [profile]` - Gets skill stats for the given username",
+            "`:command <mention> [profile]` - Gets skill stats for the mentioned Discord user"
         );
     }
 

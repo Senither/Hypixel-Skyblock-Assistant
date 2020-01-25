@@ -23,6 +23,8 @@ package com.senither.hypixel.contracts.commands;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
@@ -42,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -67,7 +70,8 @@ public abstract class SkillCommand extends Command {
     public List<String> getExampleUsage() {
         return Arrays.asList(
             "`:command Senither`",
-            "`:command @Senither`"
+            "`:command @Senither`",
+            "`:command Senither Lime`"
         );
     }
 
@@ -84,47 +88,87 @@ public abstract class SkillCommand extends Command {
             .setColor(MessageType.INFO.getColor());
 
         event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
-            app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).whenCompleteAsync((profileReply, throwable) -> {
-                if (throwable == null) {
-                    try {
-                        PlayerReply playerReply = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
-                        if (playerReply != null && playerReply.getPlayer() != null) {
-                            UUID uuid = convertStringifiedUUID(playerReply.getPlayer().get("uuid").getAsString());
+            if (args.length < 2) {
+                app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).whenCompleteAsync((profileReply, throwable) -> {
+                    handleProfileResponse(profileReply, throwable, message, embedBuilder, username);
+                });
+                return;
+            }
 
-                            String cachedUsername = app.getHypixel().getUsernameFromUuid(uuid);
-                            String currentUsername = playerReply.getPlayer().get("displayname").getAsString();
+            String profileName = args[1];
 
-                            if (cachedUsername != null && !cachedUsername.equalsIgnoreCase(currentUsername)) {
-                                updateUsernameForUuidEntry(uuid, currentUsername);
-                            }
-                        }
+            try {
+                PlayerReply playerReply = app.getHypixel().getPlayerByName(username).get(5, TimeUnit.SECONDS);
+                if (playerReply == null) {
+                    message.editMessage(embedBuilder
+                        .setColor(MessageType.ERROR.getColor())
+                        .setDescription(String.format("Failed to load player data for **%s**, found no valid player data.",
+                            username
+                        ))
+                        .build()
+                    ).queue();
+                    return;
+                }
 
-                        handleSkyblockProfile(message, profileReply, playerReply);
-                        return;
-                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                        throwable = e;
-                    } catch (Exception e) {
-                        log.error("An exception where thrown during the {} command, message: {}",
-                            getClass().getSimpleName(), e.getMessage(), e
-                        );
+                JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
+                for (Map.Entry<String, JsonElement> profileEntry : profiles.entrySet()) {
+                    if (!profileEntry.getValue().getAsJsonObject().get("cute_name").getAsString().equalsIgnoreCase(profileName)) {
+                        continue;
+                    }
+
+                    SkyBlockProfileReply profileReply = app.getHypixel().getSkyBlockProfile(profileEntry.getKey()).get(10, TimeUnit.SECONDS);
+                    profileReply.getProfile().add("cute_name", profileEntry.getValue().getAsJsonObject().get("cute_name"));
+
+                    handleProfileResponse(profileReply, null, message, embedBuilder, username);
+                    break;
+                }
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.error("Failed to fetch player data for {}, error: {}",
+                    username, e.getMessage(), e
+                );
+            }
+        });
+    }
+
+    private void handleProfileResponse(SkyBlockProfileReply profileReply, Throwable throwable, Message message, EmbedBuilder embedBuilder, String username) {
+        if (throwable == null) {
+            try {
+                PlayerReply playerReply = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
+                if (playerReply != null && playerReply.getPlayer() != null) {
+                    UUID uuid = convertStringifiedUUID(playerReply.getPlayer().get("uuid").getAsString());
+
+                    String cachedUsername = app.getHypixel().getUsernameFromUuid(uuid);
+                    String currentUsername = playerReply.getPlayer().get("displayname").getAsString();
+
+                    if (cachedUsername != null && !cachedUsername.equalsIgnoreCase(currentUsername)) {
+                        updateUsernameForUuidEntry(uuid, currentUsername);
                     }
                 }
 
-                if (!(throwable instanceof FriendlyException)) {
-                    log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
-                }
+                handleSkyblockProfile(message, profileReply, playerReply);
+                return;
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throwable = e;
+            } catch (Exception e) {
+                log.error("An exception where thrown during the {} command, message: {}",
+                    getClass().getSimpleName(), e.getMessage(), e
+                );
+            }
+        }
 
-                String exceptionMessage = (throwable instanceof FriendlyException)
-                    ? throwable.getMessage()
-                    : "Something went wrong: " + throwable.getMessage();
+        if (!(throwable instanceof FriendlyException)) {
+            log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
+        }
 
-                message.editMessage(embedBuilder
-                    .setDescription(exceptionMessage)
-                    .setColor(MessageType.ERROR.getColor())
-                    .build()
-                ).queue();
-            });
-        });
+        String exceptionMessage = (throwable instanceof FriendlyException)
+            ? throwable.getMessage()
+            : "Something went wrong: " + throwable.getMessage();
+
+        message.editMessage(embedBuilder
+            .setDescription(exceptionMessage)
+            .setColor(MessageType.ERROR.getColor())
+            .build()
+        ).queue();
     }
 
     private String getUsernameFromMessage(MessageReceivedEvent event, String[] args) {
