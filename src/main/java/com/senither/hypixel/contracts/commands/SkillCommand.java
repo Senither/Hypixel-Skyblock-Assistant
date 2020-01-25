@@ -42,10 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -110,9 +107,12 @@ public abstract class SkillCommand extends Command {
                     return;
                 }
 
+                List<String> profileNames = new ArrayList<>();
                 JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
                 for (Map.Entry<String, JsonElement> profileEntry : profiles.entrySet()) {
-                    if (!profileEntry.getValue().getAsJsonObject().get("cute_name").getAsString().equalsIgnoreCase(profileName)) {
+                    String cuteProfileName = profileEntry.getValue().getAsJsonObject().get("cute_name").getAsString();
+                    if (!cuteProfileName.equalsIgnoreCase(profileName)) {
+                        profileNames.add(cuteProfileName);
                         continue;
                     }
 
@@ -120,8 +120,17 @@ public abstract class SkillCommand extends Command {
                     profileReply.getProfile().add("cute_name", profileEntry.getValue().getAsJsonObject().get("cute_name"));
 
                     handleProfileResponse(profileReply, null, message, embedBuilder, username);
-                    break;
+                    return;
                 }
+
+                message.editMessage(MessageFactory.makeWarning(message, "Failed to find any valid profile for **:name** called **:profile**")
+                    .setTitle("Failed to find profile for " + username)
+                    .set("name", username)
+                    .set("profile", profileName)
+                    .addField("Valid Profiles", "`" + String.join("`, `", profileNames) + "`", false)
+                    .buildEmbed()
+                ).queue();
+
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error("Failed to fetch player data for {}, error: {}",
                     username, e.getMessage(), e
