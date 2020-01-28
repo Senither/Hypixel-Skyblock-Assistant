@@ -23,7 +23,9 @@ package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -101,7 +103,7 @@ public class SkillsCommand extends SkillCommand {
         double runecrafting = getSkillExperience(member, "experience_skill_runecrafting");
 
         if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            sendAPIIsDisabledMessage(message, profileReply, playerReply.getPlayer().get("displayname").getAsString());
+            sendAchievementSkills(message, profileReply, playerReply);
             return;
         }
 
@@ -134,6 +136,52 @@ public class SkillsCommand extends SkillCommand {
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
             .build()
+        ).queue();
+    }
+
+    private void sendAchievementSkills(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+        JsonObject achievements = playerReply.getPlayer().get("achievements").getAsJsonObject();
+
+        double mining = getSkillExperience(achievements, "skyblock_excavator");
+        double foraging = getSkillExperience(achievements, "skyblock_gatherer");
+        double enchanting = getSkillExperience(achievements, "skyblock_augmentation");
+        double farming = getSkillExperience(achievements, "skyblock_harvester");
+        double combat = getSkillExperience(achievements, "skyblock_combat");
+        double fishing = getSkillExperience(achievements, "skyblock_angler");
+        double alchemy = getSkillExperience(achievements, "skyblock_concoctor");
+
+        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
+            sendAPIIsDisabledMessage(message, profileReply, playerReply.getPlayer().get("displayname").getAsString());
+            return;
+        }
+
+        final String displayName = playerReply.getPlayer().get("displayname").getAsString();
+        final String skillsNote = MessageFactory.makeInfo(message, String.join(" ",
+            "Note > The skills API is disabled, so these skills are pulled",
+            "from the Skyblock Skills achievements instead, which means the displayed skills above might not be 100%",
+            "accurate for the selected profile. | Profile: :profile"
+        )).set("name", displayName).set("profile", profileReply.getProfile().get("cute_name").getAsString()).toString();
+
+        final PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(
+            message, "**:name** has an average skill level of **:avg**"
+        ).setTitle(displayName + "'s Skills | API is Disabled");
+
+        message.editMessage(placeholderMessage
+            .set("name", displayName)
+            .set("avg", NumberUtil.formatNicelyWithDecimals(
+                (mining + foraging + enchanting + farming + combat + fishing + alchemy) / 7D
+            ))
+            .addField("Mining", "**LvL:** " + NumberUtil.formatNicely(mining), true)
+            .addField("Foraging", "**LvL:** " + NumberUtil.formatNicely(foraging), true)
+            .addField("Enchanting", "**LvL:** " + NumberUtil.formatNicely(enchanting), true)
+            .addField("Farming", "**LvL:** " + NumberUtil.formatNicely(farming), true)
+            .addField("Combat", "**LvL:** " + NumberUtil.formatNicely(combat), true)
+            .addField("Fishing", "**LvL:** " + NumberUtil.formatNicely(fishing), true)
+            .addField("Alchemy", "**LvL:** " + NumberUtil.formatNicely(alchemy), true)
+            .addField("Carpentry", "Unknown", true)
+            .addField("Runecrafting", "Unknown", true)
+            .setFooter(skillsNote)
+            .buildEmbed()
         ).queue();
     }
 
