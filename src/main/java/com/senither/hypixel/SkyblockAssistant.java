@@ -37,7 +37,6 @@ import com.senither.hypixel.hypixel.Hypixel;
 import com.senither.hypixel.listeners.MemberActivityEventListener;
 import com.senither.hypixel.listeners.MessageEventListener;
 import com.senither.hypixel.scheduler.ScheduleManager;
-import com.senither.hypixel.scheduler.jobs.DatabaseCacheCleanupJob;
 import com.senither.hypixel.scheduler.jobs.RoleAssignmentJob;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -85,7 +84,6 @@ public class SkyblockAssistant {
 
         log.info("Registering jobs...");
         this.scheduleManager = new ScheduleManager(this);
-        scheduleManager.registerJob(new DatabaseCacheCleanupJob(this));
         scheduleManager.registerJob(new RoleAssignmentJob(this));
         log.info("{} jobs have been registered!", scheduleManager.entrySet().size());
 

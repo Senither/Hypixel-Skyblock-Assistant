@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.time.Carbon;
 import net.hypixel.api.HypixelAPI;
 import net.hypixel.api.adapters.DateTimeTypeAdapter;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
@@ -127,18 +128,24 @@ public class Hypixel {
                 return future;
             }
 
+            final boolean[] hasDatabaseEntry = {false};
+
             if (!ignoreDatabaseCache) {
-                Collection result = app.getDatabaseManager().query("SELECT data FROM `players` WHERE `uuid` = ?", uuid.toString());
+                Collection result = app.getDatabaseManager().query("SELECT `data`, `last_updated_at` FROM `players` WHERE `uuid` = ?", uuid.toString());
                 if (!result.isEmpty()) {
-                    PlayerReply playerReply = gson.fromJson(result.get(0).getString("data"), PlayerReply.class);
-                    if (playerReply != null && playerReply.getPlayer() != null) {
-                        log.debug("Found player profile for {} using the database cache (ID: {})", name, uuid);
+                    Carbon lastUpdatedAt = result.first().getTimestamp("last_updated_at");
+                    if (lastUpdatedAt.addMinutes(30).isFuture()) {
+                        PlayerReply playerReply = gson.fromJson(result.get(0).getString("data"), PlayerReply.class);
+                        if (playerReply != null && playerReply.getPlayer() != null) {
+                            log.debug("Found player profile for {} using the database cache (ID: {})", name, uuid);
 
-                        replyCache.put(cacheKey, playerReply);
-                        future.complete(playerReply);
+                            replyCache.put(cacheKey, playerReply);
+                            future.complete(playerReply);
 
-                        return future;
+                            return future;
+                        }
                     }
+                    hasDatabaseEntry[0] = true;
                 }
             }
 
@@ -154,19 +161,25 @@ public class Hypixel {
 
                 try {
                     if (ignoreDatabaseCache) {
-                        Collection result = app.getDatabaseManager().query("SELECT `data` FROM `players` WHERE `uuid` = ?", uuid.toString());
+                        hasDatabaseEntry[0] = app.getDatabaseManager().query(
+                            "SELECT `data` FROM `players` WHERE `uuid` = ?", uuid.toString()
+                        ).isEmpty();
+                    }
 
-                        app.getDatabaseManager().queryInsert(
-                            (result.isEmpty() ? "INSERT INTO" : "UPDATE") + " `players` SET `uuid` = ?, `data` = ?, `created_at` = NOW()",
-                            uuid.toString(), gson.toJson(playerReply)
+                    if (hasDatabaseEntry[0]) {
+                        app.getDatabaseManager().queryUpdate(
+                            "UPDATE `players` SET `data` = ?, `last_updated_at` = ? WHERE `uuid` = ?",
+                            gson.toJson(playerReply), Carbon.now(), uuid.toString()
                         );
                     } else {
-                        app.getDatabaseManager().queryInsert("INSERT INTO `players` SET `uuid` = ?, `data` = ?",
-                            uuid.toString(), gson.toJson(playerReply)
+                        app.getDatabaseManager().queryInsert(
+                            "INSERT INTO `players` SET `uuid` = ?, `data` = ?, `created_at` = NOW(), `last_updated_at` = ?",
+                            uuid.toString(), gson.toJson(playerReply), Carbon.now()
                         );
                     }
-                } catch (Exception ignored) {
-                    //
+                } catch (Exception e) {
+                    log.error("Failed to create/update player data for {}, error: {}",
+                        uuid.toString(), e.getMessage(), e);
                 }
 
                 future.complete(playerReply);
@@ -199,7 +212,7 @@ public class Hypixel {
                 List<SkyBlockProfileReply> skyBlockProfileReplies = new ArrayList<>();
                 for (Map.Entry<String, JsonElement> profileEntry : profiles.entrySet()) {
                     try {
-                        SkyBlockProfileReply profileReply = getSkyBlockProfile(profileEntry.getKey()).get(10, TimeUnit.SECONDS);
+                        SkyBlockProfileReply profileReply = getSkyBlockProfile(profileEntry.getKey()).get(5, TimeUnit.SECONDS);
                         if (!profileReply.isSuccess()) {
                             continue;
                         }
@@ -208,7 +221,8 @@ public class Hypixel {
 
                         skyBlockProfileReplies.add(profileReply);
                     } catch (Exception e) {
-                        // Ignored
+                        log.error("Failed to get selected profile for {}, error: {}",
+                            name, e.getMessage(), e);
                     }
                 }
 
@@ -257,18 +271,24 @@ public class Hypixel {
             return future;
         }
 
+        boolean hasDatabaseEntry = false;
+
         try {
-            Collection result = app.getDatabaseManager().query("SELECT data FROM `profiles` WHERE `uuid` = ?", name);
+            Collection result = app.getDatabaseManager().query("SELECT `data`, `last_updated_at` FROM `profiles` WHERE `uuid` = ?", name);
             if (!result.isEmpty()) {
-                SkyBlockProfileReply skyblockProfile = gson.fromJson(result.get(0).getString("data"), SkyBlockProfileReply.class);
-                if (skyblockProfile != null && skyblockProfile.getProfile() != null) {
-                    log.debug("Found SkyBlock profile for {} using the database cache", name);
+                Carbon lastUpdatedAt = result.first().getTimestamp("last_updated_at");
+                if (lastUpdatedAt.addMinutes(30).isFuture()) {
+                    SkyBlockProfileReply skyblockProfile = gson.fromJson(result.get(0).getString("data"), SkyBlockProfileReply.class);
+                    if (skyblockProfile != null && skyblockProfile.getProfile() != null) {
+                        log.debug("Found SkyBlock profile for {} using the database cache", name);
 
-                    replyCache.put(cacheKey, skyblockProfile);
-                    future.complete(skyblockProfile);
+                        replyCache.put(cacheKey, skyblockProfile);
+                        future.complete(skyblockProfile);
 
-                    return future;
+                        return future;
+                    }
                 }
+                hasDatabaseEntry = true;
             }
         } catch (SQLException e) {
             log.error("An exception were thrown while trying to get the SkyBlock profile from the database cache, error: {}",
@@ -278,6 +298,7 @@ public class Hypixel {
 
         log.debug("Requesting for SkyBlock profile with an ID of {} from the API", name);
 
+        boolean finalHasDatabaseEntry = hasDatabaseEntry;
         hypixelAPI.getSkyBlockProfile(name).whenComplete((skyBlockProfileReply, throwable) -> {
             if (throwable != null) {
                 future.completeExceptionally(throwable);
@@ -287,11 +308,19 @@ public class Hypixel {
             replyCache.put(cacheKey, skyBlockProfileReply);
 
             try {
-                app.getDatabaseManager().queryInsert("INSERT INTO `profiles` SET `uuid` = ?, `data` = ?",
-                    name, gson.toJson(skyBlockProfileReply)
+                if (finalHasDatabaseEntry) {
+                    app.getDatabaseManager().queryUpdate("UPDATE `profiles` SET `data` = ?, `last_updated_at` = ? WHERE `uuid` = ?",
+                        gson.toJson(skyBlockProfileReply), Carbon.now(), name
+                    );
+                } else {
+                    app.getDatabaseManager().queryInsert("INSERT INTO `profiles` SET `uuid` = ?, `data` = ?, `last_updated_at` = ?",
+                        name, gson.toJson(skyBlockProfileReply), Carbon.now()
+                    );
+                }
+            } catch (Exception e) {
+                log.error("Failed to create/update profile data for {}, error: {}",
+                    name, e.getMessage(), e
                 );
-            } catch (Exception ignored) {
-                //
             }
 
             future.complete(skyBlockProfileReply);
@@ -355,7 +384,7 @@ public class Hypixel {
             return cachedUUID;
         }
 
-        Collection result = app.getDatabaseManager().query("SELECT uuid FROM `uuids` WHERE `username` = ?", name);
+        Collection result = app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `username` = ?", name);
         if (!result.isEmpty()) {
             UUID uuid = UUID.fromString(result.get(0).getString("uuid"));
             uuidCache.put(name.toLowerCase(), uuid);
@@ -380,8 +409,10 @@ public class Hypixel {
                 app.getDatabaseManager().queryInsert("INSERT INTO `uuids` SET `uuid` = ?, `username` = ?",
                     mojangPlayer.getUUID().toString(), name
                 );
-            } catch (Exception ignored) {
-                //
+            } catch (Exception e) {
+                log.error("Failed to get UUID for player {}, error: {}",
+                    name, e.getMessage(), e
+                );
             }
 
             return mojangPlayer.getUUID();
@@ -406,7 +437,7 @@ public class Hypixel {
             return cachedUsername;
         }
 
-        Collection result = app.getDatabaseManager().query("SELECT username FROM `uuids` WHERE `uuid` = ?", uuid.toString());
+        Collection result = app.getDatabaseManager().query("SELECT `username` FROM `uuids` WHERE `uuid` = ?", uuid.toString());
         if (!result.isEmpty()) {
             String username = result.get(0).getString("username");
             usernameCache.put(uuid, username);
@@ -436,8 +467,10 @@ public class Hypixel {
                 app.getDatabaseManager().queryInsert("INSERT INTO `players` SET `uuid` = ?, `data` = ?",
                     uuid, getGson().toJson(playerReply)
                 );
-            } catch (Exception ignored) {
-                //
+            } catch (Exception e) {
+                log.error("Failed to get Username from UUID for player {}, error: {}",
+                    uuid.toString(), e.getMessage(), e
+                );
             }
 
             return username;
