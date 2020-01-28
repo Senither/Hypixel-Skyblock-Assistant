@@ -41,7 +41,7 @@ public class MySQLConnection extends DatabaseConnection {
     public boolean open() throws SQLException {
         try {
             Configuration.Database databaseConfiguration = app.getConfiguration().getDatabase();
-            String url = String.format("jdbc:mysql://%s:%d/%s?autoReconnect=true",
+            String url = String.format("jdbc:mysql://%s:%d/%s?autoReconnect=true&serverTimezone=UTC",
                 databaseConfiguration.getHostname(), databaseConfiguration.getPort(), databaseConfiguration.getDatabase()
             );
 
