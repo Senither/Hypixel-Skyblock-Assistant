@@ -112,7 +112,7 @@ public class Hypixel {
     public CompletableFuture<PlayerReply> getPlayerByName(String name, boolean ignoreDatabaseCache) {
         CompletableFuture<PlayerReply> future = new CompletableFuture<>();
 
-        final String cacheKey = "player-name-" + name;
+        final String cacheKey = "player-name-" + name.toLowerCase();
         try {
             UUID uuid = getUUIDFromName(name);
             if (uuid == null) {
@@ -161,7 +161,7 @@ public class Hypixel {
 
                 try {
                     if (ignoreDatabaseCache) {
-                        hasDatabaseEntry[0] = app.getDatabaseManager().query(
+                        hasDatabaseEntry[0] = !app.getDatabaseManager().query(
                             "SELECT `data` FROM `players` WHERE `uuid` = ?", uuid.toString()
                         ).isEmpty();
                     }
