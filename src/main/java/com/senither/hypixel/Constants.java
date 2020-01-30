@@ -26,5 +26,6 @@ import com.senither.hypixel.time.Carbon;
 public class Constants {
 
     public static final String COMMAND_PREFIX = "h!";
+    public static final String VERIFY_ROLE = "Verified";
     public static final Carbon STARTED_BOT_AT = Carbon.now();
 }

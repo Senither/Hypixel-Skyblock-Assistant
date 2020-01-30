@@ -195,9 +195,14 @@ public class VerifyCommand extends Command {
         }
 
         List<Role> rolesToAdd = new ArrayList<>();
+        List<Role> roles = event.getGuild().getRolesByName(Constants.VERIFY_ROLE, true);
+        if (!roles.isEmpty() && event.getGuild().getSelfMember().canInteract(roles.get(0))) {
+            rolesToAdd.add(roles.get(0));
+        }
+
         HypixelRank rank = app.getHypixel().getRankFromPlayer(playerReply);
         if (!rank.isDefault()) {
-            List<Role> roles = event.getGuild().getRolesByName(rank.getName(), true);
+            roles = event.getGuild().getRolesByName(rank.getName(), true);
             if (!roles.isEmpty() && event.getGuild().getSelfMember().canInteract(roles.get(0))) {
                 rolesToAdd.add(roles.get(0));
             }

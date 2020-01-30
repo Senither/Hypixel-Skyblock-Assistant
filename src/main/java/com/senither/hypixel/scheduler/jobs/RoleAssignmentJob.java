@@ -21,6 +21,7 @@
 
 package com.senither.hypixel.scheduler.jobs;
 
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.scheduler.Job;
 import com.senither.hypixel.database.collection.Collection;
@@ -35,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -60,7 +60,7 @@ public class RoleAssignmentJob extends Job {
                     continue;
                 }
 
-                GuildReply guildReply = app.getHypixel().getAPI().getGuildById(row.getString("id")).get(30, TimeUnit.SECONDS);
+                GuildReply guildReply = app.getHypixel().getAPI().getGuildById(row.getString("id")).get(5, TimeUnit.SECONDS);
                 if (guildReply == null || guildReply.getGuild() == null) {
                     continue;
                 }
@@ -146,7 +146,7 @@ public class RoleAssignmentJob extends Job {
 
             List<DataRow> dataRows = rows.where("discord_id", member.getIdLong());
             if (dataRows.isEmpty()) {
-                markUserAsGuest(guild, member, discordRoles.values(), defaultRole);
+                markUserAsGuest(guild, member, discordRoles.values(), defaultRole, false);
                 continue;
             }
 
@@ -167,30 +167,36 @@ public class RoleAssignmentJob extends Job {
             }
 
             if (guildMember == null) {
-                markUserAsGuest(guild, member, discordRoles.values(), defaultRole);
+                markUserAsGuest(guild, member, discordRoles.values(), defaultRole, true);
                 continue;
             }
 
-            Role role = discordRoles.getOrDefault(guildMember.getRank(), null);
-            if (role == null) {
-                continue;
+            List<Role> rolesToAdd = new ArrayList<>();
+            List<Role> verifiedRoles = guild.getRolesByName(Constants.VERIFY_ROLE, true);
+            if (!verifiedRoles.isEmpty()) {
+                rolesToAdd.add(verifiedRoles.get(0));
+            }
+
+            Role guildRole = discordRoles.getOrDefault(guildMember.getRank(), null);
+            if (guildRole != null) {
+                rolesToAdd.add(guildRole);
             }
 
             List<Role> rolesToRemove = discordRoles.values().stream()
-                .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
+                .filter(filteringRole -> filteringRole.getIdLong() != guildRole.getIdLong())
                 .collect(Collectors.toList());
 
             if (defaultRole != null) {
                 rolesToRemove.add(defaultRole);
             }
 
-            if (hasRole(member, role) && !hasRoles(member, rolesToRemove)) {
+            if (hasRoles(member, rolesToAdd) && !hasRoles(member, rolesToRemove)) {
                 continue;
             }
 
-            guild.modifyMemberRoles(member, Collections.singletonList(role), rolesToRemove).queue(null, throwable -> {
+            guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(null, throwable -> {
                 log.error("Failed to assign {} role to {} due to an error: {}",
-                    role.getName(), member.getEffectiveName(), throwable.getMessage(), throwable
+                    guildRole.getName(), member.getEffectiveName(), throwable.getMessage(), throwable
                 );
             });
         }
@@ -200,16 +206,29 @@ public class RoleAssignmentJob extends Job {
         return guildEntry.isAutoRename() && !member.getEffectiveName().equals(dataRow.getString("username"));
     }
 
-    private void markUserAsGuest(Guild guild, Member member, java.util.Collection<Role> values, Role defaultRole) {
-        if (defaultRole == null) {
+    private void markUserAsGuest(Guild guild, Member member, java.util.Collection<Role> values, Role defaultRole, boolean isVerified) {
+        List<Role> rolesToAdd = new ArrayList<>();
+        List<Role> rolesToRemove = new ArrayList<>();
+        rolesToRemove.addAll(values);
+
+        if (defaultRole != null) {
+            rolesToAdd.add(defaultRole);
+        }
+
+        List<Role> verifiedRoles = guild.getRolesByName(Constants.VERIFY_ROLE, true);
+        if (!verifiedRoles.isEmpty()) {
+            if (isVerified) {
+                rolesToAdd.add(verifiedRoles.get(0));
+            } else {
+                rolesToRemove.add(verifiedRoles.get(0));
+            }
+        }
+
+        if (hasRoles(member, rolesToAdd) && !hasRoles(member, rolesToRemove)) {
             return;
         }
 
-        if (hasRole(member, defaultRole) && !hasRoles(member, values)) {
-            return;
-        }
-
-        guild.modifyMemberRoles(member, Collections.singletonList(defaultRole), values).queue();
+        guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue();
     }
 
     private boolean hasRoles(Member member, java.util.Collection<Role> roles) {
