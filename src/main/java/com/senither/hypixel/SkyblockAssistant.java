@@ -27,6 +27,7 @@ import com.senither.hypixel.commands.administration.DefaultRoleCommand;
 import com.senither.hypixel.commands.administration.GuildSetupCommand;
 import com.senither.hypixel.commands.general.HelpCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
+import com.senither.hypixel.commands.misc.BotStatsCommand;
 import com.senither.hypixel.commands.misc.InformationCommand;
 import com.senither.hypixel.commands.misc.PingCommand;
 import com.senither.hypixel.commands.statistics.*;
@@ -78,6 +79,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new GuildExperienceLeaderboardCommand(this));
         commandManager.registerCommand(new TalismansCommand(this));
         commandManager.registerCommand(new PingCommand(this));
+        commandManager.registerCommand(new BotStatsCommand(this));
         commandManager.registerCommand(new InformationCommand(this));
         commandManager.registerCommand(new HelpCommand(this));
         log.info("{} commands have been registered!", commandManager.getCommands().size());

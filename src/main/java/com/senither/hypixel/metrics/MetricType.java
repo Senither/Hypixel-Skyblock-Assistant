@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019.
+ * Copyright (c) 2020.
  *
  * This file is part of Hypixel Skyblock Assistant.
  *
@@ -19,12 +19,11 @@
  *
  */
 
-package com.senither.hypixel;
+package com.senither.hypixel.metrics;
 
-import com.senither.hypixel.time.Carbon;
+public enum MetricType {
 
-public class Constants {
-
-    public static final String COMMAND_PREFIX = "h!";
-    public static final Carbon STARTED_BOT_AT = Carbon.now();
+    MESSAGES_RECEIVED,
+    COMMANDS_RAN,
+    DB_QUERIES_RAN
 }

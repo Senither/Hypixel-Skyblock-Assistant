@@ -68,7 +68,6 @@ public class PingCommand extends Command {
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
-
         event.getJDA().getRestPing().queue(ping -> {
             MessageFactory.makeInfo(event.getMessage(), "Pong! Time taken :ping ms, websocket heartbeat :gateway ms.")
                 .set("gateway", event.getJDA().getGatewayPing())

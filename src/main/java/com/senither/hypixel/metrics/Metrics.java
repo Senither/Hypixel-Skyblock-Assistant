@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019.
+ * Copyright (c) 2020.
  *
  * This file is part of Hypixel Skyblock Assistant.
  *
@@ -19,12 +19,29 @@
  *
  */
 
-package com.senither.hypixel;
+package com.senither.hypixel.metrics;
 
-import com.senither.hypixel.time.Carbon;
+import java.util.EnumMap;
 
-public class Constants {
+public class Metrics {
 
-    public static final String COMMAND_PREFIX = "h!";
-    public static final Carbon STARTED_BOT_AT = Carbon.now();
+    private static final EnumMap<MetricType, Long> metric = new EnumMap<>(MetricType.class);
+
+    static {
+        for (MetricType type : MetricType.values()) {
+            metric.put(type, 0L);
+        }
+    }
+
+    public synchronized static void increment(MetricType type) {
+        metric.put(type, metric.get(type) + 1);
+    }
+
+    public synchronized static void decrement(MetricType type) {
+        metric.put(type, metric.get(type) - 1);
+    }
+
+    public synchronized static long getValue(MetricType type) {
+        return metric.get(type);
+    }
 }

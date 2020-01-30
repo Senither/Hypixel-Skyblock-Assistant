@@ -29,6 +29,8 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.metrics.MetricType;
+import com.senither.hypixel.metrics.Metrics;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
@@ -89,6 +91,8 @@ public class CommandManager {
     }
 
     public void invokeCommand(@Nonnull MessageReceivedEvent event, @Nonnull Command command, boolean invokedThroughMentions) {
+        Metrics.increment(MetricType.COMMANDS_RAN);
+
         try {
             String[] arguments = toArguments(event.getMessage().getContentRaw());
             if (!command.isVerificationRequired() || isUserVerified(event.getAuthor())) {

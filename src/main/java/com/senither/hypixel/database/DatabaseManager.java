@@ -24,6 +24,8 @@ package com.senither.hypixel.database;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.migrations.*;
+import com.senither.hypixel.metrics.MetricType;
+import com.senither.hypixel.metrics.Metrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +68,7 @@ public class DatabaseManager {
     }
 
     public Collection query(String sql, Object... binds) throws SQLException {
+        Metrics.increment(MetricType.DB_QUERIES_RAN);
         log.debug("Running select query: {}", sql, binds);
 
         try (PreparedStatement statement = preparedStatement(sql, binds)) {
@@ -78,6 +81,7 @@ public class DatabaseManager {
     }
 
     public Set<Integer> queryInsert(String sql, Object... binds) throws SQLException {
+        Metrics.increment(MetricType.DB_QUERIES_RAN);
         log.debug("Running insert query: {}", sql, binds);
 
         try (PreparedStatement statement = preparedStatement(sql, binds)) {
@@ -94,6 +98,7 @@ public class DatabaseManager {
     }
 
     public boolean queryUpdate(String sql, Object... binds) throws SQLException {
+        Metrics.increment(MetricType.DB_QUERIES_RAN);
         log.debug("Running update query: {}", sql, binds);
 
         try (PreparedStatement statement = preparedStatement(sql, binds)) {
