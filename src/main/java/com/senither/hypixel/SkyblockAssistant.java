@@ -63,6 +63,7 @@ public class SkyblockAssistant {
     SkyblockAssistant() throws LoginException, IOException {
         log.debug("====================================================");
         log.debug("Starting the application with debug logging enabled!");
+        log.debug("Started at {}", Constants.STARTED_BOT_AT.toDayDateTimeString());
         log.debug("====================================================\n");
 
         this.configuration = new ConfigurationLoader(this).get();
