@@ -173,7 +173,7 @@ public class RoleAssignmentJob extends Job {
 
             List<Role> rolesToAdd = new ArrayList<>();
             List<Role> verifiedRoles = guild.getRolesByName(Constants.VERIFY_ROLE, true);
-            if (!verifiedRoles.isEmpty()) {
+            if (!verifiedRoles.isEmpty() && guild.getSelfMember().canInteract(verifiedRoles.get(0))) {
                 rolesToAdd.add(verifiedRoles.get(0));
             }
 
@@ -216,7 +216,7 @@ public class RoleAssignmentJob extends Job {
         }
 
         List<Role> verifiedRoles = guild.getRolesByName(Constants.VERIFY_ROLE, true);
-        if (!verifiedRoles.isEmpty()) {
+        if (!verifiedRoles.isEmpty() && guild.getSelfMember().canInteract(verifiedRoles.get(0))) {
             if (isVerified) {
                 rolesToAdd.add(verifiedRoles.get(0));
             } else {
