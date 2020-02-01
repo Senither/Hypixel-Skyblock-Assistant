@@ -101,16 +101,8 @@ public class RoleAssignmentJob extends Job {
 
         // Populates the Discord Roles cache list
         HashMap<String, Role> discordRoles = new HashMap<>();
-        for (GuildReply.Guild.Member member : hypixelGuild.getMembers()) {
-            if ("Guild Master".equalsIgnoreCase(member.getRank())) {
-                continue;
-            }
-
-            if (discordRoles.containsKey(member.getRank())) {
-                continue;
-            }
-
-            List<Role> rolesByName = guild.getRolesByName(member.getRank(), false);
+        for (GuildReply.Guild.Rank rank : hypixelGuild.getRanks()) {
+            List<Role> rolesByName = guild.getRolesByName(rank.getName(), false);
             if (rolesByName.isEmpty()) {
                 continue;
             }
@@ -119,7 +111,7 @@ public class RoleAssignmentJob extends Job {
                 continue;
             }
 
-            discordRoles.put(member.getRank(), rolesByName.get(0));
+            discordRoles.put(rank.getName(), rolesByName.get(0));
         }
 
         List<String> memberIds = new ArrayList<>();
