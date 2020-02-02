@@ -23,18 +23,23 @@ package com.senither.hypixel.database.controller;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
+import com.senither.hypixel.rank.items.PowerOrb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class GuildController {
 
     private static final Logger log = LoggerFactory.getLogger(GuildController.class);
+    private static final Gson gson = new Gson();
 
     private static final Cache<Long, GuildEntry> cache = CacheBuilder.newBuilder()
         .expireAfterAccess(60, TimeUnit.SECONDS)
@@ -90,6 +95,7 @@ public class GuildController {
         private final String data;
         private final Long defaultRole;
         private final boolean autoRename;
+        private final LinkedHashMap<String, RankRequirement> rankRequirements;
 
         GuildEntry(DataRow row) {
             id = row.getString("id");
@@ -100,6 +106,16 @@ public class GuildController {
 
             long defaultRole = row.getLong("default_role", 0L);
             this.defaultRole = defaultRole == 0L ? null : defaultRole;
+
+            rankRequirements = new LinkedHashMap<>();
+            if (row.getString("rank_requirements") == null) {
+                return;
+            }
+
+            JsonObject rankRequirements = gson.fromJson(row.getString("rank_requirements"), JsonObject.class);
+            for (String name : rankRequirements.keySet()) {
+                this.rankRequirements.put(name, new RankRequirement(rankRequirements.get(name).getAsJsonObject()));
+            }
         }
 
         public String getId() {
@@ -124,6 +140,66 @@ public class GuildController {
 
         public boolean isAutoRename() {
             return autoRename;
+        }
+
+        public LinkedHashMap<String, RankRequirement> getRankRequirements() {
+            return rankRequirements;
+        }
+
+        public class RankRequirement {
+
+            private int talismansLegendary = 0;
+            private int talismansEpic = 0;
+            private int averageSkills = 0;
+            private int slayerExperience = 0;
+            private PowerOrb powerOrb = null;
+
+            public RankRequirement(JsonObject object) {
+                if (object.has("TALISMANS")) {
+                    JsonObject talismans = object.get("TALISMANS").getAsJsonObject();
+
+                    this.talismansLegendary = talismans.has("legendary") ? talismans.get("legendary").getAsInt() : 0;
+                    this.talismansEpic = talismans.has("epic") ? talismans.get("epic").getAsInt() : 0;
+                }
+
+                if (object.has("AVERAGE_SKILLS")) {
+                    JsonObject averageSkills = object.get("AVERAGE_SKILLS").getAsJsonObject();
+
+                    this.averageSkills = averageSkills.has("level") ? averageSkills.get("level").getAsInt() : 0;
+                }
+
+                if (object.has("POWER_ORBS")) {
+                    JsonObject powerOrbs = object.get("POWER_ORBS").getAsJsonObject();
+
+                    this.powerOrb = PowerOrb.fromId(powerOrbs.has("level") ? powerOrbs.get("level").getAsInt() : 0);
+                }
+
+                if (object.has("SLAYER")) {
+                    JsonObject experience = object.get("SLAYER").getAsJsonObject();
+
+                    this.slayerExperience = experience.has("experience") ? experience.get("experience").getAsInt() : 0;
+                }
+            }
+
+            public int getTalismansLegendary() {
+                return talismansLegendary;
+            }
+
+            public int getTalismansEpic() {
+                return talismansEpic;
+            }
+
+            public int getAverageSkills() {
+                return averageSkills;
+            }
+
+            public int getSlayerExperience() {
+                return slayerExperience;
+            }
+
+            public PowerOrb getPowerOrb() {
+                return powerOrb;
+            }
         }
     }
 }
