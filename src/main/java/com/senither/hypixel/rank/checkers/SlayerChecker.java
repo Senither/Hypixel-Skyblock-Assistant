@@ -21,7 +21,39 @@
 
 package com.senither.hypixel.rank.checkers;
 
+import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
+import com.senither.hypixel.database.controller.GuildController;
+import net.hypixel.api.reply.GuildReply;
+import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
+
+import java.util.UUID;
 
 public class SlayerChecker extends RankRequirementChecker {
+
+    @Override
+    public GuildReply.Guild.Rank getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
+
+        long totalExperience = 0;
+        JsonObject slayerBosses = member.getAsJsonObject("slayer_bosses");
+        for (String type : slayerBosses.keySet()) {
+            try {
+                totalExperience += slayerBosses.get(type).getAsJsonObject().get("xp").getAsLong();
+            } catch (Exception ignored) {
+            }
+        }
+
+        for (GuildReply.Guild.Rank rank : getSortedRanksFromGuild(guildReply)) {
+            if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
+                continue;
+            }
+
+            GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
+            if (requirement.getSlayerExperience() <= totalExperience) {
+                return rank;
+            }
+        }
+        return null;
+    }
 }
