@@ -148,6 +148,7 @@ public class GuildController {
 
         public class RankRequirement {
 
+            private int fairySouls = 0;
             private int talismansLegendary = 0;
             private int talismansEpic = 0;
             private int averageSkills = 0;
@@ -179,6 +180,16 @@ public class GuildController {
 
                     this.slayerExperience = experience.has("experience") ? experience.get("experience").getAsInt() : 0;
                 }
+
+                if (object.has("FAIRY_SOULS")) {
+                    JsonObject fairySouls = object.get("FAIRY_SOULS").getAsJsonObject();
+
+                    this.fairySouls = fairySouls.has("amount") ? fairySouls.get("amount").getAsInt() : 0;
+                }
+            }
+
+            public int getFairySouls() {
+                return fairySouls;
             }
 
             public int getTalismansLegendary() {

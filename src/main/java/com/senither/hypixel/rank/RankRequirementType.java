@@ -31,7 +31,8 @@ public enum RankRequirementType {
     ARMOR("Armor", new ArmorChecker()),
     POWER_ORBS("Power Orbs", new PowerOrbsChecker()),
     SLAYER("Slayer", new SlayerChecker()),
-    WEAPONS("Weapons", new WeaponsChecker());
+    WEAPONS("Weapons", new WeaponsChecker()),
+    FAIRY_SOULS("Fairy Souls", new FairySoulsChecker());
 
     private final String name;
     private final RankRequirementChecker checker;
