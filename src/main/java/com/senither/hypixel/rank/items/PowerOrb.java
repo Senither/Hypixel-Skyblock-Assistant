@@ -23,9 +23,9 @@ package com.senither.hypixel.rank.items;
 
 public enum PowerOrb {
 
-    RADIANT_ORB(1, "Radiant Orb"),
-    MANA_FLUX(2, "Mana Flux"),
-    OVERFLUX(3, "Overflux");
+    RADIANT_ORB(1, "Radiant Power Orb"),
+    MANA_FLUX(2, "Mana Flux Power Orb"),
+    OVERFLUX(3, "Overflux Power Orb");
 
     private final int id;
     private final String name;

@@ -25,7 +25,6 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
-import com.senither.hypixel.inventory.Inventory;
 import com.senither.hypixel.inventory.Item;
 import com.senither.hypixel.inventory.ItemType;
 import net.hypixel.api.reply.GuildReply;
@@ -48,9 +47,9 @@ public class TalismansChecker extends RankRequirementChecker {
 
         try {
             List<Item> talismans = new ArrayList<>();
-            talismans.addAll(getTalismansFromInventory(member, "ender_chest_contents"));
-            talismans.addAll(getTalismansFromInventory(member, "talisman_bag"));
-            talismans.addAll(getTalismansFromInventory(member, "inv_contents"));
+            talismans.addAll(buildInventoryForPlayer(member, "ender_chest_contents").getItemsWithType(ItemType.ACCESSORY));
+            talismans.addAll(buildInventoryForPlayer(member, "talisman_bag").getItemsWithType(ItemType.ACCESSORY));
+            talismans.addAll(buildInventoryForPlayer(member, "inv_contents").getItemsWithType(ItemType.ACCESSORY));
 
             int epics = 0;
             int legendaries = 0;
@@ -79,12 +78,6 @@ public class TalismansChecker extends RankRequirementChecker {
         } catch (IOException ignored) {
         }
         return null;
-    }
-
-    private List<Item> getTalismansFromInventory(JsonObject member, String inventoryName) throws IOException {
-        Inventory inventory = new Inventory(member.get(inventoryName).getAsJsonObject().get("data").getAsString());
-
-        return inventory.getItemsWithType(ItemType.ACCESSORY);
     }
 
     private boolean isInventoryApiEnabled(JsonObject json) {

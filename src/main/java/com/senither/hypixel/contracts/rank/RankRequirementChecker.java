@@ -21,10 +21,13 @@
 
 package com.senither.hypixel.contracts.rank;
 
+import com.google.gson.JsonObject;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.inventory.Inventory;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -39,5 +42,9 @@ public abstract class RankRequirementChecker {
         return guild.getGuild().getRanks().stream()
             .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())
             .collect(Collectors.toList());
+    }
+
+    protected final Inventory buildInventoryForPlayer(JsonObject member, String inventoryName) throws IOException {
+        return new Inventory(member.get(inventoryName).getAsJsonObject().get("data").getAsString());
     }
 }
