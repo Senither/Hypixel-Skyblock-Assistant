@@ -155,7 +155,7 @@ public class GuildController {
             private int slayerExperience = 0;
             private PowerOrb powerOrb = null;
 
-            public RankRequirement(JsonObject object) {
+            RankRequirement(JsonObject object) {
                 if (object.has("TALISMANS")) {
                     JsonObject talismans = object.get("TALISMANS").getAsJsonObject();
 
@@ -163,29 +163,10 @@ public class GuildController {
                     this.talismansEpic = talismans.has("epic") ? talismans.get("epic").getAsInt() : 0;
                 }
 
-                if (object.has("AVERAGE_SKILLS")) {
-                    JsonObject averageSkills = object.get("AVERAGE_SKILLS").getAsJsonObject();
-
-                    this.averageSkills = averageSkills.has("level") ? averageSkills.get("level").getAsInt() : 0;
-                }
-
-                if (object.has("POWER_ORBS")) {
-                    JsonObject powerOrbs = object.get("POWER_ORBS").getAsJsonObject();
-
-                    this.powerOrb = PowerOrb.fromId(powerOrbs.has("level") ? powerOrbs.get("level").getAsInt() : 0);
-                }
-
-                if (object.has("SLAYER")) {
-                    JsonObject experience = object.get("SLAYER").getAsJsonObject();
-
-                    this.slayerExperience = experience.has("experience") ? experience.get("experience").getAsInt() : 0;
-                }
-
-                if (object.has("FAIRY_SOULS")) {
-                    JsonObject fairySouls = object.get("FAIRY_SOULS").getAsJsonObject();
-
-                    this.fairySouls = fairySouls.has("amount") ? fairySouls.get("amount").getAsInt() : 0;
-                }
+                this.averageSkills = loadIntegerFromObject(object, "AVERAGE_SKILLS", "level");
+                this.slayerExperience = loadIntegerFromObject(object, "SLAYER", "experience");
+                this.fairySouls = loadIntegerFromObject(object, "FAIRY_SOULS", "amount");
+                this.powerOrb = PowerOrb.fromId(loadIntegerFromObject(object, "POWER_ORBS", "level"));
             }
 
             public int getFairySouls() {
@@ -210,6 +191,12 @@ public class GuildController {
 
             public PowerOrb getPowerOrb() {
                 return powerOrb;
+            }
+
+            private int loadIntegerFromObject(JsonObject object, String type, String property) {
+                JsonObject jsonProperty = object.get(type).getAsJsonObject();
+
+                return jsonProperty.has(property) ? jsonProperty.get(property).getAsInt() : 0;
             }
         }
     }
