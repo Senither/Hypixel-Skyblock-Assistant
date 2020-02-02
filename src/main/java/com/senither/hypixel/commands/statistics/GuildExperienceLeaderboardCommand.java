@@ -129,6 +129,9 @@ public class GuildExperienceLeaderboardCommand extends Command {
             String usernameFromUuid = "-- Unavailable Username --";
             try {
                 usernameFromUuid = app.getHypixel().getUsernameFromUuid(UUID.fromString(key.toString()));
+                if (usernameFromUuid.startsWith("_")) {
+                    usernameFromUuid = "\\" + usernameFromUuid;
+                }
             } catch (SQLException ignored) {
                 //
             }

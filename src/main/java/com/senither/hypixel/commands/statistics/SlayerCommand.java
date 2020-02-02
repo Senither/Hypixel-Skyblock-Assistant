@@ -84,8 +84,8 @@ public class SlayerCommand extends SkillCommand {
         int totalCoinsSpentOnSlayers = getTotalCoinsSpentOnSlayers(slayerBosses);
         if (totalCoinsSpentOnSlayers == 0) {
             message.editMessage(MessageFactory.makeEmbeddedMessage(message.getChannel())
-                .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Slayers")
-                .setDescription(playerReply.getPlayer().get("displayname").getAsString() + " haven't done any slayer quests on their :profile profile yet, so there is nothing to display!")
+                .setTitle(getUsernameFromPlayer(playerReply) + "'s Slayers")
+                .setDescription(getUsernameFromPlayer(playerReply) + " haven't done any slayer quests on their :profile profile yet, so there is nothing to display!")
                 .setColor(MessageType.WARNING.getColor())
                 .set("profile", profileReply.getProfile().get("cute_name").getAsString())
                 .buildEmbed()
@@ -94,9 +94,9 @@ public class SlayerCommand extends SkillCommand {
         }
 
         message.editMessage(new EmbedBuilder()
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Slayers")
+            .setTitle(getUsernameFromPlayer(playerReply) + "'s Slayers")
             .setDescription(String.format("%s has spent %s coins on slayer quests.",
-                playerReply.getPlayer().get("displayname").getAsString(),
+                getUsernameFromPlayer(playerReply),
                 NumberUtil.formatNicely(totalCoinsSpentOnSlayers)
             ))
             .setColor(MessageType.SUCCESS.getColor())
@@ -104,7 +104,7 @@ public class SlayerCommand extends SkillCommand {
             .addField("Tarantula Broodfather", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("spider")), true)
             .addField("Sven Packmaster", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("wolf")), true)
             .setFooter(String.format("%s has a total of %s Slayer experience. | Profile: %s",
-                playerReply.getPlayer().get("displayname").getAsString(),
+                getUsernameFromPlayer(playerReply),
                 NumberUtil.formatNicely(getTotalCombinedSlayerExperience(slayerBosses)),
                 profileReply.getProfile().get("cute_name").getAsString()
             ))

@@ -75,9 +75,9 @@ public class AuctionHouseCommand extends SkillCommand {
         JsonObject stats = member.getAsJsonObject("stats");
 
         message.editMessage(new EmbedBuilder()
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Auction House Statistics")
+            .setTitle(getUsernameFromPlayer(playerReply) + "'s Auction House Statistics")
             .setDescription(String.format("**%s** has earned a total of **%s** coins through auctions.",
-                playerReply.getPlayer().get("displayname").getAsString(),
+                getUsernameFromPlayer(playerReply),
                 NumberUtil.formatNicely(getStatsTypeFromObject(stats, "auctions_gold_earned"))
             ))
             .setColor(MessageType.SUCCESS.getColor())

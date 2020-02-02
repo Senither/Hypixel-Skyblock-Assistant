@@ -108,9 +108,9 @@ public class SkillsCommand extends SkillCommand {
         }
 
         message.editMessage(new EmbedBuilder()
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Skills")
+            .setTitle(getUsernameFromPlayer(playerReply) + "'s Skills")
             .setDescription(String.format("**%s** has an average skill level of **%s**",
-                playerReply.getPlayer().get("displayname").getAsString(), NumberUtil.formatNicelyWithDecimals(
+                getUsernameFromPlayer(playerReply), NumberUtil.formatNicelyWithDecimals(
                     (
                         getSkillLevelFromExperience(mining, false) +
                             getSkillLevelFromExperience(foraging, false) +
@@ -151,11 +151,11 @@ public class SkillsCommand extends SkillCommand {
         double alchemy = getSkillExperience(achievements, "skyblock_concoctor");
 
         if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            sendAPIIsDisabledMessage(message, profileReply, playerReply.getPlayer().get("displayname").getAsString());
+            sendAPIIsDisabledMessage(message, profileReply, getUsernameFromPlayer(playerReply));
             return;
         }
 
-        final String displayName = playerReply.getPlayer().get("displayname").getAsString();
+        final String displayName = getUsernameFromPlayer(playerReply);
         final String skillsNote = MessageFactory.makeInfo(message, String.join(" ",
             "Note > The skills API is disabled, so these skills are pulled",
             "from the Skyblock Skills achievements instead, which means the displayed skills above might not be 100%",
