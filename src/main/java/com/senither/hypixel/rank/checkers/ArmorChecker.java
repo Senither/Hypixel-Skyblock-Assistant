@@ -22,8 +22,6 @@
 package com.senither.hypixel.rank.checkers;
 
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
-import net.hypixel.api.reply.GuildReply;
-import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 public class ArmorChecker extends RankRequirementChecker {
 

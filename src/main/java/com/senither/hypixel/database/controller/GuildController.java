@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -155,12 +156,26 @@ public class GuildController {
             private int slayerExperience = 0;
             private PowerOrb powerOrb = null;
 
+            private int weaponPoints = 0;
+            private HashMap<String, Integer> weaponItems = new LinkedHashMap<>();
+
             RankRequirement(JsonObject object) {
                 if (object.has("TALISMANS")) {
                     JsonObject talismans = object.get("TALISMANS").getAsJsonObject();
 
                     this.talismansLegendary = talismans.has("legendary") ? talismans.get("legendary").getAsInt() : 0;
                     this.talismansEpic = talismans.has("epic") ? talismans.get("epic").getAsInt() : 0;
+                }
+
+                if (object.has("WEAPONS")) {
+                    JsonObject weapons = object.get("WEAPONS").getAsJsonObject();
+
+                    this.weaponPoints = weapons.get("points").getAsInt();
+
+                    JsonObject items = weapons.get("items").getAsJsonObject();
+                    for (String name : items.keySet()) {
+                        weaponItems.put(name, items.get(name).getAsInt());
+                    }
                 }
 
                 this.averageSkills = loadIntegerFromObject(object, "AVERAGE_SKILLS", "level");
@@ -191,6 +206,14 @@ public class GuildController {
 
             public PowerOrb getPowerOrb() {
                 return powerOrb;
+            }
+
+            public int getWeaponPoints() {
+                return weaponPoints;
+            }
+
+            public HashMap<String, Integer> getWeaponItems() {
+                return weaponItems;
             }
 
             private int loadIntegerFromObject(JsonObject object, String type, String property) {
