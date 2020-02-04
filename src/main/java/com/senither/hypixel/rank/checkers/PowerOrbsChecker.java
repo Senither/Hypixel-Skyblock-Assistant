@@ -75,7 +75,7 @@ public class PowerOrbsChecker extends RankRequirementChecker {
                 }
 
                 GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
-                if (requirement.getPowerOrb().getId() <= powerOrb.getId()) {
+                if (requirement.getPowerOrb() != null && requirement.getPowerOrb().getId() <= powerOrb.getId()) {
                     return rank;
                 }
             }

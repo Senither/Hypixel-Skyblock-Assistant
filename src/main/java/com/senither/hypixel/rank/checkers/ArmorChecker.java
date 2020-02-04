@@ -56,9 +56,12 @@ public class ArmorChecker extends RankRequirementChecker {
                     continue;
                 }
 
-                EnumMap<Armor, Integer> armors = new EnumMap<>(Armor.class);
                 GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
+                if (requirement.getArmorItems().isEmpty() || requirement.getArmorPoints() == Integer.MAX_VALUE) {
+                    continue;
+                }
 
+                EnumMap<Armor, Integer> armors = new EnumMap<>(Armor.class);
                 for (Map.Entry<String, Integer> armorEntry : requirement.getArmorItems().entrySet()) {
                     Armor armor = Armor.getFromName(armorEntry.getKey());
                     if (armor != null) {

@@ -54,9 +54,12 @@ public class WeaponsChecker extends RankRequirementChecker {
                     continue;
                 }
 
-                EnumMap<Weapon, Integer> weapons = new EnumMap<>(Weapon.class);
                 GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
+                if (requirement.getWeaponItems().isEmpty() || requirement.getWeaponPoints() == Integer.MAX_VALUE) {
+                    continue;
+                }
 
+                EnumMap<Weapon, Integer> weapons = new EnumMap<>(Weapon.class);
                 for (Map.Entry<String, Integer> weaponEntry : requirement.getWeaponItems().entrySet()) {
                     Weapon weapon = Weapon.getFromName(weaponEntry.getKey());
                     if (weapon != null) {

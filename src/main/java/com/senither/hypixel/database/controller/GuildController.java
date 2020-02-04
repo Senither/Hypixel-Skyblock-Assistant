@@ -149,17 +149,17 @@ public class GuildController {
 
         public class RankRequirement {
 
-            private int fairySouls = 0;
-            private int talismansLegendary = 0;
-            private int talismansEpic = 0;
-            private int averageSkills = 0;
-            private int slayerExperience = 0;
+            private int fairySouls = Integer.MAX_VALUE;
+            private int talismansLegendary = Integer.MAX_VALUE;
+            private int talismansEpic = Integer.MAX_VALUE;
+            private int averageSkills = Integer.MAX_VALUE;
+            private int slayerExperience = Integer.MAX_VALUE;
             private PowerOrb powerOrb = null;
 
-            private int weaponPoints = 0;
+            private int weaponPoints = Integer.MAX_VALUE;
             private HashMap<String, Integer> weaponItems = new LinkedHashMap<>();
 
-            private int armorPoints = 0;
+            private int armorPoints = Integer.MAX_VALUE;
             private HashMap<String, Integer> armorItems = new LinkedHashMap<>();
 
             RankRequirement(JsonObject object) {
@@ -239,8 +239,11 @@ public class GuildController {
             }
 
             private int loadIntegerFromObject(JsonObject object, String type, String property) {
-                JsonObject jsonProperty = object.get(type).getAsJsonObject();
+                if (!object.has(type)) {
+                    return Integer.MAX_VALUE;
+                }
 
+                JsonObject jsonProperty = object.get(type).getAsJsonObject();
                 return jsonProperty.has(property) ? jsonProperty.get(property).getAsInt() : 0;
             }
         }
