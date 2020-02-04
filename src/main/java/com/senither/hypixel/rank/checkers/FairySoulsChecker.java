@@ -24,15 +24,17 @@ package com.senither.hypixel.rank.checkers;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.rank.RankCheckResponse;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 public class FairySoulsChecker extends RankRequirementChecker {
 
     @Override
-    public GuildReply.Guild.Rank getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         int collectedFairySouls = member.get("fairy_souls_collected").getAsInt();
@@ -44,9 +46,15 @@ public class FairySoulsChecker extends RankRequirementChecker {
 
             GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
             if (requirement.getFairySouls() <= collectedFairySouls) {
-                return rank;
+                return createResponse(rank, collectedFairySouls);
             }
         }
-        return null;
+        return createResponse(null, collectedFairySouls);
+    }
+
+    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, int amount) {
+        return new RankCheckResponse(rank, new HashMap<String, Object>() {{
+            put("amount", amount);
+        }});
     }
 }

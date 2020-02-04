@@ -27,6 +27,7 @@ import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.inventory.Item;
 import com.senither.hypixel.inventory.ItemType;
+import com.senither.hypixel.rank.RankCheckResponse;
 import com.senither.hypixel.rank.items.Armor;
 import com.senither.hypixel.rank.items.ArmorSet;
 import net.hypixel.api.reply.GuildReply;
@@ -38,7 +39,7 @@ import java.util.*;
 public class ArmorChecker extends RankRequirementChecker {
 
     @Override
-    public GuildReply.Guild.Rank getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         if (!isInventoryApiEnabled(member)) {
@@ -86,13 +87,19 @@ public class ArmorChecker extends RankRequirementChecker {
                 }
 
                 if (points >= requirement.getWeaponPoints()) {
-                    return rank;
+                    return createResponse(rank, points);
                 }
             }
         } catch (IOException ignored) {
             ignored.printStackTrace();
         }
-        return null;
+        return createResponse(null, 0);
+    }
+
+    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, int points) {
+        return new RankCheckResponse(rank, new HashMap<String, Object>() {{
+            put("points", points);
+        }});
     }
 
     private boolean isInventoryApiEnabled(JsonObject json) {

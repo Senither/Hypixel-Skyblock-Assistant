@@ -24,15 +24,17 @@ package com.senither.hypixel.rank.checkers;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.rank.RankCheckResponse;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 public class SlayerChecker extends RankRequirementChecker {
 
     @Override
-    public GuildReply.Guild.Rank getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         long totalExperience = 0;
@@ -51,9 +53,15 @@ public class SlayerChecker extends RankRequirementChecker {
 
             GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
             if (requirement.getSlayerExperience() <= totalExperience) {
-                return rank;
+                return createResponse(rank, totalExperience);
             }
         }
-        return null;
+        return createResponse(null, totalExperience);
+    }
+
+    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, long amount) {
+        return new RankCheckResponse(rank, new HashMap<String, Object>() {{
+            put("amount", amount);
+        }});
     }
 }

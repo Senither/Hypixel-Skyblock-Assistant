@@ -25,13 +25,11 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.rank.RankCheckResponse;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class AverageSkillsChecker extends RankRequirementChecker {
 
@@ -50,7 +48,7 @@ public class AverageSkillsChecker extends RankRequirementChecker {
     }
 
     @Override
-    public GuildReply.Guild.Rank getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         double mining = getSkillExperience(member, "experience_skill_mining");
@@ -82,10 +80,16 @@ public class AverageSkillsChecker extends RankRequirementChecker {
 
             GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
             if (requirement.getAverageSkills() <= averageSkillLevel) {
-                return rank;
+                return createResponse(rank, averageSkillLevel);
             }
         }
-        return null;
+        return createResponse(null, averageSkillLevel);
+    }
+
+    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, double amount) {
+        return new RankCheckResponse(rank, new HashMap<String, Object>() {{
+            put("amount", amount);
+        }});
     }
 
     private double getSkillLevelFromExperience(double experience) {

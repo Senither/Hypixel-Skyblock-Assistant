@@ -27,18 +27,20 @@ import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.inventory.Item;
 import com.senither.hypixel.inventory.ItemType;
+import com.senither.hypixel.rank.RankCheckResponse;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class TalismansChecker extends RankRequirementChecker {
 
     @Override
-    public GuildReply.Guild.Rank getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         if (!isInventoryApiEnabled(member)) {
@@ -72,12 +74,21 @@ public class TalismansChecker extends RankRequirementChecker {
 
                 GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
                 if (requirement.getTalismansLegendary() <= legendaries && requirement.getTalismansEpic() <= epics) {
-                    return rank;
+                    return createResponse(rank, legendaries, epics);
                 }
             }
+
+            return createResponse(null, legendaries, epics);
         } catch (IOException ignored) {
+            return null;
         }
-        return null;
+    }
+
+    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, int legendaries, int epics) {
+        return new RankCheckResponse(rank, new HashMap<String, Object>() {{
+            put("legendaries", legendaries);
+            put("epics", epics);
+        }});
     }
 
     private boolean isInventoryApiEnabled(JsonObject json) {

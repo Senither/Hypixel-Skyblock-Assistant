@@ -24,6 +24,7 @@ package com.senither.hypixel.contracts.rank;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.inventory.Inventory;
+import com.senither.hypixel.rank.RankCheckResponse;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 
 public abstract class RankRequirementChecker {
 
-    public GuildReply.Guild.Rank getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         throw new UnsupportedOperationException("Getting rank for the given user is not supported by this requirement type!");
     }
 
