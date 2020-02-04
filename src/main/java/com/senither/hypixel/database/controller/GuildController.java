@@ -159,6 +159,9 @@ public class GuildController {
             private int weaponPoints = 0;
             private HashMap<String, Integer> weaponItems = new LinkedHashMap<>();
 
+            private int armorPoints = 0;
+            private HashMap<String, Integer> armorItems = new LinkedHashMap<>();
+
             RankRequirement(JsonObject object) {
                 if (object.has("TALISMANS")) {
                     JsonObject talismans = object.get("TALISMANS").getAsJsonObject();
@@ -175,6 +178,17 @@ public class GuildController {
                     JsonObject items = weapons.get("items").getAsJsonObject();
                     for (String name : items.keySet()) {
                         weaponItems.put(name, items.get(name).getAsInt());
+                    }
+                }
+
+                if (object.has("ARMOR")) {
+                    JsonObject weapons = object.get("ARMOR").getAsJsonObject();
+
+                    this.armorPoints = weapons.get("points").getAsInt();
+
+                    JsonObject items = weapons.get("items").getAsJsonObject();
+                    for (String name : items.keySet()) {
+                        armorItems.put(name, items.get(name).getAsInt());
                     }
                 }
 
@@ -214,6 +228,14 @@ public class GuildController {
 
             public HashMap<String, Integer> getWeaponItems() {
                 return weaponItems;
+            }
+
+            public int getArmorPoints() {
+                return armorPoints;
+            }
+
+            public HashMap<String, Integer> getArmorItems() {
+                return armorItems;
             }
 
             private int loadIntegerFromObject(JsonObject object, String type, String property) {
