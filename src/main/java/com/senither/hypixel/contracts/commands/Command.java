@@ -67,32 +67,48 @@ public abstract class Command {
     }
 
     protected final boolean isGuildMasterOfServerGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
+        return isPartOfGuildCheck(event, guildEntry, false);
+    }
+
+    protected final boolean isGuildMasterOrOfficerOfServerGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
+        return isPartOfGuildCheck(event, guildEntry, true);
+    }
+
+    private boolean isPartOfGuildCheck(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, boolean allowOfficers) {
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         if (guildReply == null || guildReply.getGuild() == null) {
             throw new FriendlyException("The request to the API returned null for a guild with the given name, try again later.");
         }
 
-        UUID userUUID;
+        GuildReply.Guild.Rank rank = guildReply.getGuild().getRanks()
+            .stream()
+            .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())
+            .findFirst().orElse(null);
+
+        if (allowOfficers && rank == null) {
+            return false;
+        }
+
         try {
             Collection result = app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `discord_id` = ?", event.getAuthor().getIdLong());
             if (result.isEmpty()) {
                 return false;
             }
 
-            userUUID = UUID.fromString(result.first().getString("uuid"));
+            UUID userUUID = UUID.fromString(result.first().getString("uuid"));
+            for (GuildReply.Guild.Member member : guildReply.getGuild().getMembers()) {
+                if (!member.getUuid().equals(userUUID)) {
+                    continue;
+                }
+
+                return member.getRank().equals("Guild Master")
+                    || (allowOfficers && member.getRank().equals(rank.getName()));
+            }
         } catch (SQLException e) {
             log.error("Failed to get the UUID for {} from the database, error: {}",
                 event.getAuthor().getAsTag(), e.getMessage(), e
             );
-            return false;
         }
-
-        for (GuildReply.Guild.Member member : guildReply.getGuild().getMembers()) {
-            if (member.getRank().equals("Guild Master")) {
-                return member.getUuid().equals(userUUID);
-            }
-        }
-
         return false;
     }
 }

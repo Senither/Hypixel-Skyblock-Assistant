@@ -25,6 +25,7 @@ import com.senither.hypixel.commands.CommandManager;
 import com.senither.hypixel.commands.administration.AutoRenameCommand;
 import com.senither.hypixel.commands.administration.DefaultRoleCommand;
 import com.senither.hypixel.commands.administration.GuildSetupCommand;
+import com.senither.hypixel.commands.administration.RankCheckCommand;
 import com.senither.hypixel.commands.general.HelpCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.BotStatsCommand;
@@ -73,6 +74,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new AutoRenameCommand(this));
         commandManager.registerCommand(new DefaultRoleCommand(this));
         commandManager.registerCommand(new GuildSetupCommand(this));
+        commandManager.registerCommand(new RankCheckCommand(this));
         commandManager.registerCommand(new VerifyCommand(this));
         commandManager.registerCommand(new SkillsCommand(this));
         commandManager.registerCommand(new SlayerCommand(this));

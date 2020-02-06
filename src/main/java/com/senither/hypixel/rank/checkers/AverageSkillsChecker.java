@@ -63,7 +63,7 @@ public class AverageSkillsChecker extends RankRequirementChecker {
             throw new FriendlyException("Skills API is disabled, unable to calculate average skill level");
         }
 
-        double averageSkillLevel = Math.round((
+        double averageSkillLevel = (
             getSkillLevelFromExperience(mining) +
                 getSkillLevelFromExperience(foraging) +
                 getSkillLevelFromExperience(enchanting) +
@@ -71,7 +71,7 @@ public class AverageSkillsChecker extends RankRequirementChecker {
                 getSkillLevelFromExperience(combat) +
                 getSkillLevelFromExperience(fishing) +
                 getSkillLevelFromExperience(alchemy)
-        ) / 7D);
+        ) / 7D;
 
         for (GuildReply.Guild.Rank rank : getSortedRanksFromGuild(guildReply)) {
             if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
@@ -79,7 +79,7 @@ public class AverageSkillsChecker extends RankRequirementChecker {
             }
 
             GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
-            if (requirement.getAverageSkills() <= averageSkillLevel) {
+            if (requirement.getAverageSkills() <= Math.round(averageSkillLevel)) {
                 return createResponse(rank, averageSkillLevel);
             }
         }
