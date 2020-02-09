@@ -27,6 +27,7 @@ import com.senither.hypixel.contracts.scheduler.Job;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -131,6 +132,9 @@ public class RoleAssignmentJob extends Job {
         // Sets up the default role that should be given the users if they're not in the guild
         Role defaultRole = guildEntry.getDefaultRole() == null ? null : guild.getRoleById(guildEntry.getDefaultRole());
 
+        boolean canAssignRoles = guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES);
+        boolean canRenamePeople = guild.getSelfMember().hasPermission(Permission.NICKNAME_MANAGE);
+
         for (Member member : guild.getMembers()) {
             if (member.getUser().isBot() || member.getUser().isFake()) {
                 continue;
@@ -145,8 +149,12 @@ public class RoleAssignmentJob extends Job {
             DataRow dataRow = dataRows.get(0);
             String memberUUID = dataRow.getString("uuid");
 
-            if (shouldRename(guildEntry, member, dataRow) && guild.getSelfMember().canInteract(member)) {
+            if (canRenamePeople && shouldRename(guildEntry, member, dataRow) && guild.getSelfMember().canInteract(member)) {
                 guild.modifyNickname(member, dataRow.getString("username")).queue();
+            }
+
+            if (!canAssignRoles) {
+                continue;
             }
 
             GuildReply.Guild.Member guildMember;
@@ -175,7 +183,7 @@ public class RoleAssignmentJob extends Job {
             }
 
             List<Role> rolesToRemove = discordRoles.values().stream()
-                .filter(filteringRole -> filteringRole.getIdLong() != guildRole.getIdLong())
+                .filter(filteringRole -> guildRole == null || filteringRole.getIdLong() != guildRole.getIdLong())
                 .collect(Collectors.toList());
 
             if (defaultRole != null) {
@@ -199,6 +207,10 @@ public class RoleAssignmentJob extends Job {
     }
 
     private void markUserAsGuest(Guild guild, Member member, java.util.Collection<Role> values, Role defaultRole, boolean isVerified) {
+        if (!guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES)) {
+            return;
+        }
+
         List<Role> rolesToAdd = new ArrayList<>();
         List<Role> rolesToRemove = new ArrayList<>();
         rolesToRemove.addAll(values);
