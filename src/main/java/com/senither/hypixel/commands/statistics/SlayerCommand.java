@@ -22,6 +22,7 @@
 package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
@@ -41,10 +42,6 @@ import java.util.List;
 public class SlayerCommand extends SkillCommand {
 
     private static final Logger log = LoggerFactory.getLogger(SlayerCommand.class);
-
-    private final List<Integer> slayerLevels = Arrays.asList(
-        5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000
-    );
 
     public SlayerCommand(SkyblockAssistant app) {
         super(app, "slayer");
@@ -165,19 +162,19 @@ public class SlayerCommand extends SkillCommand {
     }
 
     private double getSlayerLevelFromExperience(int experience) {
-        for (int level = 0; level < slayerLevels.size(); level++) {
-            double requirement = slayerLevels.get(level);
+        for (int level = 0; level < Constants.SLAYER_EXPERIENCE.size(); level++) {
+            double requirement = Constants.SLAYER_EXPERIENCE.asList().get(level);
             if (experience < requirement) {
-                double lastRequirement = level == 0 ? 0D : slayerLevels.get(level - 1);
+                double lastRequirement = level == 0 ? 0D : Constants.SLAYER_EXPERIENCE.asList().get(level - 1);
                 return level + (experience - lastRequirement) / (requirement - lastRequirement);
             }
         }
         return 9;
     }
 
-    private int getEntryFromSlayerData(JsonObject jsonpObject, String entry) {
+    private int getEntryFromSlayerData(JsonObject jsonObject, String entry) {
         try {
-            return jsonpObject.get(entry).getAsInt();
+            return jsonObject.get(entry).getAsInt();
         } catch (Exception e) {
             return 0;
         }
