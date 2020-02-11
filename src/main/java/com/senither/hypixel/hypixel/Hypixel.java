@@ -487,7 +487,7 @@ public class Hypixel {
         }
 
         JsonObject player = playerReply.getPlayer();
-        if (player.has("monthlyPackageRank")) {
+        if (player.has("monthlyPackageRank") && !player.get("monthlyPackageRank").getAsString().equals("NONE")) {
             return HypixelRank.getFromType(player.get("monthlyPackageRank").getAsString());
         } else if (player.has("newPackageRank")) {
             return HypixelRank.getFromType(player.get("newPackageRank").getAsString());
