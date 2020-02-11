@@ -34,6 +34,7 @@ import net.hypixel.api.reply.GuildReply;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class RankRequirementCommand extends Command {
@@ -49,22 +50,37 @@ public class RankRequirementCommand extends Command {
 
     @Override
     public List<String> getDescription() {
-        return Arrays.asList();
+        return Arrays.asList(
+            "The command can be used to setup the requirement for each role, which the bot can",
+            String.format("then use to check what role a user belongs to using the `%srank-check` command.", Constants.COMMAND_PREFIX),
+            "\nSetting up Weapon and Armors is a bit different compared to all the other requirements types, you'll",
+            "need to both set the point requirement, and the item sets and how many points they're worth."
+        );
     }
 
     @Override
     public List<String> getUsageInstructions() {
-        return Arrays.asList();
+        return Arrays.asList(
+            "`:command` - Lists all the ranks in the guild.",
+            "`:command <rank>` - Lists all requirements set for the given rank.",
+            "`:command <rank> <type> <value>` - Sets the value for the type for the given rank."
+        );
     }
 
     @Override
     public List<String> getExampleUsage() {
-        return Arrays.asList();
+        return Arrays.asList(
+            "`:command vizier souls 190` - Sets the Fairy Soul requirement to 190 souls",
+            "`:command vizier talismans 3 5` - Sets the Talisman requirement to 3 Legendaries, and 5 Epics",
+            "`:command vizier orb 2` - Sets the Power Orb requirement to Mana Flux",
+            "`:command vizier weapon points 10` - Sets the Weapon point requirement for Vizer to 10 points",
+            "`:command vizier weapon item aotd 5` - Sets the AOTD worth for Vizer to 5 points"
+        );
     }
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("rank-requirement");
+        return Collections.singletonList("rank-requirement");
     }
 
     @Override
