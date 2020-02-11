@@ -81,7 +81,7 @@ public class TalismansCommand extends SkillCommand {
                 .setTitle("Failed to load profile!")
                 .setDescription(String.format(
                     "%s has their inventory API disabled for their %s profile!\nYou can ask them nicely to enable it.",
-                    playerReply.getPlayer().get("displayname").getAsString(),
+                    getUsernameFromPlayer(playerReply),
                     profileReply.getProfile().get("cute_name").getAsString()
                 ))
                 .build()
@@ -97,10 +97,10 @@ public class TalismansCommand extends SkillCommand {
 
             EmbedBuilder builder = new EmbedBuilder()
                 .setColor(MessageType.SUCCESS.getColor())
-                .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Talismans")
+                .setTitle(getUsernameFromPlayer(playerReply) + "'s Talismans")
                 .setDescription(String.format(
                     "**%s** has a total of **%s** talismans!",
-                    playerReply.getPlayer().get("displayname").getAsString(),
+                    getUsernameFromPlayer(playerReply),
                     talismans.size()
                 ));
 

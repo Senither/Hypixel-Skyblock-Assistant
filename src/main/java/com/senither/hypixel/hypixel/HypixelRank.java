@@ -31,7 +31,6 @@ public enum HypixelRank {
     DEFAULT(null);
 
     private final String name;
-    private boolean aDefault;
 
     HypixelRank(String name) {
         this.name = name;

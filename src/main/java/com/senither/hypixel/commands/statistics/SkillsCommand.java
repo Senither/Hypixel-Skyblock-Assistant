@@ -22,6 +22,7 @@
 package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
@@ -33,33 +34,13 @@ import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class SkillsCommand extends SkillCommand {
 
-    private final List<Integer> generalSkillLevels = new ArrayList<>();
-    private final List<Integer> runecraftinSkillLevels = new ArrayList<>();
-
     public SkillsCommand(SkyblockAssistant app) {
         super(app, "skill");
-
-        generalSkillLevels.addAll(Arrays.asList(
-            50, 125, 200, 300, 500, 750, 1000, 1500, 2000, 3500,
-            5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000
-        ));
-
-        runecraftinSkillLevels.addAll(Arrays.asList(
-            50, 100, 125, 160, 200, 250, 315, 400, 500, 625,
-            785, 1000, 1250, 1600, 2000, 2465, 3125, 4000, 5000, 6200,
-            7800, 9800, 12200, 15300
-        ));
-
-        int index = 1;
-        while (generalSkillLevels.size() < 50) {
-            generalSkillLevels.add(100000 * index++);
-        }
     }
 
     @Override
@@ -108,9 +89,9 @@ public class SkillsCommand extends SkillCommand {
         }
 
         message.editMessage(new EmbedBuilder()
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Skills")
+            .setTitle(getUsernameFromPlayer(playerReply) + "'s Skills")
             .setDescription(String.format("**%s** has an average skill level of **%s**",
-                playerReply.getPlayer().get("displayname").getAsString(), NumberUtil.formatNicelyWithDecimals(
+                getUsernameFromPlayer(playerReply), NumberUtil.formatNicelyWithDecimals(
                     (
                         getSkillLevelFromExperience(mining, false) +
                             getSkillLevelFromExperience(foraging, false) +
@@ -151,11 +132,11 @@ public class SkillsCommand extends SkillCommand {
         double alchemy = getSkillExperience(achievements, "skyblock_concoctor");
 
         if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            sendAPIIsDisabledMessage(message, profileReply, playerReply.getPlayer().get("displayname").getAsString());
+            sendAPIIsDisabledMessage(message, profileReply, getUsernameFromPlayer(playerReply));
             return;
         }
 
-        final String displayName = playerReply.getPlayer().get("displayname").getAsString();
+        final String displayName = getUsernameFromPlayer(playerReply);
         final String skillsNote = MessageFactory.makeInfo(message, String.join(" ",
             "Note > The skills API is disabled, so these skills are pulled",
             "from the Skyblock Skills achievements instead, which means the displayed skills above might not be 100%",
@@ -200,7 +181,7 @@ public class SkillsCommand extends SkillCommand {
 
     private double getSkillLevelFromExperience(double experience, boolean isRunecrafting) {
         int level = 0;
-        for (int toRemove : isRunecrafting ? runecraftinSkillLevels : generalSkillLevels) {
+        for (int toRemove : isRunecrafting ? Constants.RUNECRAFTING_SKILL_EXPERIENCE : Constants.GENERAL_SKILL_EXPERIENCE) {
             experience -= toRemove;
             if (experience < 0) {
                 return level + (1D - (experience * -1) / (double) toRemove);

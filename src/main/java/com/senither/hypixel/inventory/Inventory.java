@@ -58,7 +58,12 @@ public class Inventory implements Searchable, InventoryDecoder {
                 continue;
             }
 
-            items.add(new Item(this, itemTag));
+            try {
+                items.add(new Item(this, itemTag));
+            } catch (Exception e) {
+                // This should only be thrown if the item is not properly formatted or
+                // is an illegal item and shouldn't exist in the game to begin with.
+            }
         }
     }
 

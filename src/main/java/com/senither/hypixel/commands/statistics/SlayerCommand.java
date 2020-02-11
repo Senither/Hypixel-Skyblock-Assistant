@@ -22,6 +22,7 @@
 package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
@@ -41,10 +42,6 @@ import java.util.List;
 public class SlayerCommand extends SkillCommand {
 
     private static final Logger log = LoggerFactory.getLogger(SlayerCommand.class);
-
-    private final List<Integer> slayerLevels = Arrays.asList(
-        5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000
-    );
 
     public SlayerCommand(SkyblockAssistant app) {
         super(app, "slayer");
@@ -84,8 +81,8 @@ public class SlayerCommand extends SkillCommand {
         int totalCoinsSpentOnSlayers = getTotalCoinsSpentOnSlayers(slayerBosses);
         if (totalCoinsSpentOnSlayers == 0) {
             message.editMessage(MessageFactory.makeEmbeddedMessage(message.getChannel())
-                .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Slayers")
-                .setDescription(playerReply.getPlayer().get("displayname").getAsString() + " haven't done any slayer quests on their :profile profile yet, so there is nothing to display!")
+                .setTitle(getUsernameFromPlayer(playerReply) + "'s Slayers")
+                .setDescription(getUsernameFromPlayer(playerReply) + " haven't done any slayer quests on their :profile profile yet, so there is nothing to display!")
                 .setColor(MessageType.WARNING.getColor())
                 .set("profile", profileReply.getProfile().get("cute_name").getAsString())
                 .buildEmbed()
@@ -94,9 +91,9 @@ public class SlayerCommand extends SkillCommand {
         }
 
         message.editMessage(new EmbedBuilder()
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Slayers")
+            .setTitle(getUsernameFromPlayer(playerReply) + "'s Slayers")
             .setDescription(String.format("%s has spent %s coins on slayer quests.",
-                playerReply.getPlayer().get("displayname").getAsString(),
+                getUsernameFromPlayer(playerReply),
                 NumberUtil.formatNicely(totalCoinsSpentOnSlayers)
             ))
             .setColor(MessageType.SUCCESS.getColor())
@@ -104,7 +101,7 @@ public class SlayerCommand extends SkillCommand {
             .addField("Tarantula Broodfather", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("spider")), true)
             .addField("Sven Packmaster", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("wolf")), true)
             .setFooter(String.format("%s has a total of %s Slayer experience. | Profile: %s",
-                playerReply.getPlayer().get("displayname").getAsString(),
+                getUsernameFromPlayer(playerReply),
                 NumberUtil.formatNicely(getTotalCombinedSlayerExperience(slayerBosses)),
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
@@ -165,19 +162,19 @@ public class SlayerCommand extends SkillCommand {
     }
 
     private double getSlayerLevelFromExperience(int experience) {
-        for (int level = 0; level < slayerLevels.size(); level++) {
-            double requirement = slayerLevels.get(level);
+        for (int level = 0; level < Constants.SLAYER_EXPERIENCE.size(); level++) {
+            double requirement = Constants.SLAYER_EXPERIENCE.asList().get(level);
             if (experience < requirement) {
-                double lastRequirement = level == 0 ? 0D : slayerLevels.get(level - 1);
+                double lastRequirement = level == 0 ? 0D : Constants.SLAYER_EXPERIENCE.asList().get(level - 1);
                 return level + (experience - lastRequirement) / (requirement - lastRequirement);
             }
         }
         return 9;
     }
 
-    private int getEntryFromSlayerData(JsonObject jsonpObject, String entry) {
+    private int getEntryFromSlayerData(JsonObject jsonObject, String entry) {
         try {
-            return jsonpObject.get(entry).getAsInt();
+            return jsonObject.get(entry).getAsInt();
         } catch (Exception e) {
             return 0;
         }

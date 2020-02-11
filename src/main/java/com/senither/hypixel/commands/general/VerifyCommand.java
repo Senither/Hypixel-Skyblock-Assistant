@@ -195,6 +195,8 @@ public class VerifyCommand extends Command {
         }
 
         List<Role> rolesToAdd = new ArrayList<>();
+        List<Role> rolesToRemove = new ArrayList<>();
+
         List<Role> roles = event.getGuild().getRolesByName(Constants.VERIFY_ROLE, true);
         if (!roles.isEmpty() && event.getGuild().getSelfMember().canInteract(roles.get(0))) {
             rolesToAdd.add(roles.get(0));
@@ -205,6 +207,17 @@ public class VerifyCommand extends Command {
             roles = event.getGuild().getRolesByName(rank.getName(), true);
             if (!roles.isEmpty() && event.getGuild().getSelfMember().canInteract(roles.get(0))) {
                 rolesToAdd.add(roles.get(0));
+            }
+        }
+
+        for (HypixelRank hypixelRank : HypixelRank.values()) {
+            if (hypixelRank.isDefault() || hypixelRank == rank) {
+                continue;
+            }
+
+            List<Role> rankRolesByName = event.getGuild().getRolesByName(hypixelRank.getName(), true);
+            if (!rankRolesByName.isEmpty()) {
+                rolesToRemove.add(rankRolesByName.get(0));
             }
         }
 
@@ -246,9 +259,11 @@ public class VerifyCommand extends Command {
             return;
         }
 
-        List<Role> rolesToRemove = discordRoles.values().stream()
-            .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
-            .collect(Collectors.toList());
+        rolesToRemove.addAll(
+            discordRoles.values().stream()
+                .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
+                .collect(Collectors.toList())
+        );
 
         if (guildEntry.getDefaultRole() != null) {
             Role defaultRole = event.getGuild().getRoleById(guildEntry.getDefaultRole());

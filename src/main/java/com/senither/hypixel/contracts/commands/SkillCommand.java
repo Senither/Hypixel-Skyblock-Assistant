@@ -183,6 +183,14 @@ public abstract class SkillCommand extends Command {
         ).queue();
     }
 
+    protected String getUsernameFromPlayer(PlayerReply playerReply) {
+        String displayName = playerReply.getPlayer().get("displayname").getAsString();
+        if (!displayName.startsWith("_")) {
+            return displayName;
+        }
+        return "\\" + displayName;
+    }
+
     private String getUsernameFromMessage(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
             String username = getUsernameFromUser(event.getAuthor());
