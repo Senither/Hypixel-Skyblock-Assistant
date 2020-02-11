@@ -91,7 +91,8 @@ public class HelpCommand extends Command {
         PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(), String.join(" ", container.getDescription()))
             .setTitle(container.getName())
             .addField("Usage", formatCommandUsage(container, container.getCommand().getUsageInstructions()), false)
-            .addField("Example", formatCommandUsage(container, container.getCommand().getExampleUsage()), false);
+            .addField("Example", formatCommandUsage(container, container.getCommand().getExampleUsage()), false)
+            .set("command", Constants.COMMAND_PREFIX);
 
         if (container.getTriggers().size() > 1) {
             StringBuilder aliases = new StringBuilder();

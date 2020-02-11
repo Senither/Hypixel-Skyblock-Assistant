@@ -19,15 +19,26 @@
  *
  */
 
-package com.senither.hypixel.exceptions;
+package com.senither.hypixel.database.migrations;
 
-public class FriendlyException extends RuntimeException {
+import com.senither.hypixel.contracts.database.Migration;
+import com.senither.hypixel.database.DatabaseManager;
 
-    public FriendlyException(String message) {
-        super(message);
+import java.sql.SQLException;
+
+public class AddRankRequirementsColumnToGuildsTableMigration implements Migration {
+
+    @Override
+    public boolean up(DatabaseManager databaseManager) throws SQLException {
+        return databaseManager.queryUpdate(
+            "ALTER TABLE `guilds` ADD `rank_requirements` TEXT NULL AFTER `auto_rename`;"
+        );
     }
 
-    public FriendlyException(String message, String... args) {
-        super(String.format(message, args));
+    @Override
+    public boolean down(DatabaseManager databaseManager) throws SQLException {
+        return databaseManager.queryUpdate(
+            "ALTER TABLE `guilds` DROP `rank_requirements`;"
+        );
     }
 }

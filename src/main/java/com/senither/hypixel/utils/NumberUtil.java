@@ -21,10 +21,13 @@
 
 package com.senither.hypixel.utils;
 
+import javax.annotation.Nonnull;
 import java.text.DecimalFormat;
+import java.util.regex.Pattern;
 
 public class NumberUtil {
 
+    private static final Pattern numberPattern = Pattern.compile("[-+]?\\d*\\.?\\d+");
     private static final DecimalFormat niceFormat = new DecimalFormat("#,##0");
     private static final DecimalFormat niceFormatWithDecimal = new DecimalFormat("#,###.##");
 
@@ -50,5 +53,9 @@ public class NumberUtil {
 
     public static String formatNicelyWithDecimals(double value) {
         return niceFormatWithDecimal.format(value);
+    }
+
+    public static boolean isNumeric(@Nonnull String string) {
+        return numberPattern.matcher(string).matches();
     }
 }

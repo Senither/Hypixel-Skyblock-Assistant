@@ -23,18 +23,24 @@ package com.senither.hypixel.database.controller;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
+import com.senither.hypixel.rank.items.PowerOrb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class GuildController {
 
     private static final Logger log = LoggerFactory.getLogger(GuildController.class);
+    private static final Gson gson = new Gson();
 
     private static final Cache<Long, GuildEntry> cache = CacheBuilder.newBuilder()
         .expireAfterAccess(60, TimeUnit.SECONDS)
@@ -82,6 +88,10 @@ public class GuildController {
         cache.invalidate(guildId);
     }
 
+    public static GuildEntry.RankRequirement createEmptyRankRequirement() {
+        return new GuildEntry.RankRequirement();
+    }
+
     public static class GuildEntry {
 
         private final String id;
@@ -90,6 +100,7 @@ public class GuildController {
         private final String data;
         private final Long defaultRole;
         private final boolean autoRename;
+        private final LinkedHashMap<String, RankRequirement> rankRequirements;
 
         GuildEntry(DataRow row) {
             id = row.getString("id");
@@ -100,6 +111,16 @@ public class GuildController {
 
             long defaultRole = row.getLong("default_role", 0L);
             this.defaultRole = defaultRole == 0L ? null : defaultRole;
+
+            rankRequirements = new LinkedHashMap<>();
+            if (row.getString("rank_requirements") == null) {
+                return;
+            }
+
+            JsonObject rankRequirements = gson.fromJson(row.getString("rank_requirements"), JsonObject.class);
+            for (String name : rankRequirements.keySet()) {
+                this.rankRequirements.put(name, new RankRequirement(rankRequirements.get(name).getAsJsonObject()));
+            }
         }
 
         public String getId() {
@@ -124,6 +145,145 @@ public class GuildController {
 
         public boolean isAutoRename() {
             return autoRename;
+        }
+
+        public LinkedHashMap<String, RankRequirement> getRankRequirements() {
+            return rankRequirements;
+        }
+
+        public static class RankRequirement {
+
+            private int fairySouls = Integer.MAX_VALUE;
+            private int talismansLegendary = Integer.MAX_VALUE;
+            private int talismansEpic = Integer.MAX_VALUE;
+            private int averageSkills = Integer.MAX_VALUE;
+            private int slayerExperience = Integer.MAX_VALUE;
+            private PowerOrb powerOrb = null;
+
+            private int weaponPoints = Integer.MAX_VALUE;
+            private HashMap<String, Integer> weaponItems = new LinkedHashMap<>();
+
+            private int armorPoints = Integer.MAX_VALUE;
+            private HashMap<String, Integer> armorItems = new LinkedHashMap<>();
+
+            public RankRequirement() {
+                //
+            }
+
+            RankRequirement(JsonObject object) {
+                this.armorPoints = loadIntegerFromObject(object, "armorPoints");
+                this.armorItems = loadItemsFromObject(object, "armorItems");
+
+                this.weaponPoints = loadIntegerFromObject(object, "weaponPoints");
+                this.weaponItems = loadItemsFromObject(object, "weaponItems");
+
+                this.talismansLegendary = loadIntegerFromObject(object, "talismansLegendary");
+                this.talismansEpic = loadIntegerFromObject(object, "talismansEpic");
+
+                this.averageSkills = loadIntegerFromObject(object, "averageSkills");
+                this.fairySouls = loadIntegerFromObject(object, "fairySouls");
+                this.slayerExperience = loadIntegerFromObject(object, "slayerExperience");
+                this.powerOrb = PowerOrb.fromName(object.has("powerOrb") ? object.get("powerOrb").getAsString() : null);
+            }
+
+            public int getFairySouls() {
+                return fairySouls;
+            }
+
+            public void setFairySouls(int fairySouls) {
+                this.fairySouls = fairySouls;
+            }
+
+            public int getTalismansLegendary() {
+                return talismansLegendary;
+            }
+
+            public void setTalismansLegendary(int talismansLegendary) {
+                this.talismansLegendary = talismansLegendary;
+            }
+
+            public int getTalismansEpic() {
+                return talismansEpic;
+            }
+
+            public void setTalismansEpic(int talismansEpic) {
+                this.talismansEpic = talismansEpic;
+            }
+
+            public int getAverageSkills() {
+                return averageSkills;
+            }
+
+            public void setAverageSkills(int averageSkills) {
+                this.averageSkills = averageSkills;
+            }
+
+            public int getSlayerExperience() {
+                return slayerExperience;
+            }
+
+            public void setSlayerExperience(int slayerExperience) {
+                this.slayerExperience = slayerExperience;
+            }
+
+            public PowerOrb getPowerOrb() {
+                return powerOrb;
+            }
+
+            public void setPowerOrb(PowerOrb powerOrb) {
+                this.powerOrb = powerOrb;
+            }
+
+            public int getWeaponPoints() {
+                return weaponPoints;
+            }
+
+            public void setWeaponPoints(int weaponPoints) {
+                this.weaponPoints = weaponPoints;
+            }
+
+            public HashMap<String, Integer> getWeaponItems() {
+                return weaponItems;
+            }
+
+            public void setWeaponItems(HashMap<String, Integer> weaponItems) {
+                this.weaponItems = weaponItems;
+            }
+
+            public int getArmorPoints() {
+                return armorPoints;
+            }
+
+            public void setArmorPoints(int armorPoints) {
+                this.armorPoints = armorPoints;
+            }
+
+            public HashMap<String, Integer> getArmorItems() {
+                return armorItems;
+            }
+
+            public void setArmorItems(HashMap<String, Integer> armorItems) {
+                this.armorItems = armorItems;
+            }
+
+            private int loadIntegerFromObject(JsonObject object, String property) {
+                return object.has(property) ? object.get(property).getAsInt() : Integer.MAX_VALUE;
+            }
+
+            private HashMap<String, Integer> loadItemsFromObject(JsonObject object, String property) {
+                if (!object.has(property)) {
+                    return new HashMap<>();
+                }
+
+                JsonObject items = object.get(property).getAsJsonObject();
+                HashMap<String, Integer> map = new HashMap<>();
+
+                for (String name : items.keySet()) {
+                    map.put(name, items.get(name).getAsInt());
+                }
+
+                return map;
+            }
         }
     }
 }

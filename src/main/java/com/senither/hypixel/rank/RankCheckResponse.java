@@ -19,15 +19,27 @@
  *
  */
 
-package com.senither.hypixel.exceptions;
+package com.senither.hypixel.rank;
 
-public class FriendlyException extends RuntimeException {
+import net.hypixel.api.reply.GuildReply;
 
-    public FriendlyException(String message) {
-        super(message);
+import java.util.HashMap;
+
+public class RankCheckResponse {
+
+    private final GuildReply.Guild.Rank rank;
+    private final HashMap<String, Object> metric;
+
+    public RankCheckResponse(GuildReply.Guild.Rank rank, HashMap<String, Object> metric) {
+        this.rank = rank;
+        this.metric = metric;
     }
 
-    public FriendlyException(String message, String... args) {
-        super(String.format(message, args));
+    public GuildReply.Guild.Rank getRank() {
+        return rank;
+    }
+
+    public HashMap<String, Object> getMetric() {
+        return metric;
     }
 }

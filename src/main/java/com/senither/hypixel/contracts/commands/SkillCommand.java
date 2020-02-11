@@ -79,6 +79,10 @@ public abstract class SkillCommand extends Command {
             return;
         }
 
+        if (!prepareCommand(event, username)) {
+            return;
+        }
+
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setTitle(username + "'s " + type.substring(0, 1).toUpperCase() + type.substring(1, type.length()) + "s")
             .setDescription("Loading Skyblock profile data for " + username + "!")
@@ -130,7 +134,6 @@ public abstract class SkillCommand extends Command {
                     .addField("Valid Profiles", "`" + String.join("`, `", profileNames) + "`", false)
                     .buildEmbed()
                 ).queue();
-
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 log.error("Failed to fetch player data for {}, error: {}",
                     username, e.getMessage(), e
@@ -280,6 +283,10 @@ public abstract class SkillCommand extends Command {
             uuid.substring(16, 20) + "-" +
             uuid.substring(20, 32)
         );
+    }
+
+    protected boolean prepareCommand(MessageReceivedEvent event, String username) {
+        return true;
     }
 
     protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply);

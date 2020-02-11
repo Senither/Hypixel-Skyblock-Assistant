@@ -19,15 +19,12 @@
  *
  */
 
-package com.senither.hypixel.exceptions;
+package com.senither.hypixel.contracts.rank;
 
-public class FriendlyException extends RuntimeException {
+import com.senither.hypixel.database.controller.GuildController;
 
-    public FriendlyException(String message) {
-        super(message);
-    }
+@FunctionalInterface
+public interface ObjectClosure<T> {
 
-    public FriendlyException(String message, String... args) {
-        super(String.format(message, args));
-    }
+    void run(GuildController.GuildEntry.RankRequirement requirement, T value);
 }
