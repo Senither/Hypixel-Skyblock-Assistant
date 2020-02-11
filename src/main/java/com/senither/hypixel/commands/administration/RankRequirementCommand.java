@@ -117,7 +117,7 @@ public class RankRequirementCommand extends Command {
             case "reset":
             case "delete":
                 resetRankOption(event, guildEntry, rank);
-                break;
+                return;
 
             case "skill":
             case "skills":

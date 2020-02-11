@@ -29,7 +29,9 @@ import com.senither.hypixel.rank.handler.CustomObjectValueHandler;
 import com.senither.hypixel.rank.handler.DoubleObjectValueHandler;
 import com.senither.hypixel.rank.handler.IntegerValueHandler;
 import com.senither.hypixel.rank.handler.ItemValueHandler;
+import com.senither.hypixel.rank.items.Armor;
 import com.senither.hypixel.rank.items.PowerOrb;
+import com.senither.hypixel.rank.items.Weapon;
 import com.senither.hypixel.utils.NumberUtil;
 
 public enum RankRequirementType {
@@ -54,12 +56,14 @@ public enum RankRequirementType {
     )),
     ARMOR("Armor", new ArmorChecker(), new ItemValueHandler(
         GuildController.GuildEntry.RankRequirement::setArmorPoints,
-        GuildController.GuildEntry.RankRequirement::getArmorItems
+        GuildController.GuildEntry.RankRequirement::getArmorItems,
+        Armor.values()
     )),
-    WEAPONS("Weapons", new WeaponsChecker(), new ItemValueHandler(
+    WEAPONS("Weapon", new WeaponsChecker(), new ItemValueHandler(
         GuildController.GuildEntry.RankRequirement::setWeaponPoints,
-        GuildController.GuildEntry.RankRequirement::getWeaponItems
-    ));
+        GuildController.GuildEntry.RankRequirement::getWeaponItems,
+        Weapon.values())
+    );
 
     private final String name;
     private final RankRequirementChecker checker;

@@ -21,12 +21,14 @@
 
 package com.senither.hypixel.rank.items;
 
+import com.senither.hypixel.contracts.rank.ItemRequirement;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("SpellCheckingInspection")
-public enum Weapon {
+public enum Weapon implements ItemRequirement {
 
     REAPER_SCYTHE("Reaper Scythe", "scythe"),
     ASPECT_OF_THE_DRAGONS("Aspect of the Dragons", "aotd"),
@@ -60,10 +62,12 @@ public enum Weapon {
         return null;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public List<String> getAliases() {
         return aliases;
     }

@@ -19,15 +19,13 @@
  *
  */
 
-package com.senither.hypixel.exceptions;
+package com.senither.hypixel.contracts.rank;
 
-public class FriendlyException extends RuntimeException {
+import java.util.List;
 
-    public FriendlyException(String message) {
-        super(message);
-    }
+public interface ItemRequirement {
 
-    public FriendlyException(String message, String... args) {
-        super(String.format(message, args));
-    }
+    String getName();
+
+    List<String> getAliases();
 }

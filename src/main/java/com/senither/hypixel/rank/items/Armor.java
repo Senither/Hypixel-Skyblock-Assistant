@@ -21,74 +21,87 @@
 
 package com.senither.hypixel.rank.items;
 
+import com.senither.hypixel.contracts.rank.ItemRequirement;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("SpellCheckingInspection")
-public enum Armor {
+public enum Armor implements ItemRequirement {
 
     ELEGANT_TUXEDO(new ArmorSet(
+        "Elegant Tuxedo",
         null,
         "Elegant Tuxedo Jacket",
         "Elegant Tuxedo Pants",
         "Elegant Tuxedo Oxfords"
     ), "elegant tuxedo", "etux"),
     SUPERIOR_DRAGON_ARMOR(new ArmorSet(
+        "Superior Dragon Armor",
         "Superior Dragon Helmet",
         "Superior Dragon Chestplate",
         "Superior Dragon Leggings",
         "Superior Dragon Boots"
     ), "superior dragon", "superior"),
     STRONG_DRAGON_ARMOR(new ArmorSet(
+        "Strong Dragon Armor",
         "Strong Dragon Helmet",
         "Strong Dragon Chestplate",
         "Strong Dragon Leggings",
         "Strong Dragon Boots"
     ), "strong dragon", "strong"),
     UNSTABLE_DRAGON_ARMOR(new ArmorSet(
+        "Unstable Dragon Armor",
         "Unstable Dragon Helmet",
         "Unstable Dragon Chestplate",
         "Unstable Dragon Leggings",
         "Unstable Dragon Boots"
     ), "unstable dragon", "unstable"),
     WISE_DRAGON_ARMOR(new ArmorSet(
+        "Wise Dragon Armor",
         "Wise Dragon Helmet",
         "Wise Dragon Chestplate",
         "Wise Dragon Leggings",
         "Wise Dragon Boots"
     ), "wise dragon", "wise"),
     YOUNG_DRAGON_ARMOR(new ArmorSet(
+        "Young Dragon Armor",
         "Young Dragon Helmet",
         "Young Dragon Chestplate",
         "Young Dragon Leggings",
         "Young Dragon Boots"
     ), "young dragon", "young"),
     PROTECTOR_DRAGON_ARMOR(new ArmorSet(
+        "Protector Dragon Armor",
         "Protector Dragon Helmet",
         "Protector Dragon Chestplate",
         "Protector Dragon Leggings",
         "Protector Dragon Boots"
     ), "protector dragon", "protector"),
     OLD_DRAGON_ARMOR(new ArmorSet(
+        "Old Dragon Armor",
         "Old Dragon Helmet",
         "Old Dragon Chestplate",
         "Old Dragon Leggings",
         "Old Dragon Boots"
     ), "old dragon", "old", "boomer"),
     REVENANT_ARMOR(new ArmorSet(
+        "Revenant Horror Armor",
         null,
         "Revenant Chestplate",
         "Revenant Leggings",
         "Revenant Boots"
     ), "revenant", "rev"),
     TARANTULA_ARMOR(new ArmorSet(
+        "Tarantula Armor",
         "Tarantula Helmet",
         "Tarantula Chestplate",
         "Tarantula Leggings",
         "Tarantula Boots"
     ), "tarantula", "tara"),
     MASTIFF_ARMOR(new ArmorSet(
+        "Mastiff Armor",
         "Mastiff Helmet",
         "Mastiff Chestplate",
         "Mastiff Leggings",
@@ -107,17 +120,23 @@ public enum Armor {
 
     public static Armor getFromName(String name) {
         for (Armor armor : values()) {
-            if (armor.getAliases().contains(name.toLowerCase())) {
+            if (armor.getName().equalsIgnoreCase(name) || armor.getAliases().contains(name.toLowerCase())) {
                 return armor;
             }
         }
         return null;
     }
 
+    @Override
+    public String getName() {
+        return getArmorSet().getName();
+    }
+
     public ArmorSet getArmorSet() {
         return armorSet;
     }
 
+    @Override
     public List<String> getAliases() {
         return aliases;
     }

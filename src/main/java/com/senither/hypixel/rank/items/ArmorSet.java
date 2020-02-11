@@ -23,6 +23,8 @@ package com.senither.hypixel.rank.items;
 
 public class ArmorSet {
 
+    private final String name;
+
     private final String helmet;
     private final String chestplate;
     private final String leggings;
@@ -30,7 +32,9 @@ public class ArmorSet {
 
     private final int setPieces;
 
-    ArmorSet(String helmet, String chestplate, String leggings, String boots) {
+    ArmorSet(String name, String helmet, String chestplate, String leggings, String boots) {
+        this.name = name;
+
         this.helmet = helmet;
         this.chestplate = chestplate;
         this.leggings = leggings;
@@ -42,6 +46,10 @@ public class ArmorSet {
         pieces += boots == null ? 0 : 1;
 
         this.setPieces = pieces;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getHelmet() {
