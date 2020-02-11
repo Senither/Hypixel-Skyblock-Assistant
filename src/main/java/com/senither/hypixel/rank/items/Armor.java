@@ -37,6 +37,13 @@ public enum Armor implements ItemRequirement {
         "Elegant Tuxedo Pants",
         "Elegant Tuxedo Oxfords"
     ), "elegant tuxedo", "etux"),
+    FANCY_TUXEDO(new ArmorSet(
+        "Fancy Tuxedo",
+        null,
+        "Fancy Tuxedo Jacket",
+        "Fancy Tuxedo Pants",
+        "Fancy Tuxedo Oxfords"
+    ), "fancy tuxedo", "ftux"),
     SUPERIOR_DRAGON_ARMOR(new ArmorSet(
         "Superior Dragon Armor",
         "Superior Dragon Helmet",
@@ -106,7 +113,21 @@ public enum Armor implements ItemRequirement {
         "Mastiff Chestplate",
         "Mastiff Leggings",
         "Mastiff Boots"
-    ), "mastiff");
+    ), "mastiff"),
+    BAT_PERSON_ARMOR(new ArmorSet(
+        "Bat Person Armor",
+        "Bat Person Helmet",
+        "Bat Person Chestplate",
+        "Bat Person Leggings",
+        "Bat Person Boots"
+    ), "bat person", "bat"),
+    DIVERS_ARMOR(new ArmorSet(
+        "Diver's Armor",
+        "Diver's Mask",
+        "Diver's Shirt",
+        "Diver's Trunks",
+        "Diver's Boots"
+    ), "diver armor", "diver");
 
     private final ArmorSet armorSet;
     private final List<String> aliases;
