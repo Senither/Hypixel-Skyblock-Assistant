@@ -39,6 +39,10 @@ public abstract class RankRequirementChecker {
         throw new UnsupportedOperationException("Getting rank for the given user is not supported by this requirement type!");
     }
 
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        throw new UnsupportedOperationException("Getting rank note for the given rank is not supported by this requirement type!");
+    }
+
     protected final List<GuildReply.Guild.Rank> getSortedRanksFromGuild(GuildReply guild) {
         return guild.getGuild().getRanks().stream()
             .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())

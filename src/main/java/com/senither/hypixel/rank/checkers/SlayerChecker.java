@@ -34,6 +34,14 @@ import java.util.UUID;
 public class SlayerChecker extends RankRequirementChecker {
 
     @Override
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        if (requirement.getSlayerExperience() == Integer.MAX_VALUE) {
+            return "No Slayer requirement";
+        }
+        return String.format("Must have %s Slayer XP", requirement.getSlayerExperience());
+    }
+
+    @Override
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 

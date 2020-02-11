@@ -44,11 +44,25 @@ public enum PowerOrb {
         return null;
     }
 
+    public static PowerOrb fromName(String name) {
+        for (PowerOrb orb : values()) {
+            if (orb.getName().equalsIgnoreCase(name) || orb.name().equalsIgnoreCase(name)) {
+                return orb;
+            }
+        }
+        return null;
+    }
+
     public int getId() {
         return id;
     }
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 }

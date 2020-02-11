@@ -38,6 +38,22 @@ import java.util.*;
 public class WeaponsChecker extends RankRequirementChecker {
 
     @Override
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        if (requirement.getWeaponPoints() == Integer.MAX_VALUE || requirement.getWeaponItems().isEmpty()) {
+            return "No Weapon requirement";
+        }
+
+        List<String> items = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : requirement.getWeaponItems().entrySet()) {
+            items.add(String.format("%s = %s", entry.getKey(), entry.getValue()));
+        }
+
+        return String.format("Must have %s Weapon Points, Items:\n\n%s",
+            requirement.getWeaponPoints(), String.join("\n", items)
+        );
+    }
+
+    @Override
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 

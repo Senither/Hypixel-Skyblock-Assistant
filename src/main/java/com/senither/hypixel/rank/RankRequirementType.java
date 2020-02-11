@@ -21,25 +21,56 @@
 
 package com.senither.hypixel.rank;
 
+import com.senither.hypixel.contracts.rank.RankCommandHandler;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
+import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.rank.checkers.*;
+import com.senither.hypixel.rank.handler.CustomObjectValueHandler;
+import com.senither.hypixel.rank.handler.DoubleObjectValueHandler;
+import com.senither.hypixel.rank.handler.IntegerValueHandler;
+import com.senither.hypixel.rank.handler.ItemValueHandler;
+import com.senither.hypixel.rank.items.PowerOrb;
+import com.senither.hypixel.utils.NumberUtil;
 
 public enum RankRequirementType {
 
-    TALISMANS("Talismans", new TalismansChecker()),
-    AVERAGE_SKILLS("Average Skills", new AverageSkillsChecker()),
-    ARMOR("Armor", new ArmorChecker()),
-    POWER_ORBS("Power Orbs", new PowerOrbsChecker()),
-    SLAYER("Slayer", new SlayerChecker()),
-    WEAPONS("Weapons", new WeaponsChecker()),
-    FAIRY_SOULS("Fairy Souls", new FairySoulsChecker());
+    TALISMANS("Talismans", new TalismansChecker(), new DoubleObjectValueHandler(
+        GuildController.GuildEntry.RankRequirement::setTalismansLegendary,
+        GuildController.GuildEntry.RankRequirement::setTalismansEpic,
+        "The new Talismans requirement for **:rank** have successfully been set to **:first** legendaries, and **:second** epics."
+    )),
+    AVERAGE_SKILLS("Average Skills", new AverageSkillsChecker(), new IntegerValueHandler(
+        GuildController.GuildEntry.RankRequirement::setAverageSkills
+    )),
+    SLAYER("Slayer XP", new SlayerChecker(), new IntegerValueHandler(
+        GuildController.GuildEntry.RankRequirement::setSlayerExperience
+    )),
+    FAIRY_SOULS("Fairy Souls", new FairySoulsChecker(), new IntegerValueHandler(
+        GuildController.GuildEntry.RankRequirement::setFairySouls
+    )),
+    POWER_ORBS("Power Orbs", new PowerOrbsChecker(), new CustomObjectValueHandler<>(
+        value -> PowerOrb.fromId(NumberUtil.parseInt(value.toString(), -1)),
+        GuildController.GuildEntry.RankRequirement::setPowerOrb
+    )),
+    ARMOR("Armor", new ArmorChecker(), new ItemValueHandler(
+        GuildController.GuildEntry.RankRequirement::setArmorPoints,
+        GuildController.GuildEntry.RankRequirement::getArmorItems
+    )),
+    WEAPONS("Weapons", new WeaponsChecker(), new ItemValueHandler(
+        GuildController.GuildEntry.RankRequirement::setWeaponPoints,
+        GuildController.GuildEntry.RankRequirement::getWeaponItems
+    ));
 
     private final String name;
     private final RankRequirementChecker checker;
+    private final RankCommandHandler handler;
 
-    RankRequirementType(String name, RankRequirementChecker checker) {
+    RankRequirementType(String name, RankRequirementChecker checker, RankCommandHandler handler) {
         this.name = name;
         this.checker = checker;
+        this.handler = handler;
+
+        this.handler.setRankType(this);
     }
 
     public String getName() {
@@ -48,5 +79,9 @@ public enum RankRequirementType {
 
     public RankRequirementChecker getChecker() {
         return checker;
+    }
+
+    public RankCommandHandler getHandler() {
+        return handler;
     }
 }

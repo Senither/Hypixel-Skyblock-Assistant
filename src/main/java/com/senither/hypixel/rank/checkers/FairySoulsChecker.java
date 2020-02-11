@@ -34,6 +34,14 @@ import java.util.UUID;
 public class FairySoulsChecker extends RankRequirementChecker {
 
     @Override
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        if (requirement.getFairySouls() == Integer.MAX_VALUE) {
+            return "No Fairy Soul requirement";
+        }
+        return String.format("%s Minimum Fairy Souls", requirement.getFairySouls());
+    }
+
+    @Override
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 

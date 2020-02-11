@@ -48,6 +48,14 @@ public class AverageSkillsChecker extends RankRequirementChecker {
     }
 
     @Override
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        if (requirement.getAverageSkills() == Integer.MAX_VALUE) {
+            return "No Average Skill requirement";
+        }
+        return String.format("Must have %s Average Skill", requirement.getAverageSkills());
+    }
+
+    @Override
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 

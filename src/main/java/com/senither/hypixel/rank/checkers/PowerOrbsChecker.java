@@ -40,6 +40,14 @@ import java.util.UUID;
 public class PowerOrbsChecker extends RankRequirementChecker {
 
     @Override
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        if (requirement.getPowerOrb() == null) {
+            return "No Power Orb requirement";
+        }
+        return String.format("Must have at least %s ", requirement.getPowerOrb().getName());
+    }
+
+    @Override
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 

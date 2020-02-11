@@ -40,6 +40,16 @@ import java.util.UUID;
 public class TalismansChecker extends RankRequirementChecker {
 
     @Override
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        if (requirement.getTalismansLegendary() == Integer.MAX_VALUE || requirement.getTalismansEpic() == Integer.MAX_VALUE) {
+            return "No Talisman requirement";
+        }
+        return String.format("Must have %s Legendaries, and %s Epic Talismans",
+            requirement.getTalismansLegendary(), requirement.getTalismansEpic()
+        );
+    }
+
+    @Override
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 

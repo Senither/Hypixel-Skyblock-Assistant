@@ -39,6 +39,22 @@ import java.util.*;
 public class ArmorChecker extends RankRequirementChecker {
 
     @Override
+    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
+        if (requirement.getArmorPoints() == Integer.MAX_VALUE || requirement.getArmorItems().isEmpty()) {
+            return "No Armor requirement";
+        }
+
+        List<String> items = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : requirement.getArmorItems().entrySet()) {
+            items.add(String.format("%s = %s", entry.getKey(), entry.getValue()));
+        }
+
+        return String.format("Must have %s Armor Points, Items:\n\n%s",
+            requirement.getArmorPoints(), String.join("\n", items)
+        );
+    }
+
+    @Override
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 

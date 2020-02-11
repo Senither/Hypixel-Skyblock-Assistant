@@ -88,6 +88,10 @@ public class GuildController {
         cache.invalidate(guildId);
     }
 
+    public static GuildEntry.RankRequirement createEmptyRankRequirement() {
+        return new GuildEntry.RankRequirement();
+    }
+
     public static class GuildEntry {
 
         private final String id;
@@ -147,7 +151,7 @@ public class GuildController {
             return rankRequirements;
         }
 
-        public class RankRequirement {
+        public static class RankRequirement {
 
             private int fairySouls = Integer.MAX_VALUE;
             private int talismansLegendary = Integer.MAX_VALUE;
@@ -162,89 +166,123 @@ public class GuildController {
             private int armorPoints = Integer.MAX_VALUE;
             private HashMap<String, Integer> armorItems = new LinkedHashMap<>();
 
+            public RankRequirement() {
+                //
+            }
+
             RankRequirement(JsonObject object) {
-                if (object.has("TALISMANS")) {
-                    JsonObject talismans = object.get("TALISMANS").getAsJsonObject();
+                this.armorPoints = loadIntegerFromObject(object, "armorPoints");
+                this.armorItems = loadItemsFromObject(object, "armorItems");
 
-                    this.talismansLegendary = talismans.has("legendary") ? talismans.get("legendary").getAsInt() : 0;
-                    this.talismansEpic = talismans.has("epic") ? talismans.get("epic").getAsInt() : 0;
-                }
+                this.weaponPoints = loadIntegerFromObject(object, "weaponPoints");
+                this.weaponItems = loadItemsFromObject(object, "weaponItems");
 
-                if (object.has("WEAPONS")) {
-                    JsonObject weapons = object.get("WEAPONS").getAsJsonObject();
+                this.talismansLegendary = loadIntegerFromObject(object, "talismansLegendary");
+                this.talismansEpic = loadIntegerFromObject(object, "talismansEpic");
 
-                    this.weaponPoints = weapons.get("points").getAsInt();
-
-                    JsonObject items = weapons.get("items").getAsJsonObject();
-                    for (String name : items.keySet()) {
-                        weaponItems.put(name, items.get(name).getAsInt());
-                    }
-                }
-
-                if (object.has("ARMOR")) {
-                    JsonObject weapons = object.get("ARMOR").getAsJsonObject();
-
-                    this.armorPoints = weapons.get("points").getAsInt();
-
-                    JsonObject items = weapons.get("items").getAsJsonObject();
-                    for (String name : items.keySet()) {
-                        armorItems.put(name, items.get(name).getAsInt());
-                    }
-                }
-
-                this.averageSkills = loadIntegerFromObject(object, "AVERAGE_SKILLS", "level");
-                this.slayerExperience = loadIntegerFromObject(object, "SLAYER", "experience");
-                this.fairySouls = loadIntegerFromObject(object, "FAIRY_SOULS", "amount");
-                this.powerOrb = PowerOrb.fromId(loadIntegerFromObject(object, "POWER_ORBS", "level"));
+                this.averageSkills = loadIntegerFromObject(object, "averageSkills");
+                this.fairySouls = loadIntegerFromObject(object, "fairySouls");
+                this.slayerExperience = loadIntegerFromObject(object, "slayerExperience");
+                this.powerOrb = PowerOrb.fromName(object.has("powerOrb") ? object.get("powerOrb").getAsString() : null);
             }
 
             public int getFairySouls() {
                 return fairySouls;
             }
 
+            public void setFairySouls(int fairySouls) {
+                this.fairySouls = fairySouls;
+            }
+
             public int getTalismansLegendary() {
                 return talismansLegendary;
+            }
+
+            public void setTalismansLegendary(int talismansLegendary) {
+                this.talismansLegendary = talismansLegendary;
             }
 
             public int getTalismansEpic() {
                 return talismansEpic;
             }
 
+            public void setTalismansEpic(int talismansEpic) {
+                this.talismansEpic = talismansEpic;
+            }
+
             public int getAverageSkills() {
                 return averageSkills;
+            }
+
+            public void setAverageSkills(int averageSkills) {
+                this.averageSkills = averageSkills;
             }
 
             public int getSlayerExperience() {
                 return slayerExperience;
             }
 
+            public void setSlayerExperience(int slayerExperience) {
+                this.slayerExperience = slayerExperience;
+            }
+
             public PowerOrb getPowerOrb() {
                 return powerOrb;
+            }
+
+            public void setPowerOrb(PowerOrb powerOrb) {
+                this.powerOrb = powerOrb;
             }
 
             public int getWeaponPoints() {
                 return weaponPoints;
             }
 
+            public void setWeaponPoints(int weaponPoints) {
+                this.weaponPoints = weaponPoints;
+            }
+
             public HashMap<String, Integer> getWeaponItems() {
                 return weaponItems;
+            }
+
+            public void setWeaponItems(HashMap<String, Integer> weaponItems) {
+                this.weaponItems = weaponItems;
             }
 
             public int getArmorPoints() {
                 return armorPoints;
             }
 
+            public void setArmorPoints(int armorPoints) {
+                this.armorPoints = armorPoints;
+            }
+
             public HashMap<String, Integer> getArmorItems() {
                 return armorItems;
             }
 
-            private int loadIntegerFromObject(JsonObject object, String type, String property) {
-                if (!object.has(type)) {
-                    return Integer.MAX_VALUE;
+            public void setArmorItems(HashMap<String, Integer> armorItems) {
+                this.armorItems = armorItems;
+            }
+
+            private int loadIntegerFromObject(JsonObject object, String property) {
+                return object.has(property) ? object.get(property).getAsInt() : Integer.MAX_VALUE;
+            }
+
+            private HashMap<String, Integer> loadItemsFromObject(JsonObject object, String property) {
+                if (!object.has(property)) {
+                    return new HashMap<>();
                 }
 
-                JsonObject jsonProperty = object.get(type).getAsJsonObject();
-                return jsonProperty.has(property) ? jsonProperty.get(property).getAsInt() : 0;
+                JsonObject items = object.get(property).getAsJsonObject();
+                HashMap<String, Integer> map = new HashMap<>();
+
+                for (String name : items.keySet()) {
+                    map.put(name, items.get(name).getAsInt());
+                }
+
+                return map;
             }
         }
     }
