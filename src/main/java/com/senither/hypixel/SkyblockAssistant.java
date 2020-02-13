@@ -37,6 +37,8 @@ import com.senither.hypixel.listeners.MemberActivityEventListener;
 import com.senither.hypixel.listeners.MessageEventListener;
 import com.senither.hypixel.scheduler.ScheduleManager;
 import com.senither.hypixel.scheduler.jobs.RoleAssignmentJob;
+import com.senither.hypixel.servlet.WebServlet;
+import com.senither.hypixel.servlet.routes.HelloRoute;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -55,6 +57,7 @@ public class SkyblockAssistant {
     private final DatabaseManager databaseManager;
     private final CommandManager commandManager;
     private final ScheduleManager scheduleManager;
+    private final WebServlet servlet;
     private final Hypixel hypixel;
     private final ShardManager shardManager;
 
@@ -96,6 +99,10 @@ public class SkyblockAssistant {
 
         log.info("Creating Hypixel API factory");
         this.hypixel = new Hypixel(this);
+
+        log.info("Creating web servlet on port {}", 1256);
+        this.servlet = new WebServlet(1256);
+        servlet.registerGet("hello", new HelloRoute());
 
         log.info("Opening connection to Discord");
         this.shardManager = buildShardManager();
