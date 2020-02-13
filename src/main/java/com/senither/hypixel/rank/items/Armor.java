@@ -109,7 +109,7 @@ public enum Armor implements ItemRequirement {
     ), "tarantula", "tara"),
     MASTIFF_ARMOR(new ArmorSet(
         "Mastiff Armor",
-        "Mastiff Helmet",
+        "Mastiff Crown",
         "Mastiff Chestplate",
         "Mastiff Leggings",
         "Mastiff Boots"
