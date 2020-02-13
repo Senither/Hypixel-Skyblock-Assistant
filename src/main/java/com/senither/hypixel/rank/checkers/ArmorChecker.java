@@ -93,16 +93,16 @@ public class ArmorChecker extends RankRequirementChecker {
                     ArmorSet armorSet = armorIntegerEntry.getKey().getArmorSet();
                     for (Item item : items) {
                         if (armorSet.isPartOfSet(item.getName())) {
-                            armorPieces += armorIntegerEntry.getValue();
+                            armorPieces += 1;
                         }
                     }
 
-                    if (armorPieces > armorSet.getSetPieces()) {
+                    if (armorPieces >= armorSet.getSetPieces()) {
                         points += armorIntegerEntry.getValue();
                     }
                 }
 
-                if (points >= requirement.getWeaponPoints()) {
+                if (points >= requirement.getArmorPoints()) {
                     return createResponse(rank, points);
                 }
             }
