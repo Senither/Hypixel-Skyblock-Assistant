@@ -21,7 +21,11 @@
 
 package com.senither.hypixel.rank.items;
 
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.senither.hypixel.contracts.rank.ItemRequirement;
+import com.senither.hypixel.contracts.rank.WeaponCondition;
+import com.senither.hypixel.inventory.Item;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,12 +34,19 @@ import java.util.List;
 @SuppressWarnings("SpellCheckingInspection")
 public enum Weapon implements ItemRequirement {
 
+    MIDAS_SWORD(item -> {
+        CompoundTag tag = item.getRawCompoundTag().get("tag");
+        CompoundTag attributes = tag.get("ExtraAttributes");
+
+        return attributes.contains("winning_bid")
+            && ((IntTag) attributes.get("winning_bid")).getValue() >= 50000000;
+    }, "Midas' Sword", "midas"),
     REAPER_SCYTHE("Reaper Scythe", "scythe"),
     ASPECT_OF_THE_DRAGONS("Aspect of the Dragons", "aotd"),
     PIGMAN_SWORD("Pigman Sword", "pig sword", "pigman"),
     THICK_SCORPION_FOIL("Thick Scorpion Foil", "foil"),
     POOCH_SWORD("Pooch Sword", "pooch"),
-    REAPER_FALCHION("Reaper Falchion", "falchion"),
+    REAPER_FALCHION("Reaper Falchion", "falchion", "reaper"),
     LEAPING_SWORD("Leaping Sword", "leaping"),
     ASPECT_OF_THE_END("Aspect of the End", "aote"),
     RAIDER_AXE("Raider Axe", "raider"),
@@ -45,10 +56,18 @@ public enum Weapon implements ItemRequirement {
 
     private final String name;
     private final List<String> aliases;
+    private final WeaponCondition specialCondition;
 
     Weapon(String name, String... keywords) {
+        this(null, name, keywords);
+    }
+
+    Weapon(WeaponCondition condition, String name, String... keywords) {
+        this.specialCondition = condition;
+
         this.name = name;
         this.aliases = new ArrayList<>();
+        this.aliases.add(name.toLowerCase());
         this.aliases.add(name().replaceAll("_", " ").toLowerCase());
         this.aliases.addAll(Arrays.asList(keywords));
     }
@@ -70,5 +89,22 @@ public enum Weapon implements ItemRequirement {
     @Override
     public List<String> getAliases() {
         return aliases;
+    }
+
+    public WeaponCondition getSpecialCondition() {
+        return specialCondition;
+    }
+
+    public boolean hasSpecialCondition() {
+        return specialCondition != null;
+    }
+
+    public boolean match(Item item) {
+        try {
+            return item.getName().endsWith(getName())
+                && (!hasSpecialCondition() || getSpecialCondition().matches(item));
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

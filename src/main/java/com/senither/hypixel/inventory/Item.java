@@ -36,10 +36,14 @@ public class Item implements InventoryDecoder {
     private final ItemRarity rarity;
     private final ItemType type;
 
+    private final CompoundTag compoundTag;
+
     Item(Inventory inventory, CompoundTag compoundTag) throws IOException {
         if (!compoundTag.contains("tag")) {
             throw new IOException("Missing tag named \"tag\", unable to create item");
         }
+
+        this.compoundTag = compoundTag;
 
         CompoundTag tag = compoundTag.get("tag");
         tagId = ((IntTag) tag.get("HideFlags")).getValue();
@@ -84,5 +88,9 @@ public class Item implements InventoryDecoder {
 
     public ItemType getType() {
         return type;
+    }
+
+    public CompoundTag getRawCompoundTag() {
+        return compoundTag;
     }
 }

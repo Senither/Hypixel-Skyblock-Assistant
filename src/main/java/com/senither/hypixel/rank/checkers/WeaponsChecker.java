@@ -87,7 +87,7 @@ public class WeaponsChecker extends RankRequirementChecker {
                 int points = 0;
                 for (Map.Entry<Weapon, Integer> weaponIntegerEntry : weapons.entrySet()) {
                     for (Item item : items) {
-                        if (item.getName().endsWith(weaponIntegerEntry.getKey().getName())) {
+                        if (weaponIntegerEntry.getKey().match(item)) {
                             points += weaponIntegerEntry.getValue();
                         }
                     }
