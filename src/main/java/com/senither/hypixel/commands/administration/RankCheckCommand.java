@@ -131,13 +131,17 @@ public class RankCheckCommand extends SkillCommand {
                 uuidAsString.substring(20, 32)
         );
 
-        PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(message, "**:user** has **:amount** out of **190** fairy souls!")
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Rank Check")
-            .set("user", playerReply.getPlayer().get("displayname").getAsString());
+        PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(message, "")
+            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Rank Check");
 
-        RankCheckResponse rankCheckResponse = RankRequirementType.FAIRY_SOULS.getChecker().getRankForUser(guildEntry, guildReply, profileReply, uuid);
-        placeholderMessage.set("amount", rankCheckResponse.getMetric().getOrDefault("amount", 0));
         placeholderMessage
+            .addField(RankRequirementType.FAIRY_SOULS.getName(), getRankForType(
+                RankRequirementType.FAIRY_SOULS, guildEntry, guildReply, profileReply, uuid, response -> {
+                    return formatRank(response) + NumberUtil.formatNicelyWithDecimals(
+                        (Integer) response.getMetric().getOrDefault("amount", 0)
+                    ) + " Fairy Souls";
+                }
+            ), true)
             .addField(RankRequirementType.AVERAGE_SKILLS.getName(), getRankForType(
                 RankRequirementType.AVERAGE_SKILLS, guildEntry, guildReply, profileReply, uuid, response -> {
                     return formatRank(response) + NumberUtil.formatNicelyWithDecimals(
@@ -151,6 +155,19 @@ public class RankCheckCommand extends SkillCommand {
                         (Long) response.getMetric().getOrDefault("amount", 0)
                     ) + " Total XP";
                 }
+            ), true)
+            .addField(RankRequirementType.BANK.getName(), getRankForType(
+                RankRequirementType.BANK, guildEntry, guildReply, profileReply, uuid, response -> {
+                    return formatRank(response) + NumberUtil.formatNicely(
+                        (Long) response.getMetric().getOrDefault("amount", 0)
+                    ) + " Coins";
+                }
+            ), true)
+            .addField(RankRequirementType.ARMOR.getName(), getRankForType(
+                RankRequirementType.ARMOR, guildEntry, guildReply, profileReply, uuid, this::formatRank
+            ), true)
+            .addField(RankRequirementType.WEAPONS.getName(), getRankForType(
+                RankRequirementType.WEAPONS, guildEntry, guildReply, profileReply, uuid, this::formatRank
             ), true)
             .addField(RankRequirementType.TALISMANS.getName(), getRankForType(
                 RankRequirementType.TALISMANS, guildEntry, guildReply, profileReply, uuid, response -> {
@@ -166,12 +183,6 @@ public class RankCheckCommand extends SkillCommand {
 
                     return formatRank(response) + powerOrb.getName();
                 }
-            ), true)
-            .addField(RankRequirementType.ARMOR.getName(), getRankForType(
-                RankRequirementType.ARMOR, guildEntry, guildReply, profileReply, uuid, this::formatRank
-            ), true)
-            .addField(RankRequirementType.WEAPONS.getName(), getRankForType(
-                RankRequirementType.WEAPONS, guildEntry, guildReply, profileReply, uuid, this::formatRank
             ), true);
 
         message.editMessage(placeholderMessage.buildEmbed()).queue();
