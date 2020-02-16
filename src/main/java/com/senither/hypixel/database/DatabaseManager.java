@@ -60,6 +60,7 @@ public class DatabaseManager {
             migrationManager.register(new AddAutoRenameColumnToGuildsTableMigration());
             migrationManager.register(new AddLastUpdatedAtColumnToProfileAndPlayerTableMigration());
             migrationManager.register(new AddRankRequirementsColumnToGuildsTableMigration());
+            migrationManager.register(new AddLastCheckedColumnToUuidsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();
