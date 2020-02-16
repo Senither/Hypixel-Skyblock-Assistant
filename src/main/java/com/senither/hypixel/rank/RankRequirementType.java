@@ -63,7 +63,10 @@ public enum RankRequirementType {
         GuildController.GuildEntry.RankRequirement::setWeaponPoints,
         GuildController.GuildEntry.RankRequirement::getWeaponItems,
         Weapon.values())
-    );
+    ),
+    BANK("Bank", new BankChecker(), new IntegerValueHandler(
+        GuildController.GuildEntry.RankRequirement::setBankCoins
+    ));
 
     private final String name;
     private final RankRequirementChecker checker;

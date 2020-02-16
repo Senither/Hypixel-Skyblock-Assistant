@@ -151,6 +151,13 @@ public class RankRequirementCommand extends Command {
                 action = RankRequirementType.SLAYER;
                 break;
 
+            case "bank":
+            case "banking":
+            case "coin":
+            case "coins":
+                action = RankRequirementType.BANK;
+                break;
+
             case "armor":
             case "armors":
                 action = RankRequirementType.ARMOR;

@@ -158,6 +158,7 @@ public class GuildController {
             private int talismansEpic = Integer.MAX_VALUE;
             private int averageSkills = Integer.MAX_VALUE;
             private int slayerExperience = Integer.MAX_VALUE;
+            private int bankCoins = Integer.MAX_VALUE;
             private PowerOrb powerOrb = null;
 
             private int weaponPoints = Integer.MAX_VALUE;
@@ -182,6 +183,7 @@ public class GuildController {
 
                 this.averageSkills = loadIntegerFromObject(object, "averageSkills");
                 this.fairySouls = loadIntegerFromObject(object, "fairySouls");
+                this.bankCoins = loadIntegerFromObject(object, "bankCoins");
                 this.slayerExperience = loadIntegerFromObject(object, "slayerExperience");
                 this.powerOrb = PowerOrb.fromName(object.has("powerOrb") ? object.get("powerOrb").getAsString() : null);
             }
@@ -224,6 +226,14 @@ public class GuildController {
 
             public void setSlayerExperience(int slayerExperience) {
                 this.slayerExperience = slayerExperience;
+            }
+
+            public int getBankCoins() {
+                return bankCoins;
+            }
+
+            public void setBankCoins(int bankCoins) {
+                this.bankCoins = bankCoins;
             }
 
             public PowerOrb getPowerOrb() {
