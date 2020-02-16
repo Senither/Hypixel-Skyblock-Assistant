@@ -33,16 +33,25 @@ import java.util.UUID;
 
 public class FairySoulsChecker extends RankRequirementChecker {
 
+    public FairySoulsChecker() {
+        super("Fairy Souls");
+    }
+
     @Override
     public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
-        if (requirement.getFairySouls() == Integer.MAX_VALUE) {
+        if (!hasRequirementsSetup(requirement)) {
             return "No Fairy Soul requirement";
         }
         return String.format("%s Minimum Fairy Souls", requirement.getFairySouls());
     }
 
     @Override
-    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement) {
+        return requirement.getFairySouls() != Integer.MAX_VALUE;
+    }
+
+    @Override
+    public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         int collectedFairySouls = member.has("fairy_souls_collected")

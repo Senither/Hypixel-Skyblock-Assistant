@@ -34,16 +34,25 @@ import java.util.UUID;
 
 public class BankChecker extends RankRequirementChecker {
 
+    public BankChecker() {
+        super("Bank");
+    }
+
     @Override
     public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
-        if (requirement.getBankCoins() == Integer.MAX_VALUE) {
+        if (!hasRequirementsSetup(requirement)) {
             return "No Bank requirement";
         }
         return String.format("Must have at least %s coins", NumberUtil.formatNicely(requirement.getBankCoins()));
     }
 
     @Override
-    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement) {
+        return requirement.getBankCoins() != Integer.MAX_VALUE;
+    }
+
+    @Override
+    public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         int totalCoins = member.get("coin_purse").getAsInt();

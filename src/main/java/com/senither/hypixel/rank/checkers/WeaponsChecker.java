@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.exceptions.NoRankRequirementException;
 import com.senither.hypixel.inventory.Item;
 import com.senither.hypixel.inventory.ItemType;
 import com.senither.hypixel.rank.RankCheckResponse;
@@ -37,9 +38,13 @@ import java.util.*;
 
 public class WeaponsChecker extends RankRequirementChecker {
 
+    public WeaponsChecker() {
+        super("Weapon");
+    }
+
     @Override
     public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
-        if (requirement.getWeaponPoints() == Integer.MAX_VALUE || requirement.getWeaponItems().isEmpty()) {
+        if (!hasRequirementsSetup(requirement)) {
             return "No Weapon requirement";
         }
 
@@ -54,11 +59,27 @@ public class WeaponsChecker extends RankRequirementChecker {
     }
 
     @Override
-    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement) {
+        return requirement.getWeaponPoints() != Integer.MAX_VALUE && !requirement.getWeaponItems().isEmpty();
+    }
+
+    @Override
+    public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         if (!isInventoryApiEnabled(member)) {
             throw new FriendlyException("Inventory API is disabled, unable to look for weapons");
+        }
+
+        boolean hasRequirements = false;
+        for (GuildController.GuildEntry.RankRequirement requirement : guildEntry.getRankRequirements().values()) {
+            if (requirement.getWeaponPoints() != Integer.MAX_VALUE && !requirement.getWeaponItems().isEmpty()) {
+                hasRequirements = true;
+            }
+        }
+
+        if (!hasRequirements) {
+            throw new NoRankRequirementException("weapon");
         }
 
         try {

@@ -23,6 +23,7 @@ package com.senither.hypixel.contracts.rank;
 
 import com.google.gson.JsonObject;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.exceptions.NoRankRequirementException;
 import com.senither.hypixel.inventory.Inventory;
 import com.senither.hypixel.rank.RankCheckResponse;
 import net.hypixel.api.reply.GuildReply;
@@ -35,12 +36,35 @@ import java.util.stream.Collectors;
 
 public abstract class RankRequirementChecker {
 
-    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
-        throw new UnsupportedOperationException("Getting rank for the given user is not supported by this requirement type!");
+    private final String type;
+
+    protected RankRequirementChecker(String type) {
+        this.type = type;
     }
 
-    public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
-        throw new UnsupportedOperationException("Getting rank note for the given rank is not supported by this requirement type!");
+    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+        checkForRankRequirementsSetup(guildEntry, type);
+
+        return handleGetRankForUser(guildEntry, guildReply, profileReply, playerUUID);
+    }
+
+    public abstract String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement);
+
+    protected abstract boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement);
+
+    protected abstract RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID);
+
+    private void checkForRankRequirementsSetup(GuildController.GuildEntry guildEntry, String type) {
+        boolean hasAtleastOneRequirementSetup = false;
+        for (GuildController.GuildEntry.RankRequirement requirement : guildEntry.getRankRequirements().values()) {
+            if (hasRequirementsSetup(requirement)) {
+                hasAtleastOneRequirementSetup = true;
+            }
+        }
+
+        if (!hasAtleastOneRequirementSetup) {
+            throw new NoRankRequirementException(type);
+        }
     }
 
     protected final List<GuildReply.Guild.Rank> getSortedRanksFromGuild(GuildReply guild) {

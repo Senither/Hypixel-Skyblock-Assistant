@@ -38,9 +38,13 @@ import java.util.*;
 
 public class ArmorChecker extends RankRequirementChecker {
 
+    public ArmorChecker() {
+        super("Armor");
+    }
+
     @Override
     public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
-        if (requirement.getArmorPoints() == Integer.MAX_VALUE || requirement.getArmorItems().isEmpty()) {
+        if (!hasRequirementsSetup(requirement)) {
             return "No Armor requirement";
         }
 
@@ -55,7 +59,12 @@ public class ArmorChecker extends RankRequirementChecker {
     }
 
     @Override
-    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement) {
+        return requirement.getArmorPoints() != Integer.MAX_VALUE && !requirement.getArmorItems().isEmpty();
+    }
+
+    @Override
+    public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         if (!isInventoryApiEnabled(member)) {

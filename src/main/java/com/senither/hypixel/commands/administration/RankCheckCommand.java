@@ -28,6 +28,7 @@ import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.exceptions.NoRankRequirementException;
 import com.senither.hypixel.rank.RankCheckResponse;
 import com.senither.hypixel.rank.RankRequirementType;
 import com.senither.hypixel.rank.items.PowerOrb;
@@ -159,7 +160,7 @@ public class RankCheckCommand extends SkillCommand {
             .addField(RankRequirementType.BANK.getName(), getRankForType(
                 RankRequirementType.BANK, guildEntry, guildReply, profileReply, uuid, response -> {
                     return formatRank(response) + NumberUtil.formatNicely(
-                        (Long) response.getMetric().getOrDefault("amount", 0)
+                        (Integer) response.getMetric().getOrDefault("amount", 0)
                     ) + " Coins";
                 }
             ), true)
@@ -214,8 +215,10 @@ public class RankCheckCommand extends SkillCommand {
                 return response.getRank().getName();
             }
             return metricMessage;
+        } catch (NoRankRequirementException e) {
+            return "_No Requirements!_";
         } catch (FriendlyException e) {
-            return "API is Disabled!";
+            return "_API is Disabled!_";
         } catch (Exception e) {
             e.printStackTrace();
             return "Unknown error occurred!";

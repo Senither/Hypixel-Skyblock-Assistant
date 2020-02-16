@@ -36,6 +36,8 @@ public class AverageSkillsChecker extends RankRequirementChecker {
     private final List<Integer> generalSkillLevels = new ArrayList<>();
 
     public AverageSkillsChecker() {
+        super("Average Skills");
+
         generalSkillLevels.addAll(Arrays.asList(
             50, 125, 200, 300, 500, 750, 1000, 1500, 2000, 3500,
             5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000
@@ -49,14 +51,19 @@ public class AverageSkillsChecker extends RankRequirementChecker {
 
     @Override
     public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
-        if (requirement.getAverageSkills() == Integer.MAX_VALUE) {
+        if (!hasRequirementsSetup(requirement)) {
             return "No Average Skill requirement";
         }
         return String.format("Must have %s Average Skill", requirement.getAverageSkills());
     }
 
     @Override
-    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement) {
+        return requirement.getAverageSkills() != Integer.MAX_VALUE;
+    }
+
+    @Override
+    public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         double mining = getSkillExperience(member, "experience_skill_mining");

@@ -39,16 +39,25 @@ import java.util.UUID;
 
 public class PowerOrbsChecker extends RankRequirementChecker {
 
+    public PowerOrbsChecker() {
+        super("Power Orb");
+    }
+
     @Override
     public String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement) {
-        if (requirement.getPowerOrb() == null) {
+        if (!hasRequirementsSetup(requirement)) {
             return "No Power Orb requirement";
         }
         return String.format("Must have at least %s ", requirement.getPowerOrb().getName());
     }
 
     @Override
-    public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
+    public boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement) {
+        return requirement.getPowerOrb() != null;
+    }
+
+    @Override
+    public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
         if (!isInventoryApiEnabled(member)) {
