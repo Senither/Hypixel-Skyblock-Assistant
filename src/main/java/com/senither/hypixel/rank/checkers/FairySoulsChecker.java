@@ -45,7 +45,9 @@ public class FairySoulsChecker extends RankRequirementChecker {
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
 
-        int collectedFairySouls = member.get("fairy_souls_collected").getAsInt();
+        int collectedFairySouls = member.has("fairy_souls_collected")
+            ? member.get("fairy_souls_collected").getAsInt()
+            : 0;
 
         for (GuildReply.Guild.Rank rank : getSortedRanksFromGuild(guildReply)) {
             if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
