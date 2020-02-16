@@ -100,9 +100,13 @@ public class SkyblockAssistant {
         log.info("Creating Hypixel API factory");
         this.hypixel = new Hypixel(this);
 
-        log.info("Creating web servlet on port {}", 1256);
-        this.servlet = new WebServlet(1256);
-        servlet.registerGet("hello", new HelloRoute());
+        if (configuration.getServlet().isEnabled()) {
+            log.info("Creating web servlet on port {}", configuration.getServlet().getPort());
+            this.servlet = new WebServlet(configuration.getServlet().getPort());
+            servlet.registerGet("hello", new HelloRoute());
+        } else {
+            this.servlet = null;
+        }
 
         log.info("Opening connection to Discord");
         this.shardManager = buildShardManager();

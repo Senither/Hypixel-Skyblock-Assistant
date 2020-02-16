@@ -6,5 +6,9 @@
         "username": "username",
         "password": "password",
         "database": "skyblock_assistant"
+    },
+    "servlet": {
+        "enabled": true,
+        "port": 1256
     }
 }
