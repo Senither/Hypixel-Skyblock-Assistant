@@ -39,10 +39,7 @@ import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 public class RankCheckCommand extends SkillCommand {
@@ -132,46 +129,49 @@ public class RankCheckCommand extends SkillCommand {
                 uuidAsString.substring(20, 32)
         );
 
-        PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(message, "")
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Rank Check");
+        PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(message, "**:user** :note")
+            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Rank Check")
+            .set("user", playerReply.getPlayer().get("displayname").getAsString());
+
+        HashSet<GuildReply.Guild.Rank> rankQualifiers = new HashSet<>();
 
         placeholderMessage
             .addField(RankRequirementType.FAIRY_SOULS.getName(), getRankForType(
-                RankRequirementType.FAIRY_SOULS, guildEntry, guildReply, profileReply, uuid, response -> {
+                rankQualifiers, RankRequirementType.FAIRY_SOULS, guildEntry, guildReply, profileReply, uuid, response -> {
                     return formatRank(response) + NumberUtil.formatNicelyWithDecimals(
                         (Integer) response.getMetric().getOrDefault("amount", 0)
                     ) + " Fairy Souls";
                 }
             ), true)
             .addField(RankRequirementType.AVERAGE_SKILLS.getName(), getRankForType(
-                RankRequirementType.AVERAGE_SKILLS, guildEntry, guildReply, profileReply, uuid, response -> {
+                rankQualifiers, RankRequirementType.AVERAGE_SKILLS, guildEntry, guildReply, profileReply, uuid, response -> {
                     return formatRank(response) + NumberUtil.formatNicelyWithDecimals(
                         (Double) response.getMetric().getOrDefault("amount", 0D)
                     ) + " Average Skill";
                 }
             ), true)
             .addField(RankRequirementType.SLAYER.getName(), getRankForType(
-                RankRequirementType.SLAYER, guildEntry, guildReply, profileReply, uuid, response -> {
+                rankQualifiers, RankRequirementType.SLAYER, guildEntry, guildReply, profileReply, uuid, response -> {
                     return formatRank(response) + NumberUtil.formatNicely(
                         (Long) response.getMetric().getOrDefault("amount", 0)
                     ) + " Total XP";
                 }
             ), true)
             .addField(RankRequirementType.BANK.getName(), getRankForType(
-                RankRequirementType.BANK, guildEntry, guildReply, profileReply, uuid, response -> {
+                rankQualifiers, RankRequirementType.BANK, guildEntry, guildReply, profileReply, uuid, response -> {
                     return formatRank(response) + NumberUtil.formatNicely(
                         (Integer) response.getMetric().getOrDefault("amount", 0)
                     ) + " Coins";
                 }
             ), true)
             .addField(RankRequirementType.ARMOR.getName(), getRankForType(
-                RankRequirementType.ARMOR, guildEntry, guildReply, profileReply, uuid, this::formatRank
+                rankQualifiers, RankRequirementType.ARMOR, guildEntry, guildReply, profileReply, uuid, this::formatRank
             ), true)
             .addField(RankRequirementType.WEAPONS.getName(), getRankForType(
-                RankRequirementType.WEAPONS, guildEntry, guildReply, profileReply, uuid, this::formatRank
+                rankQualifiers, RankRequirementType.WEAPONS, guildEntry, guildReply, profileReply, uuid, this::formatRank
             ), true)
             .addField(RankRequirementType.TALISMANS.getName(), getRankForType(
-                RankRequirementType.TALISMANS, guildEntry, guildReply, profileReply, uuid, response -> {
+                rankQualifiers, RankRequirementType.TALISMANS, guildEntry, guildReply, profileReply, uuid, response -> {
                     int legendaries = (int) response.getMetric().get("legendaries");
                     int epics = (int) response.getMetric().get("epics");
 
@@ -179,13 +179,32 @@ public class RankCheckCommand extends SkillCommand {
                 }
             ), true)
             .addField(RankRequirementType.POWER_ORBS.getName(), getRankForType(
-                RankRequirementType.POWER_ORBS, guildEntry, guildReply, profileReply, uuid, response -> {
+                rankQualifiers, RankRequirementType.POWER_ORBS, guildEntry, guildReply, profileReply, uuid, response -> {
                     PowerOrb powerOrb = (PowerOrb) response.getMetric().get("item");
 
                     return formatRank(response) + powerOrb.getName();
                 }
             ), true);
 
+        GuildReply.Guild.Rank rankQualifier = guildReply.getGuild().getRanks().stream()
+            .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())
+            .findFirst().get();
+
+        for (GuildReply.Guild.Rank qualifier : rankQualifiers) {
+            if (qualifier == null) {
+                rankQualifier = null;
+                break;
+            }
+
+            if (qualifier.getPriority() < rankQualifier.getPriority()) {
+                rankQualifier = qualifier;
+            }
+        }
+
+        placeholderMessage.set("note", rankQualifier == null
+            ? "doesn't qualify for any rank!"
+            : "qualifies for the **" + rankQualifier.getName() + "** rank!"
+        );
         message.editMessage(placeholderMessage.buildEmbed()).queue();
     }
 
@@ -194,6 +213,7 @@ public class RankCheckCommand extends SkillCommand {
     }
 
     private String getRankForType(
+        HashSet<GuildReply.Guild.Rank> rankQualifiers,
         RankRequirementType rankRequirementType,
         GuildController.GuildEntry guildEntry,
         GuildReply guildReply,
@@ -207,8 +227,12 @@ public class RankCheckCommand extends SkillCommand {
             );
 
             if (response == null || response.getRank() == null) {
+                rankQualifiers.add(null);
+
                 return "_Unranked_";
             }
+
+            rankQualifiers.add(response.getRank());
 
             String metricMessage = metricsCallback.apply(response);
             if (metricMessage == null) {
