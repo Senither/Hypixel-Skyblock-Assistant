@@ -34,6 +34,7 @@ public class HelloRoute extends Route {
     public ModelAndView handle(Request request, Response response) throws Exception {
         return view("hello", new HashMap<String, Object>() {{
             put("name", "World");
+            put("note", "Welcome to the Hypixel Skyblock Servlet!");
         }});
     }
 }
