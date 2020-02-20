@@ -72,7 +72,7 @@ public class SkillsCommand extends SkillCommand {
 
     @Override
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
-        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
+        JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
         double mining = getSkillExperience(member, "experience_skill_mining");
         double foraging = getSkillExperience(member, "experience_skill_foraging");

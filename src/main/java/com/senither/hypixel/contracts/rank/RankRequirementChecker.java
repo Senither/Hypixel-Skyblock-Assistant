@@ -67,6 +67,10 @@ public abstract class RankRequirementChecker {
         }
     }
 
+    protected JsonObject getProfileMemberFromUUID(SkyBlockProfileReply profileReply, UUID playerUUID) {
+        return profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
+    }
+
     protected final List<GuildReply.Guild.Rank> getSortedRanksFromGuild(GuildReply guild) {
         return guild.getGuild().getRanks().stream()
             .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())

@@ -74,7 +74,7 @@ public class TalismansCommand extends SkillCommand {
 
     @Override
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
-        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
+        JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
         if (!isInventoryApiEnabled(member)) {
             message.editMessage(new EmbedBuilder()

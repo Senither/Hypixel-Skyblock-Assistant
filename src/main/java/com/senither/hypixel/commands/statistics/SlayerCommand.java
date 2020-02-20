@@ -76,7 +76,7 @@ public class SlayerCommand extends SkillCommand {
     }
 
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
-        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
+        JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
         JsonObject slayerBosses = member.getAsJsonObject("slayer_bosses");
         int totalCoinsSpentOnSlayers = getTotalCoinsSpentOnSlayers(slayerBosses);

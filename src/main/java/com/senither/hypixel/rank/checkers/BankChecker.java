@@ -53,7 +53,7 @@ public class BankChecker extends RankRequirementChecker {
 
     @Override
     public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
-        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
+        JsonObject member = getProfileMemberFromUUID(profileReply, playerUUID);
 
         int totalCoins = member.get("coin_purse").getAsInt();
 

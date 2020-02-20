@@ -64,7 +64,7 @@ public class AverageSkillsChecker extends RankRequirementChecker {
 
     @Override
     public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
-        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
+        JsonObject member = getProfileMemberFromUUID(profileReply, playerUUID);
 
         double mining = getSkillExperience(member, "experience_skill_mining");
         double foraging = getSkillExperience(member, "experience_skill_foraging");

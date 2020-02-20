@@ -71,7 +71,7 @@ public class AuctionHouseCommand extends SkillCommand {
 
     @Override
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
-        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
+        JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
         JsonObject stats = member.getAsJsonObject("stats");
 

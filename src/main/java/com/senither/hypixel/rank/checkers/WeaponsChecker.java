@@ -65,7 +65,7 @@ public class WeaponsChecker extends RankRequirementChecker {
 
     @Override
     public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
-        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerUUID.toString().replace("-", ""));
+        JsonObject member = getProfileMemberFromUUID(profileReply, playerUUID);
 
         if (!isInventoryApiEnabled(member)) {
             throw new FriendlyException("Inventory API is disabled, unable to look for weapons");

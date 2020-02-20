@@ -183,6 +183,10 @@ public abstract class SkillCommand extends Command {
         ).queue();
     }
 
+    protected JsonObject getProfileMemberFromPlayer(SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+        return profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
+    }
+
     protected String getUsernameFromPlayer(PlayerReply playerReply) {
         String displayName = playerReply.getPlayer().get("displayname").getAsString();
         if (!displayName.startsWith("_")) {
