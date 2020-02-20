@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
@@ -75,6 +76,7 @@ public class BankBalanceCommand extends SkillCommand {
             message.editMessage(MessageFactory.makeSuccess(message, "**:name** has **:coins** in their purse.")
                 .setTitle(getUsernameFromPlayer(playerReply) + "'s Bank Balance | API is Disabled")
                 .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
+                .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
                 .set("name", getUsernameFromPlayer(playerReply))
                 .set("coins", NumberUtil.formatNicelyWithDecimals(coinsInPurse))
                 .buildEmbed()
@@ -89,6 +91,7 @@ public class BankBalanceCommand extends SkillCommand {
             .addField("Bank", NumberUtil.formatNicelyWithDecimals(coinsInBank), true)
             .addField("Purse", NumberUtil.formatNicelyWithDecimals(coinsInPurse), true)
             .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .set("name", getUsernameFromPlayer(playerReply))
             .set("total", NumberUtil.formatNicelyWithDecimals(coinsInBank + coinsInPurse))
             .buildEmbed()

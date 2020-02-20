@@ -28,6 +28,7 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -84,7 +85,7 @@ public class SkillsCommand extends SkillCommand {
         double runecrafting = getSkillExperience(member, "experience_skill_runecrafting");
 
         if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            sendAchievementSkills(message, profileReply, playerReply);
+            sendAchievementSkills(message, profileReply, playerReply, member);
             return;
         }
 
@@ -116,11 +117,12 @@ public class SkillsCommand extends SkillCommand {
                 "Note > Carpentry and Runecrafting are cosmetic skills, and are therefor not included in the average skill calculation. | Profile: %s",
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .build()
         ).queue();
     }
 
-    private void sendAchievementSkills(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+    private void sendAchievementSkills(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
         JsonObject achievements = playerReply.getPlayer().get("achievements").getAsJsonObject();
 
         double mining = getSkillExperience(achievements, "skyblock_excavator");
@@ -162,6 +164,7 @@ public class SkillsCommand extends SkillCommand {
             .addField("Carpentry", "Unknown", true)
             .addField("Runecrafting", "Unknown", true)
             .setFooter(skillsNote)
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .buildEmbed()
         ).queue();
     }

@@ -21,6 +21,7 @@
 
 package com.senither.hypixel.commands.administration;
 
+import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
@@ -32,6 +33,7 @@ import com.senither.hypixel.exceptions.NoRankRequirementException;
 import com.senither.hypixel.rank.RankCheckResponse;
 import com.senither.hypixel.rank.RankRequirementType;
 import com.senither.hypixel.rank.items.PowerOrb;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -118,6 +120,7 @@ public class RankCheckCommand extends SkillCommand {
     @SuppressWarnings("ConstantConditions")
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
         GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), message.getGuild().getIdLong());
+        JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         String uuidAsString = playerReply.getPlayer().get("uuid").getAsString();
 
@@ -131,7 +134,8 @@ public class RankCheckCommand extends SkillCommand {
 
         PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(message, "**:user** :note")
             .setTitle(getUsernameFromPlayer(playerReply) + "'s Rank Check")
-            .set("user", getUsernameFromPlayer(playerReply));
+            .set("user", getUsernameFromPlayer(playerReply))
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant());
 
         HashSet<GuildReply.Guild.Rank> rankQualifiers = new HashSet<>();
 

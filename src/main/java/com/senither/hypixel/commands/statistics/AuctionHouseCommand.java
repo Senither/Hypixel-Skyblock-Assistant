@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -80,6 +81,7 @@ public class AuctionHouseCommand extends SkillCommand {
                 getUsernameFromPlayer(playerReply),
                 NumberUtil.formatNicely(getStatsTypeFromObject(stats, "auctions_gold_earned"))
             ))
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .setColor(MessageType.SUCCESS.getColor())
             .addField("Total Bids", NumberUtil.formatNicely(getStatsTypeFromObject(stats, "auctions_bids")), true)
             .addField("Highest Bid", NumberUtil.formatNicely(getStatsTypeFromObject(stats, "auctions_highest_bid")), true)

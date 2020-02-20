@@ -28,6 +28,7 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -85,6 +86,7 @@ public class SlayerCommand extends SkillCommand {
                 .setDescription(getUsernameFromPlayer(playerReply) + " haven't done any slayer quests on their :profile profile yet, so there is nothing to display!")
                 .setColor(MessageType.WARNING.getColor())
                 .set("profile", profileReply.getProfile().get("cute_name").getAsString())
+                .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
                 .buildEmbed()
             ).queue();
             return;
@@ -105,6 +107,7 @@ public class SlayerCommand extends SkillCommand {
                 NumberUtil.formatNicely(getTotalCombinedSlayerExperience(slayerBosses)),
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .build()
         ).queue();
     }

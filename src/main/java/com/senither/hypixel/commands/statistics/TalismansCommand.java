@@ -29,6 +29,7 @@ import com.senither.hypixel.inventory.Inventory;
 import com.senither.hypixel.inventory.Item;
 import com.senither.hypixel.inventory.ItemRarity;
 import com.senither.hypixel.inventory.ItemType;
+import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
@@ -84,6 +85,7 @@ public class TalismansCommand extends SkillCommand {
                     getUsernameFromPlayer(playerReply),
                     profileReply.getProfile().get("cute_name").getAsString()
                 ))
+                .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
                 .build()
             ).queue();
             return;
@@ -102,7 +104,8 @@ public class TalismansCommand extends SkillCommand {
                     "**%s** has a total of **%s** talismans!",
                     getUsernameFromPlayer(playerReply),
                     talismans.size()
-                ));
+                ))
+                .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant());
 
             for (ItemRarity itemRarity : ItemRarity.values()) {
                 if (itemRarity.isDefault()) {
