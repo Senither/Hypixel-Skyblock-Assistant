@@ -102,7 +102,7 @@ public abstract class Command {
                 }
 
                 return member.getRank().equals("Guild Master")
-                    || (allowOfficers && member.getRank().equals(rank.getName()));
+                    || (allowOfficers && member.getRank().equalsIgnoreCase(rank.getName()));
             }
         } catch (SQLException e) {
             log.error("Failed to get the UUID for {} from the database, error: {}",
