@@ -43,7 +43,14 @@ public class CustomObjectValueHandler<T> extends RankCommandHandler {
     }
 
     @Override
-    public void handle(SkyblockAssistant app, MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank, String[] args) {
+    public void handle(
+        SkyblockAssistant app,
+        MessageReceivedEvent event,
+        GuildReply guildReply,
+        GuildController.GuildEntry guildEntry,
+        GuildReply.Guild.Rank rank,
+        String[] args
+    ) {
         if (args.length == 0) {
             throw new FriendlyException(String.format(
                 "Missing argument for %s requirement",
@@ -54,7 +61,7 @@ public class CustomObjectValueHandler<T> extends RankCommandHandler {
         T response = getter.apply(args[0]);
         closure.run(getRequirementsForRank(guildEntry, rank), response);
 
-        updateGuildEntry(app, event, guildEntry);
+        updateGuildEntry(app, event, guildReply, guildEntry);
 
         MessageFactory.makeSuccess(event.getMessage(),
             "The new :type requirement for **:rank** have successfully been set to **:value**."

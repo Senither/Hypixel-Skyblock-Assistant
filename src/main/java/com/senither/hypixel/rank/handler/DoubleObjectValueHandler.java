@@ -43,8 +43,14 @@ public class DoubleObjectValueHandler extends RankCommandHandler {
         this.message = message;
     }
 
-    @Override
-    public void handle(SkyblockAssistant app, MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank, String[] args) {
+    public void handle(
+        SkyblockAssistant app,
+        MessageReceivedEvent event,
+        GuildReply guildReply,
+        GuildController.GuildEntry guildEntry,
+        GuildReply.Guild.Rank rank,
+        String[] args
+    ) {
         if (args.length == 0 || !NumberUtil.isNumeric(args[0])) {
             throw new FriendlyException(String.format(
                 "The first %s value must be a number!",
@@ -65,7 +71,7 @@ public class DoubleObjectValueHandler extends RankCommandHandler {
         closureFirst.run(getRequirementsForRank(guildEntry, rank), first);
         closureSecond.run(getRequirementsForRank(guildEntry, rank), second);
 
-        updateGuildEntry(app, event, guildEntry);
+        updateGuildEntry(app, event, guildReply, guildEntry);
 
         MessageFactory.makeSuccess(event.getMessage(), message == null
             ? "The new :type requirement for **:rank** have successfully been set to **:first** and **:second**."

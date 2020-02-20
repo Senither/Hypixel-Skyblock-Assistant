@@ -28,6 +28,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.GuildReply;
 
 import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.Map;
 
 public abstract class RankCommandHandler {
 
@@ -44,7 +46,23 @@ public abstract class RankCommandHandler {
         return guildEntry.getRankRequirements().get(rank.getName());
     }
 
-    protected void updateGuildEntry(SkyblockAssistant app, MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
+    public void updateGuildEntry(SkyblockAssistant app, MessageReceivedEvent event, GuildReply guildReply, GuildController.GuildEntry guildEntry) {
+        Iterator<Map.Entry<String, GuildController.GuildEntry.RankRequirement>> iterator = guildEntry.getRankRequirements().entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, GuildController.GuildEntry.RankRequirement> entry = iterator.next();
+
+            boolean rankExists = false;
+            for (GuildReply.Guild.Rank rank : guildReply.getGuild().getRanks()) {
+                if (rank.getName().equalsIgnoreCase(entry.getKey())) {
+                    rankExists = true;
+                }
+            }
+
+            if (!rankExists) {
+                iterator.remove();
+            }
+        }
+
         try {
             app.getDatabaseManager().queryUpdate("UPDATE `guilds` SET `rank_requirements` = ? WHERE `discord_id` = ?",
                 app.getHypixel().getGson().toJson(guildEntry.getRankRequirements()), event.getGuild().getIdLong()
@@ -56,6 +74,12 @@ public abstract class RankCommandHandler {
         }
     }
 
-    public abstract void handle(SkyblockAssistant app, MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank, String[] args);
-
+    public abstract void handle(
+        SkyblockAssistant app,
+        MessageReceivedEvent event,
+        GuildReply guildReply,
+        GuildController.GuildEntry guildEntry,
+        GuildReply.Guild.Rank rank,
+        String[] args
+    );
 }

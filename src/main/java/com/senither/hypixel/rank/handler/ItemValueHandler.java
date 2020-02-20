@@ -48,8 +48,14 @@ public class ItemValueHandler extends RankCommandHandler {
         this.items = items;
     }
 
-    @Override
-    public void handle(SkyblockAssistant app, MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank, String[] args) {
+    public void handle(
+        SkyblockAssistant app,
+        MessageReceivedEvent event,
+        GuildReply guildReply,
+        GuildController.GuildEntry guildEntry,
+        GuildReply.Guild.Rank rank,
+        String[] args
+    ) {
         if (args.length == 0) {
             throw new FriendlyException(
                 "Missing option given for setting %s, you must either use `points` or `item`",
@@ -61,13 +67,13 @@ public class ItemValueHandler extends RankCommandHandler {
             case "point":
             case "points":
                 pointHandler.setRankType(rankType);
-                pointHandler.handle(app, event, guildEntry, rank, Arrays.copyOfRange(args, 1, args.length));
+                pointHandler.handle(app, event, guildReply, guildEntry, rank, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
             case "gear":
             case "item":
             case "items":
-                handleItem(app, event, guildEntry, rank, Arrays.copyOfRange(args, 1, args.length));
+                handleItem(app, event, guildReply, guildEntry, rank, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
             default:
@@ -78,7 +84,14 @@ public class ItemValueHandler extends RankCommandHandler {
         }
     }
 
-    private void handleItem(SkyblockAssistant app, MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank, String[] args) {
+    private void handleItem(
+        SkyblockAssistant app,
+        MessageReceivedEvent event,
+        GuildReply guildReply,
+        GuildController.GuildEntry guildEntry,
+        GuildReply.Guild.Rank rank,
+        String[] args
+    ) {
         if (args.length == 0) {
             throw new FriendlyException(
                 "You must provide the name of the %s you want to use.",
@@ -119,7 +132,7 @@ public class ItemValueHandler extends RankCommandHandler {
             storedItems.put(selectedItem.getName(), points);
         }
 
-        updateGuildEntry(app, event, guildEntry);
+        updateGuildEntry(app, event, guildReply, guildEntry);
 
         MessageFactory.makeSuccess(event.getMessage(), points < 0
             ? "The **:name** :type was removed from the :type requirement for **:rank**!"

@@ -31,7 +31,6 @@ import com.senither.hypixel.rank.RankRequirementType;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.GuildReply;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -132,7 +131,7 @@ public class RankRequirementCommand extends Command {
         switch (args[1].toLowerCase()) {
             case "reset":
             case "delete":
-                resetRankOption(event, guildEntry, rank);
+                resetRankOption(event, guildReply, guildEntry, rank);
                 return;
 
             case "skill":
@@ -189,7 +188,7 @@ public class RankRequirementCommand extends Command {
             return;
         }
 
-        action.getHandler().handle(app, event, guildEntry, rank, Arrays.copyOfRange(args, 2, args.length));
+        action.getHandler().handle(app, event, guildReply, guildEntry, rank, Arrays.copyOfRange(args, 2, args.length));
     }
 
     private void sendListOfGuildRanks(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply guildReply) {
@@ -242,24 +241,12 @@ public class RankRequirementCommand extends Command {
         message.queue();
     }
 
-    private void resetRankOption(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank) {
+    private void resetRankOption(MessageReceivedEvent event, GuildReply guildReply, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank) {
         guildEntry.getRankRequirements().remove(rank.getName());
-        updateGuildEntry(event, guildEntry);
+        RankRequirementType.BANK.getHandler().updateGuildEntry(app, event, guildReply, guildEntry);
 
         MessageFactory.makeSuccess(event.getMessage(), "All the rank requirements for the **:name** role have been reset!")
             .set("name", rank.getName())
             .queue();
-    }
-
-    private void updateGuildEntry(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
-        try {
-            app.getDatabaseManager().queryUpdate("UPDATE `guilds` SET `rank_requirements` = ? WHERE `discord_id` = ?",
-                app.getHypixel().getGson().toJson(guildEntry.getRankRequirements()), event.getGuild().getIdLong()
-            );
-
-            GuildController.forgetCacheFor(event.getGuild().getIdLong());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }

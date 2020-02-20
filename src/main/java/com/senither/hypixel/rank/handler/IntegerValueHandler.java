@@ -39,8 +39,14 @@ public class IntegerValueHandler extends RankCommandHandler {
         this.closure = closure;
     }
 
-    @Override
-    public void handle(SkyblockAssistant app, MessageReceivedEvent event, GuildController.GuildEntry guildEntry, GuildReply.Guild.Rank rank, String[] args) {
+    public void handle(
+        SkyblockAssistant app,
+        MessageReceivedEvent event,
+        GuildReply guildReply,
+        GuildController.GuildEntry guildEntry,
+        GuildReply.Guild.Rank rank,
+        String[] args
+    ) {
         if (args.length == 0 || !NumberUtil.isNumeric(args[0])) {
             throw new FriendlyException(String.format(
                 "The %s value must be a number!",
@@ -51,7 +57,7 @@ public class IntegerValueHandler extends RankCommandHandler {
         int value = NumberUtil.parseInt(args[0], Integer.MAX_VALUE);
 
         closure.run(getRequirementsForRank(guildEntry, rank), value);
-        updateGuildEntry(app, event, guildEntry);
+        updateGuildEntry(app, event, guildReply, guildEntry);
 
         MessageFactory.makeSuccess(event.getMessage(), "The new :type requirement for **:rank** have successfully been set to **:value**")
             .set("type", rankType.getName())
