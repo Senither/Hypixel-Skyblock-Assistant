@@ -130,8 +130,8 @@ public class RankCheckCommand extends SkillCommand {
         );
 
         PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(message, "**:user** :note")
-            .setTitle(playerReply.getPlayer().get("displayname").getAsString() + "'s Rank Check")
-            .set("user", playerReply.getPlayer().get("displayname").getAsString());
+            .setTitle(getUsernameFromPlayer(playerReply) + "'s Rank Check")
+            .set("user", getUsernameFromPlayer(playerReply));
 
         HashSet<GuildReply.Guild.Rank> rankQualifiers = new HashSet<>();
 
