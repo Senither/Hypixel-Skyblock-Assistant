@@ -35,7 +35,9 @@ import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.hypixel.Hypixel;
 import com.senither.hypixel.listeners.MemberActivityEventListener;
 import com.senither.hypixel.listeners.MessageEventListener;
+import com.senither.hypixel.reports.ReportService;
 import com.senither.hypixel.scheduler.ScheduleManager;
+import com.senither.hypixel.scheduler.jobs.DrainReportQueueJob;
 import com.senither.hypixel.scheduler.jobs.HypixelRankSynchronizeJob;
 import com.senither.hypixel.scheduler.jobs.RoleAssignmentJob;
 import net.dv8tion.jda.api.entities.Activity;
@@ -90,6 +92,7 @@ public class SkyblockAssistant {
         log.info("Registering jobs...");
         this.scheduleManager = new ScheduleManager(this);
         scheduleManager.registerJob(new RoleAssignmentJob(this));
+        scheduleManager.registerJob(new DrainReportQueueJob(this));
         scheduleManager.registerJob(new HypixelRankSynchronizeJob(this));
         log.info("{} jobs have been registered!", scheduleManager.entrySet().size());
 
@@ -98,6 +101,9 @@ public class SkyblockAssistant {
 
         log.info("Creating Hypixel API factory");
         this.hypixel = new Hypixel(this);
+
+        log.info("Resuming unfinished reports");
+        ReportService.resumeUnfinishedReports(this);
 
         log.info("Opening connection to Discord");
         this.shardManager = buildShardManager();

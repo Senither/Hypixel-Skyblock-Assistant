@@ -61,6 +61,7 @@ public class DatabaseManager {
             migrationManager.register(new AddLastUpdatedAtColumnToProfileAndPlayerTableMigration());
             migrationManager.register(new AddRankRequirementsColumnToGuildsTableMigration());
             migrationManager.register(new AddLastCheckedColumnToUuidsTableMigration());
+            migrationManager.register(new CreateReportsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();
