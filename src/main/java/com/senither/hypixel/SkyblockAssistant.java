@@ -73,6 +73,7 @@ public class SkyblockAssistant {
         this.commandManager = new CommandManager(this);
         commandManager.registerCommand(new AutoRenameCommand(this));
         commandManager.registerCommand(new DefaultRoleCommand(this));
+        commandManager.registerCommand(new GuildRankScanCommand(this));
         commandManager.registerCommand(new GuildSetupCommand(this));
         commandManager.registerCommand(new RankCheckCommand(this));
         commandManager.registerCommand(new RankRequirementCommand(this));

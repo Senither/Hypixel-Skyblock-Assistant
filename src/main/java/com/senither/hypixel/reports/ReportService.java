@@ -25,6 +25,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.exceptions.FriendlyException;
 import net.hypixel.api.reply.GuildReply;
 
 import java.sql.SQLException;
@@ -75,14 +76,12 @@ public class ReportService {
         ).isEmpty();
 
         if (hasUnfinishedReports) {
-            // TODO: Throw an exception here instead, to better represent that the user can't create two reports at the same time.
             return null;
         }
 
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guild.getData(), GuildReply.class);
         if (guildReply == null || guildReply.getGuild() == null) {
-            // TODO: Throw an exception here
-            return null;
+            throw new FriendlyException("Failed to load guild data from cached guild entry, try again later");
         }
 
         HashSet<UnfinishedPlayerReport> unfinishedPlayerReports = new HashSet<>();
