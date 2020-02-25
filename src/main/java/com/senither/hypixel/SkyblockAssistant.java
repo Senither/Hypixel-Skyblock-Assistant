@@ -40,6 +40,8 @@ import com.senither.hypixel.scheduler.ScheduleManager;
 import com.senither.hypixel.scheduler.jobs.DrainReportQueueJob;
 import com.senither.hypixel.scheduler.jobs.HypixelRankSynchronizeJob;
 import com.senither.hypixel.scheduler.jobs.RoleAssignmentJob;
+import com.senither.hypixel.servlet.WebServlet;
+import com.senither.hypixel.servlet.routes.HelloRoute;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -58,6 +60,7 @@ public class SkyblockAssistant {
     private final DatabaseManager databaseManager;
     private final CommandManager commandManager;
     private final ScheduleManager scheduleManager;
+    private final WebServlet servlet;
     private final Hypixel hypixel;
     private final ShardManager shardManager;
 
@@ -105,6 +108,14 @@ public class SkyblockAssistant {
 
         log.info("Resuming unfinished reports");
         ReportService.resumeUnfinishedReports(this);
+
+        if (configuration.getServlet().isEnabled()) {
+            log.info("Creating web servlet on port {}", configuration.getServlet().getPort());
+            this.servlet = new WebServlet(configuration.getServlet().getPort());
+            servlet.registerGet("hello", new HelloRoute());
+        } else {
+            this.servlet = null;
+        }
 
         log.info("Opening connection to Discord");
         this.shardManager = buildShardManager();

@@ -26,6 +26,7 @@ public class Configuration {
     private String discord_token;
     private String hypixel_token;
     private Database database;
+    private Servlet servlet;
 
     public String getDiscordToken() {
         return discord_token;
@@ -37,6 +38,10 @@ public class Configuration {
 
     public Database getDatabase() {
         return database;
+    }
+
+    public Servlet getServlet() {
+        return servlet;
     }
 
     public class Database {
@@ -73,6 +78,20 @@ public class Configuration {
             } catch (NumberFormatException e) {
                 return 3306;
             }
+        }
+    }
+
+    public class Servlet {
+
+        private boolean enabled;
+        private int port;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public int getPort() {
+            return port;
         }
     }
 }
