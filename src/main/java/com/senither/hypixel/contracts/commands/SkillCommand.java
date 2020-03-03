@@ -135,6 +135,17 @@ public abstract class SkillCommand extends Command {
                     .buildEmbed()
                 ).queue();
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                if (e.getCause() instanceof FriendlyException) {
+                    message.editMessage(embedBuilder
+                        .setColor(MessageType.ERROR.getColor())
+                        .setDescription(String.format("Failed to load player data for **%s**!\n%s",
+                            username, e.getCause().getMessage()
+                        ))
+                        .build()
+                    ).queue();
+                    return;
+                }
+
                 log.error("Failed to fetch player data for {}, error: {}",
                     username, e.getMessage(), e
                 );
