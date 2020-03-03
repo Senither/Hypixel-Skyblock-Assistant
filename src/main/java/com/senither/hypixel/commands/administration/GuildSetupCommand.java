@@ -71,7 +71,7 @@ public class GuildSetupCommand extends Command {
 
     @Override
     public List<String> getExampleUsage() {
-        return Collections.singletonList("`:command Rollback`");
+        return Collections.singletonList("`:command Guild Name`");
     }
 
     @Override
