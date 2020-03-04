@@ -21,12 +21,14 @@
 
 package com.senither.hypixel.commands.statistics;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.hypixel.HypixelRank;
 import com.senither.hypixel.rank.items.Collection;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
@@ -34,6 +36,7 @@ import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class PlayerOverviewCommand extends SkillCommand {
@@ -80,7 +83,7 @@ public class PlayerOverviewCommand extends SkillCommand {
             .addField("Average Skill Level", NumberUtil.formatNicelyWithDecimals(getAverageSkillLevel(playerReply, member)), true)
             .addField("Collection", getCompletedCollections(member), true)
             .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
-            .addField("Minion Slots", getMinionSlots(member), true)
+            .addField("Minion Slots", getMinionSlots(profileReply), true)
             .addField("Coins", getCoins(profileReply, member), true)
             .addField("Slayer", getTotalSlayerXp(member), true)
             .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
@@ -133,9 +136,20 @@ public class PlayerOverviewCommand extends SkillCommand {
         return String.format("%s / %s", completedCollections, Collection.values().length);
     }
 
-    private String getMinionSlots(JsonObject member) {
-        int craftedMinions = member.get("crafted_generators").getAsJsonArray().size();
+    private String getMinionSlots(SkyBlockProfileReply profileReply) {
+        HashSet<String> uniqueCrafts = new HashSet<>();
+        for (String profileId : profileReply.getProfile().getAsJsonObject("members").keySet()) {
+            JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(profileId);
+            if (!member.has("crafted_generators")) {
+                continue;
+            }
 
+            for (JsonElement generator : member.get("crafted_generators").getAsJsonArray()) {
+                uniqueCrafts.add(generator.getAsString());
+            }
+        }
+
+        int craftedMinions = uniqueCrafts.size();
         int minionSlots = craftedMinions < 5 ? 5
             : (int) (craftedMinions < 15 ? 6
             : craftedMinions < 30 ? 7
