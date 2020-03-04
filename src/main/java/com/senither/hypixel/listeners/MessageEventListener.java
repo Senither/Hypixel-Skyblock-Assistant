@@ -88,6 +88,10 @@ public class MessageEventListener extends ListenerAdapter {
             return;
         }
 
+        if (!event.getTextChannel().canTalk()) {
+            return;
+        }
+
         boolean isMentionable = isMentionableAction(event);
 
         String part = event.getMessage().getContentRaw().split(" ")[isMentionable ? 1 : 0];
