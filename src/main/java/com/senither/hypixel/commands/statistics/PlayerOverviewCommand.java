@@ -23,13 +23,12 @@ package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
-import com.senither.hypixel.hypixel.HypixelRank;
 import com.senither.hypixel.rank.items.Collection;
+import com.senither.hypixel.statistics.StatisticsChecker;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
@@ -80,7 +79,9 @@ public class PlayerOverviewCommand extends SkillCommand {
         ).setTitle(getUsernameFromPlayer(playerReply) + "'s Profile Overview");
 
         message.editMessage(placeholderMessage
-            .addField("Average Skill Level", NumberUtil.formatNicelyWithDecimals(getAverageSkillLevel(playerReply, member)), true)
+            .addField("Average Skill Level", NumberUtil.formatNicelyWithDecimals(
+                StatisticsChecker.SKILLS.checkUser(profileReply, playerReply, member).getAverageSkillLevel()
+            ), true)
             .addField("Collection", getCompletedCollections(member), true)
             .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
             .addField("Minion Slots", getMinionSlots(profileReply), true)
@@ -162,74 +163,11 @@ public class PlayerOverviewCommand extends SkillCommand {
         );
     }
 
-    private double getAverageSkillLevel(PlayerReply playerReply, JsonObject member) {
-        double mining = getDoubleFromJson(member, "experience_skill_mining");
-        double foraging = getDoubleFromJson(member, "experience_skill_foraging");
-        double enchanting = getDoubleFromJson(member, "experience_skill_enchanting");
-        double farming = getDoubleFromJson(member, "experience_skill_farming");
-        double combat = getDoubleFromJson(member, "experience_skill_combat");
-        double fishing = getDoubleFromJson(member, "experience_skill_fishing");
-        double alchemy = getDoubleFromJson(member, "experience_skill_alchemy");
-
-        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            return getAverageSkillLevelFromAchievements(playerReply);
-        }
-        return (getSkillLevelFromExperience(mining) +
-            getSkillLevelFromExperience(foraging) +
-            getSkillLevelFromExperience(enchanting) +
-            getSkillLevelFromExperience(farming) +
-            getSkillLevelFromExperience(combat) +
-            getSkillLevelFromExperience(fishing) +
-            getSkillLevelFromExperience(alchemy)
-        ) / 7D;
-    }
-
-    private double getAverageSkillLevelFromAchievements(PlayerReply playerReply) {
-        JsonObject achievements = playerReply.getPlayer().get("achievements").getAsJsonObject();
-
-        double mining = getDoubleFromJson(achievements, "skyblock_excavator");
-        double foraging = getDoubleFromJson(achievements, "skyblock_gatherer");
-        double enchanting = getDoubleFromJson(achievements, "skyblock_augmentation");
-        double farming = getDoubleFromJson(achievements, "skyblock_harvester");
-        double combat = getDoubleFromJson(achievements, "skyblock_combat");
-        double fishing = getDoubleFromJson(achievements, "skyblock_angler");
-        double alchemy = getDoubleFromJson(achievements, "skyblock_concoctor");
-
-        return (getSkillLevelFromExperience(mining) +
-            getSkillLevelFromExperience(foraging) +
-            getSkillLevelFromExperience(enchanting) +
-            getSkillLevelFromExperience(farming) +
-            getSkillLevelFromExperience(combat) +
-            getSkillLevelFromExperience(fishing) +
-            getSkillLevelFromExperience(alchemy)
-        ) / 7D;
-    }
-
-    private double getDoubleFromJson(JsonObject object, String name) {
-        try {
-            return object.get(name).getAsDouble();
-        } catch (Exception e) {
-            return 0D;
-        }
-    }
-
     private int getEntryFromSlayerData(JsonObject jsonObject, String entry) {
         try {
             return jsonObject.get(entry).getAsInt();
         } catch (Exception e) {
             return 0;
         }
-    }
-
-    private double getSkillLevelFromExperience(double experience) {
-        int level = 0;
-        for (int toRemove : Constants.GENERAL_SKILL_EXPERIENCE) {
-            experience -= toRemove;
-            if (experience < 0) {
-                return level + (1D - (experience * -1) / (double) toRemove);
-            }
-            level++;
-        }
-        return level;
     }
 }
