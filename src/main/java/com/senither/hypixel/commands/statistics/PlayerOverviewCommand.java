@@ -83,7 +83,7 @@ public class PlayerOverviewCommand extends SkillCommand {
             .addField("Average Skill Level", NumberUtil.formatNicelyWithDecimals(
                 StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member).getAverageSkillLevel()
             ), true)
-            .addField("Collection", getCompletedCollections(member), true)
+            .addField("Collection", getCompletedCollections(profileReply, member), true)
             .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
             .addField("Minion Slots", getMinionSlots(profileReply), true)
             .addField("Coins", getCoins(profileReply, member), true)
@@ -109,25 +109,31 @@ public class PlayerOverviewCommand extends SkillCommand {
         return NumberUtil.formatNicelyWithDecimals(profileReply.getProfile().get("banking").getAsJsonObject().get("balance").getAsDouble() + coinsInPurse);
     }
 
-    private String getCompletedCollections(JsonObject member) {
+    private String getCompletedCollections(SkyBlockProfileReply profileReply, JsonObject member) {
         if (!member.has("collection")) {
             return "API is Disabled";
         }
 
-        JsonObject playerCollection = member.get("collection").getAsJsonObject();
-
-        int completedCollections = 0;
-        for (Collection collection : Collection.values()) {
-            if (!playerCollection.has(collection.getKey())) {
+        HashSet<String> uniqueCrafts = new HashSet<>();
+        for (String profileId : profileReply.getProfile().getAsJsonObject("members").keySet()) {
+            JsonObject profileMember = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(profileId);
+            if (!profileMember.has("collection")) {
                 continue;
             }
 
-            if (playerCollection.get(collection.getKey()).getAsLong() >= collection.getMaxLevelExperience()) {
-                completedCollections++;
+            JsonObject playerCollection = profileMember.get("collection").getAsJsonObject();
+            for (Collection collection : Collection.values()) {
+                if (!playerCollection.has(collection.getKey())) {
+                    continue;
+                }
+
+                if (playerCollection.get(collection.getKey()).getAsLong() >= collection.getMaxLevelExperience()) {
+                    uniqueCrafts.add(collection.getKey());
+                }
             }
         }
 
-        return String.format("%s / %s", completedCollections, Collection.values().length);
+        return String.format("%s / %s", uniqueCrafts.size(), Collection.values().length);
     }
 
     private String getMinionSlots(SkyBlockProfileReply profileReply) {
@@ -154,13 +160,5 @@ public class PlayerOverviewCommand extends SkillCommand {
         return String.format("%s _(%s/572 Crafts)_",
             minionSlots, craftedMinions
         );
-    }
-
-    private int getEntryFromSlayerData(JsonObject jsonObject, String entry) {
-        try {
-            return jsonObject.get(entry).getAsInt();
-        } catch (Exception e) {
-            return 0;
-        }
     }
 }
