@@ -103,7 +103,7 @@ public class SlayerCommand extends SkillCommand {
             .addField("Sven Packmaster", buildSlayerStatsFromType(response.getSven()), true)
             .setFooter(String.format("%s has a total of %s Slayer experience. | Profile: %s",
                 getUsernameFromPlayer(playerReply),
-                NumberUtil.formatNicely(response.getTotalCoinsSpent()),
+                NumberUtil.formatNicely(response.getTotalSlayerExperience()),
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
             .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
