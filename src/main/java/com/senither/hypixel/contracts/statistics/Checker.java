@@ -25,9 +25,11 @@ import com.google.gson.JsonObject;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
+import javax.annotation.Nullable;
+
 public abstract class Checker<T extends Response> {
 
-    public abstract T checkUser(SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member);
+    public abstract T checkUser(@Nullable PlayerReply playerReply, SkyBlockProfileReply profileReply, JsonObject member);
 
     protected double getDoubleFromObject(JsonObject object, String name) {
         try {

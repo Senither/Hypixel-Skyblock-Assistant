@@ -75,7 +75,7 @@ public class SkillsCommand extends SkillCommand {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
         String displayName = getUsernameFromPlayer(playerReply);
 
-        SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(profileReply, playerReply, member);
+        SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
         if (!skillsResponse.hasData()) {
             sendAPIIsDisabledMessage(message, profileReply, displayName);
             return;

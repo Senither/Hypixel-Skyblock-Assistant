@@ -28,10 +28,12 @@ import com.senither.hypixel.statistics.responses.SkillsResponse;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
+import javax.annotation.Nullable;
+
 public class SkillsChecker extends Checker<SkillsResponse> {
 
     @Override
-    public SkillsResponse checkUser(SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
+    public SkillsResponse checkUser(@Nullable PlayerReply playerReply, SkyBlockProfileReply profileReply, JsonObject member) {
         double mining = getDoubleFromObject(member, "experience_skill_mining");
         double foraging = getDoubleFromObject(member, "experience_skill_foraging");
         double enchanting = getDoubleFromObject(member, "experience_skill_enchanting");
@@ -43,7 +45,9 @@ public class SkillsChecker extends Checker<SkillsResponse> {
         double runecrafting = getDoubleFromObject(member, "experience_skill_runecrafting");
 
         if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            return checkUsingAchievements(playerReply);
+            return playerReply == null
+                ? new SkillsResponse(false, false)
+                : checkUsingAchievements(playerReply);
         }
 
         return new SkillsResponse(true, true)

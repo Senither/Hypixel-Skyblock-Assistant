@@ -80,7 +80,7 @@ public class PlayerOverviewCommand extends SkillCommand {
 
         message.editMessage(placeholderMessage
             .addField("Average Skill Level", NumberUtil.formatNicelyWithDecimals(
-                StatisticsChecker.SKILLS.checkUser(profileReply, playerReply, member).getAverageSkillLevel()
+                StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member).getAverageSkillLevel()
             ), true)
             .addField("Collection", getCompletedCollections(member), true)
             .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)

@@ -26,27 +26,18 @@ import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.rank.RankCheckResponse;
+import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.SkillsResponse;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class AverageSkillsChecker extends RankRequirementChecker {
 
-    private final List<Integer> generalSkillLevels = new ArrayList<>();
-
     public AverageSkillsChecker() {
         super("Average Skills");
-
-        generalSkillLevels.addAll(Arrays.asList(
-            50, 125, 200, 300, 500, 750, 1000, 1500, 2000, 3500,
-            5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000
-        ));
-
-        int index = 1;
-        while (generalSkillLevels.size() < 50) {
-            generalSkillLevels.add(100000 * index++);
-        }
     }
 
     @Override
@@ -66,28 +57,12 @@ public class AverageSkillsChecker extends RankRequirementChecker {
     public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = getProfileMemberFromUUID(profileReply, playerUUID);
 
-        double mining = getSkillExperience(member, "experience_skill_mining");
-        double foraging = getSkillExperience(member, "experience_skill_foraging");
-        double enchanting = getSkillExperience(member, "experience_skill_enchanting");
-        double farming = getSkillExperience(member, "experience_skill_farming");
-        double combat = getSkillExperience(member, "experience_skill_combat");
-        double fishing = getSkillExperience(member, "experience_skill_fishing");
-        double alchemy = getSkillExperience(member, "experience_skill_alchemy");
-
-        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
+        SkillsResponse response = StatisticsChecker.SKILLS.checkUser(null, profileReply, member);
+        if (!response.hasData()) {
             throw new FriendlyException("Skills API is disabled, unable to calculate average skill level");
         }
 
-        double averageSkillLevel = (
-            getSkillLevelFromExperience(mining) +
-                getSkillLevelFromExperience(foraging) +
-                getSkillLevelFromExperience(enchanting) +
-                getSkillLevelFromExperience(farming) +
-                getSkillLevelFromExperience(combat) +
-                getSkillLevelFromExperience(fishing) +
-                getSkillLevelFromExperience(alchemy)
-        ) / 7D;
-
+        double averageSkillLevel = response.getAverageSkillLevel();
         for (GuildReply.Guild.Rank rank : getSortedRanksFromGuild(guildReply)) {
             if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
                 continue;
@@ -105,25 +80,5 @@ public class AverageSkillsChecker extends RankRequirementChecker {
         return new RankCheckResponse(rank, new HashMap<String, Object>() {{
             put("amount", amount);
         }});
-    }
-
-    private double getSkillLevelFromExperience(double experience) {
-        int level = 0;
-        for (int toRemove : generalSkillLevels) {
-            experience -= toRemove;
-            if (experience < 0) {
-                return level + (1D - (experience * -1) / (double) toRemove);
-            }
-            level++;
-        }
-        return level;
-    }
-
-    private double getSkillExperience(JsonObject object, String name) {
-        try {
-            return object.get(name).getAsDouble();
-        } catch (Exception e) {
-            return 0D;
-        }
     }
 }
