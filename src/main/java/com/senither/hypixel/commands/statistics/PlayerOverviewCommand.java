@@ -29,6 +29,7 @@ import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.rank.items.Collection;
 import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.SlayerResponse;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
@@ -86,26 +87,18 @@ public class PlayerOverviewCommand extends SkillCommand {
             .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
             .addField("Minion Slots", getMinionSlots(profileReply), true)
             .addField("Coins", getCoins(profileReply, member), true)
-            .addField("Slayer", getTotalSlayerXp(member), true)
+            .addField("Slayer", getTotalSlayerXp(profileReply, member), true)
             .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
             .buildEmbed()
         ).queue();
     }
 
-    private String getTotalSlayerXp(JsonObject member) {
-        JsonObject slayerBosses = member.getAsJsonObject("slayer_bosses");
-
-        try {
-            int totalExp = 0;
-
-            for (String type : slayerBosses.keySet()) {
-                totalExp += getEntryFromSlayerData(slayerBosses.getAsJsonObject(type).getAsJsonObject(), "xp");
-            }
-
-            return NumberUtil.formatNicely(totalExp) + " Total XP";
-        } catch (Exception e) {
+    private String getTotalSlayerXp(SkyBlockProfileReply profileReply, JsonObject member) {
+        SlayerResponse response = StatisticsChecker.SLAYER.checkUser(null, profileReply, member);
+        if (!response.isApiEnable() || response.getTotalSlayerExperience() == 0) {
             return "No Slayer to Display";
         }
+        return NumberUtil.formatNicely(response.getTotalSlayerExperience()) + " Total XP";
     }
 
     private String getCoins(SkyBlockProfileReply profileReply, JsonObject member) {

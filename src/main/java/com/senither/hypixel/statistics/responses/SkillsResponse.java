@@ -21,11 +21,10 @@
 
 package com.senither.hypixel.statistics.responses;
 
-import com.senither.hypixel.contracts.statistics.Response;
+import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 
-public class SkillsResponse implements Response {
+public class SkillsResponse extends StatisticsResponse {
 
-    private final boolean apiEnable;
     private final boolean hasData;
 
     private SkillStat mining = new SkillStat();
@@ -39,16 +38,17 @@ public class SkillsResponse implements Response {
     private SkillStat runecrafting = new SkillStat();
 
     public SkillsResponse(boolean apiEnable, boolean hasData) {
-        this.apiEnable = apiEnable;
-        this.hasData = hasData;
-    }
+        super(apiEnable);
 
-    public boolean isApiEnable() {
-        return apiEnable;
+        this.hasData = hasData;
     }
 
     public boolean hasData() {
         return hasData;
+    }
+
+    public SkillStat getMining() {
+        return mining;
     }
 
     public SkillsResponse setMining(double level, double experience) {
@@ -57,8 +57,8 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getMining() {
-        return mining;
+    public SkillStat getForaging() {
+        return foraging;
     }
 
     public SkillsResponse setForaging(double level, double experience) {
@@ -67,8 +67,8 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getForaging() {
-        return foraging;
+    public SkillStat getEnchanting() {
+        return enchanting;
     }
 
     public SkillsResponse setEnchanting(double level, double experience) {
@@ -77,8 +77,8 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getEnchanting() {
-        return enchanting;
+    public SkillStat getFarming() {
+        return farming;
     }
 
     public SkillsResponse setFarming(double level, double experience) {
@@ -87,8 +87,8 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getFarming() {
-        return farming;
+    public SkillStat getCombat() {
+        return combat;
     }
 
     public SkillsResponse setCombat(double level, double experience) {
@@ -97,8 +97,8 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getCombat() {
-        return combat;
+    public SkillStat getFishing() {
+        return fishing;
     }
 
     public SkillsResponse setFishing(double level, double experience) {
@@ -107,8 +107,8 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getFishing() {
-        return fishing;
+    public SkillStat getAlchemy() {
+        return alchemy;
     }
 
     public SkillsResponse setAlchemy(double level, double experience) {
@@ -117,8 +117,8 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getAlchemy() {
-        return alchemy;
+    public SkillStat getCarpentry() {
+        return carpentry;
     }
 
     public SkillsResponse setCarpentry(double level, double experience) {
@@ -127,18 +127,14 @@ public class SkillsResponse implements Response {
         return this;
     }
 
-    public SkillStat getCarpentry() {
-        return carpentry;
+    public SkillStat getRunecrafting() {
+        return runecrafting;
     }
 
     public SkillsResponse setRunecrafting(double level, double experience) {
         this.runecrafting = new SkillStat(level, experience);
 
         return this;
-    }
-
-    public SkillStat getRunecrafting() {
-        return runecrafting;
     }
 
     public double getAverageSkillLevel() {

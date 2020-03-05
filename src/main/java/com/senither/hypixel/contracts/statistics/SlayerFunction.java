@@ -21,5 +21,8 @@
 
 package com.senither.hypixel.contracts.statistics;
 
-public interface Response {
+@FunctionalInterface
+public interface SlayerFunction {
+
+    void setValue(int experience, int tier1Kills, int tier2Kills, int tier3Kills, int tier4Kills);
 }

@@ -25,6 +25,8 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.rank.RankCheckResponse;
+import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.SlayerResponse;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
@@ -54,26 +56,18 @@ public class SlayerChecker extends RankRequirementChecker {
     public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = getProfileMemberFromUUID(profileReply, playerUUID);
 
-        long totalExperience = 0;
-        JsonObject slayerBosses = member.getAsJsonObject("slayer_bosses");
-        for (String type : slayerBosses.keySet()) {
-            try {
-                totalExperience += slayerBosses.get(type).getAsJsonObject().get("xp").getAsLong();
-            } catch (Exception ignored) {
-            }
-        }
-
+        SlayerResponse response = StatisticsChecker.SLAYER.checkUser(null, profileReply, member);
         for (GuildReply.Guild.Rank rank : getSortedRanksFromGuild(guildReply)) {
             if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
                 continue;
             }
 
             GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
-            if (requirement.getSlayerExperience() <= totalExperience) {
-                return createResponse(rank, totalExperience);
+            if (requirement.getSlayerExperience() <= response.getTotalSlayerExperience()) {
+                return createResponse(rank, response.getTotalSlayerExperience());
             }
         }
-        return createResponse(null, totalExperience);
+        return createResponse(null, response.getTotalSlayerExperience());
     }
 
     private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, long amount) {

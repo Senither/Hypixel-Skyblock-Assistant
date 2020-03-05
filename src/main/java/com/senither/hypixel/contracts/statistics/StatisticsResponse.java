@@ -21,21 +21,15 @@
 
 package com.senither.hypixel.contracts.statistics;
 
-import com.google.gson.JsonObject;
-import net.hypixel.api.reply.PlayerReply;
-import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
+public abstract class StatisticsResponse {
 
-import javax.annotation.Nullable;
+    private final boolean apiEnable;
 
-public abstract class Checker<T extends StatisticsResponse> {
+    public StatisticsResponse(boolean apiEnable) {
+        this.apiEnable = apiEnable;
+    }
 
-    public abstract T checkUser(@Nullable PlayerReply playerReply, SkyBlockProfileReply profileReply, JsonObject member);
-
-    protected double getDoubleFromObject(JsonObject object, String name) {
-        try {
-            return object.get(name).getAsDouble();
-        } catch (Exception e) {
-            return 0D;
-        }
+    public boolean isApiEnable() {
+        return apiEnable;
     }
 }
