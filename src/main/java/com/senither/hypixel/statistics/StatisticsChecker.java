@@ -21,6 +21,7 @@
 
 package com.senither.hypixel.statistics;
 
+import com.senither.hypixel.statistics.checker.PetsChecker;
 import com.senither.hypixel.statistics.checker.SkillsChecker;
 import com.senither.hypixel.statistics.checker.SlayerChecker;
 
@@ -29,4 +30,5 @@ public class StatisticsChecker {
 
     public final static SkillsChecker SKILLS = new SkillsChecker();
     public final static SlayerChecker SLAYER = new SlayerChecker();
+    public final static PetsChecker PETS = new PetsChecker();
 }
