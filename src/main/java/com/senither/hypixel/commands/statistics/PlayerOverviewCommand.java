@@ -30,6 +30,7 @@ import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.rank.items.Collection;
 import com.senither.hypixel.statistics.StatisticsChecker;
 import com.senither.hypixel.statistics.responses.SlayerResponse;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
@@ -89,6 +90,7 @@ public class PlayerOverviewCommand extends SkillCommand {
             .addField("Coins", getCoins(profileReply, member), true)
             .addField("Slayer", getTotalSlayerXp(profileReply, member), true)
             .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .buildEmbed()
         ).queue();
     }
