@@ -22,12 +22,13 @@
 package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
-import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.SlayerResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -78,9 +79,8 @@ public class SlayerCommand extends SkillCommand {
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
-        JsonObject slayerBosses = member.getAsJsonObject("slayer_bosses");
-        int totalCoinsSpentOnSlayers = getTotalCoinsSpentOnSlayers(slayerBosses);
-        if (totalCoinsSpentOnSlayers == 0) {
+        SlayerResponse response = StatisticsChecker.SLAYER.checkUser(playerReply, profileReply, member);
+        if (!response.isApiEnable()) {
             message.editMessage(MessageFactory.makeEmbeddedMessage(message.getChannel())
                 .setTitle(getUsernameFromPlayer(playerReply) + "'s Slayers")
                 .setDescription(getUsernameFromPlayer(playerReply) + " haven't done any slayer quests on their :profile profile yet, so there is nothing to display!")
@@ -91,20 +91,19 @@ public class SlayerCommand extends SkillCommand {
             ).queue();
             return;
         }
-
         message.editMessage(new EmbedBuilder()
             .setTitle(getUsernameFromPlayer(playerReply) + "'s Slayers")
             .setDescription(String.format("%s has spent %s coins on slayer quests.",
                 getUsernameFromPlayer(playerReply),
-                NumberUtil.formatNicely(totalCoinsSpentOnSlayers)
+                NumberUtil.formatNicely(response.getTotalCoinsSpent())
             ))
             .setColor(MessageType.SUCCESS.getColor())
-            .addField("Revenant Horror", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("zombie")), true)
-            .addField("Tarantula Broodfather", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("spider")), true)
-            .addField("Sven Packmaster", buildSlayerStatsFromType(slayerBosses.getAsJsonObject("wolf")), true)
+            .addField("Revenant Horror", buildSlayerStatsFromType(response.getRevenant()), true)
+            .addField("Tarantula Broodfather", buildSlayerStatsFromType(response.getTarantula()), true)
+            .addField("Sven Packmaster", buildSlayerStatsFromType(response.getSven()), true)
             .setFooter(String.format("%s has a total of %s Slayer experience. | Profile: %s",
                 getUsernameFromPlayer(playerReply),
-                NumberUtil.formatNicely(getTotalCombinedSlayerExperience(slayerBosses)),
+                NumberUtil.formatNicely(response.getTotalSlayerExperience()),
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
             .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
@@ -112,7 +111,7 @@ public class SlayerCommand extends SkillCommand {
         ).queue();
     }
 
-    private String buildSlayerStatsFromType(JsonObject json) {
+    private String buildSlayerStatsFromType(SlayerResponse.SlayerStat stats) {
         return new PlaceholderMessage(null, String.join("\n", Arrays.asList(
             "**Tier 1:** :boss1",
             "**Tier 2:** :boss2",
@@ -121,65 +120,12 @@ public class SlayerCommand extends SkillCommand {
             "**EXP:** :experience",
             "**LvL:** :level"
         )))
-            .set("boss1", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_0")))
-            .set("boss2", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_1")))
-            .set("boss3", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_2")))
-            .set("boss4", NumberUtil.formatNicely(getEntryFromSlayerData(json, "boss_kills_tier_3")))
-            .set("experience", NumberUtil.formatNicely(getEntryFromSlayerData(json, "xp")))
-            .set("level", NumberUtil.formatNicelyWithDecimals(getSlayerLevelFromExperience(getEntryFromSlayerData(json, "xp"))))
+            .set("boss1", NumberUtil.formatNicely(stats.getTier1Kills()))
+            .set("boss2", NumberUtil.formatNicely(stats.getTier2Kills()))
+            .set("boss3", NumberUtil.formatNicely(stats.getTier3Kills()))
+            .set("boss4", NumberUtil.formatNicely(stats.getTier4Kills()))
+            .set("experience", NumberUtil.formatNicely(stats.getExperience()))
+            .set("level", NumberUtil.formatNicelyWithDecimals(stats.getLevelFromExperience()))
             .toString();
-    }
-
-    private int getTotalCoinsSpentOnSlayers(JsonObject jsonObject) {
-        try {
-            int totalCoins = 0;
-
-            for (String type : jsonObject.keySet()) {
-                JsonObject slayerType = jsonObject.getAsJsonObject(type);
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_0") * 100;
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_1") * 2000;
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_2") * 10000;
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_3") * 50000;
-            }
-
-            return totalCoins;
-        } catch (Exception e) {
-            log.error("Exception were thrown while getting total cost, error: {}", e.getMessage(), e);
-            return 0;
-        }
-    }
-
-    private int getTotalCombinedSlayerExperience(JsonObject jsonObject) {
-        try {
-            int totalExp = 0;
-
-            for (String type : jsonObject.keySet()) {
-                totalExp += getEntryFromSlayerData(jsonObject.getAsJsonObject(type).getAsJsonObject(), "xp");
-            }
-
-            return totalExp;
-        } catch (Exception e) {
-            log.error("Exception were thrown while getting total experience, error: {}", e.getMessage(), e);
-            return 0;
-        }
-    }
-
-    private double getSlayerLevelFromExperience(int experience) {
-        for (int level = 0; level < Constants.SLAYER_EXPERIENCE.size(); level++) {
-            double requirement = Constants.SLAYER_EXPERIENCE.asList().get(level);
-            if (experience < requirement) {
-                double lastRequirement = level == 0 ? 0D : Constants.SLAYER_EXPERIENCE.asList().get(level - 1);
-                return level + (experience - lastRequirement) / (requirement - lastRequirement);
-            }
-        }
-        return 9;
-    }
-
-    private int getEntryFromSlayerData(JsonObject jsonObject, String entry) {
-        try {
-            return jsonObject.get(entry).getAsInt();
-        } catch (Exception e) {
-            return 0;
-        }
     }
 }

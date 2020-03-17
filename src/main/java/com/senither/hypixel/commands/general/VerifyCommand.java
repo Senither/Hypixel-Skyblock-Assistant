@@ -33,6 +33,7 @@ import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.hypixel.HypixelRank;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.PlayerReply;
@@ -89,11 +90,15 @@ public class VerifyCommand extends Command {
             MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
                 "You must include your in-game Minecraft username that is linked with your Discord account on Hypixel!",
                 "",
-                "If your account isn't linked you can set it up by logging into `mc.hypixel.net`, then going to your profile, followed by the social button, and then setting your Discord account up there.",
-                "Please not it might take up to a minute before the bot is able to see the changes.",
+                "If your account isn't linked you can set it up by logging into `mc.hypixel.net`, then going to your profile, followed by the social button, and then setting your Discord account up there. Make sure your Discord social link is set to `:user` before attempting to verify again.",
+                "Please note it might take up to a minute before the bot is able to see the changes.",
                 "",
                 "Try again using `:prefixverify <username>`"
-            ))).set("prefix", Constants.COMMAND_PREFIX).setTitle("Missing username").queue();
+            )))
+                .set("prefix", Constants.COMMAND_PREFIX)
+                .set("user", event.getAuthor().getAsTag())
+                .setTitle("Missing username")
+                .queue();
             return;
         }
 
@@ -139,12 +144,12 @@ public class VerifyCommand extends Command {
 
         JsonObject player = playerResponse.getPlayer();
         if (!hasDiscordLinked(player)) {
-            sendNoSocialLinksMessage(message, embedBuilder, player);
+            sendNoSocialLinksMessage(message, event.getAuthor(), embedBuilder, player);
             return;
         }
 
         if (!player.getAsJsonObject("socialMedia").getAsJsonObject("links").get("DISCORD").getAsString().equalsIgnoreCase(event.getAuthor().getAsTag())) {
-            sendNoSocialLinksMessage(message, embedBuilder, player);
+            sendNoSocialLinksMessage(message, event.getAuthor(), embedBuilder, player);
             return;
         }
 
@@ -282,9 +287,12 @@ public class VerifyCommand extends Command {
         });
     }
 
-    private void sendNoSocialLinksMessage(Message message, PlaceholderMessage embedBuilder, JsonObject player) {
+    private void sendNoSocialLinksMessage(Message message, User user, PlaceholderMessage embedBuilder, JsonObject player) {
         message.editMessage(embedBuilder
-            .setDescription("Found no Discord social link that matches your Discord user for " + player.get("displayname").getAsString() + "!")
+            .setDescription(String.join("\n", Arrays.asList(
+                "Found no Discord social link that matches your Discord user for " + player.get("displayname").getAsString() + "!",
+                String.format("Please make sure your Discord social link is set to `%s` before trying to verify again", user.getAsTag())
+            )))
             .setColor(MessageType.ERROR.getColor())
             .buildEmbed()
         ).queue();

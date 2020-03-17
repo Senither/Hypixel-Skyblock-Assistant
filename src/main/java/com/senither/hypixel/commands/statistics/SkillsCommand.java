@@ -22,12 +22,12 @@
 package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
-import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
-import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.SkillsResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -73,125 +73,59 @@ public class SkillsCommand extends SkillCommand {
     @Override
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
+        String displayName = getUsernameFromPlayer(playerReply);
 
-        double mining = getSkillExperience(member, "experience_skill_mining");
-        double foraging = getSkillExperience(member, "experience_skill_foraging");
-        double enchanting = getSkillExperience(member, "experience_skill_enchanting");
-        double farming = getSkillExperience(member, "experience_skill_farming");
-        double combat = getSkillExperience(member, "experience_skill_combat");
-        double fishing = getSkillExperience(member, "experience_skill_fishing");
-        double alchemy = getSkillExperience(member, "experience_skill_alchemy");
-        double carpentry = getSkillExperience(member, "experience_skill_carpentry");
-        double runecrafting = getSkillExperience(member, "experience_skill_runecrafting");
-
-        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            sendAchievementSkills(message, profileReply, playerReply, member);
+        SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
+        if (!skillsResponse.hasData()) {
+            sendAPIIsDisabledMessage(message, profileReply, displayName);
             return;
         }
 
-        message.editMessage(new EmbedBuilder()
+        EmbedBuilder embedBuilder = new EmbedBuilder()
             .setTitle(getUsernameFromPlayer(playerReply) + "'s Skills")
             .setDescription(String.format("**%s** has an average skill level of **%s**",
                 getUsernameFromPlayer(playerReply), NumberUtil.formatNicelyWithDecimals(
-                    (
-                        getSkillLevelFromExperience(mining, false) +
-                            getSkillLevelFromExperience(foraging, false) +
-                            getSkillLevelFromExperience(enchanting, false) +
-                            getSkillLevelFromExperience(farming, false) +
-                            getSkillLevelFromExperience(combat, false) +
-                            getSkillLevelFromExperience(fishing, false) +
-                            getSkillLevelFromExperience(alchemy, false)
-                    ) / 7D)
-            ))
+                    skillsResponse.getAverageSkillLevel()
+                )))
             .setColor(MessageType.SUCCESS.getColor())
-            .addField("Mining", formatStatTextValue(mining, false), true)
-            .addField("Foraging", formatStatTextValue(foraging, false), true)
-            .addField("Enchanting", formatStatTextValue(enchanting, false), true)
-            .addField("Farming", formatStatTextValue(farming, false), true)
-            .addField("Combat", formatStatTextValue(combat, false), true)
-            .addField("Fishing", formatStatTextValue(fishing, false), true)
-            .addField("Alchemy", formatStatTextValue(alchemy, false), true)
-            .addField("Carpentry", formatStatTextValue(carpentry, false), true)
-            .addField("Runecrafting", formatStatTextValue(runecrafting, true), true)
+            .addField("Mining", formatStatTextValue(skillsResponse.getMining()), true)
+            .addField("Foraging", formatStatTextValue(skillsResponse.getForaging()), true)
+            .addField("Enchanting", formatStatTextValue(skillsResponse.getEnchanting()), true)
+            .addField("Farming", formatStatTextValue(skillsResponse.getFarming()), true)
+            .addField("Combat", formatStatTextValue(skillsResponse.getCombat()), true)
+            .addField("Fishing", formatStatTextValue(skillsResponse.getFishing()), true)
+            .addField("Alchemy", formatStatTextValue(skillsResponse.getAlchemy()), true)
+            .addField("Carpentry", formatStatTextValue(skillsResponse.getCarpentry()), true)
+            .addField("Runecrafting", formatStatTextValue(skillsResponse.getRunecrafting()), true)
             .setFooter(String.format(
                 "Note > Carpentry and Runecrafting are cosmetic skills, and are therefor not included in the average skill calculation. | Profile: %s",
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
-            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
-            .build()
-        ).queue();
-    }
+            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant());
 
-    private void sendAchievementSkills(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
-        JsonObject achievements = playerReply.getPlayer().get("achievements").getAsJsonObject();
-
-        double mining = getSkillExperience(achievements, "skyblock_excavator");
-        double foraging = getSkillExperience(achievements, "skyblock_gatherer");
-        double enchanting = getSkillExperience(achievements, "skyblock_augmentation");
-        double farming = getSkillExperience(achievements, "skyblock_harvester");
-        double combat = getSkillExperience(achievements, "skyblock_combat");
-        double fishing = getSkillExperience(achievements, "skyblock_angler");
-        double alchemy = getSkillExperience(achievements, "skyblock_concoctor");
-
-        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
-            sendAPIIsDisabledMessage(message, profileReply, getUsernameFromPlayer(playerReply));
-            return;
+        if (!skillsResponse.isApiEnable()) {
+            embedBuilder
+                .setTitle(displayName + "'s Skills | API is Disabled")
+                .setFooter(MessageFactory.makeInfo(message, String.join(" ",
+                    "Note > The skills API is disabled, so these skills are pulled",
+                    "from the Skyblock Skills achievements instead, which means the displayed skills above might not be 100%",
+                    "accurate for the selected profile. | Profile: :profile"
+                )).set("name", displayName).set("profile", profileReply.getProfile().get("cute_name").getAsString()).toString());
         }
 
-        final String displayName = getUsernameFromPlayer(playerReply);
-        final String skillsNote = MessageFactory.makeInfo(message, String.join(" ",
-            "Note > The skills API is disabled, so these skills are pulled",
-            "from the Skyblock Skills achievements instead, which means the displayed skills above might not be 100%",
-            "accurate for the selected profile. | Profile: :profile"
-        )).set("name", displayName).set("profile", profileReply.getProfile().get("cute_name").getAsString()).toString();
-
-        final PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(
-            message, "**:name** has an average skill level of **:avg**"
-        ).setTitle(displayName + "'s Skills | API is Disabled");
-
-        message.editMessage(placeholderMessage
-            .set("name", displayName)
-            .set("avg", NumberUtil.formatNicelyWithDecimals(
-                (mining + foraging + enchanting + farming + combat + fishing + alchemy) / 7D
-            ))
-            .addField("Mining", "**LvL:** " + NumberUtil.formatNicely(mining), true)
-            .addField("Foraging", "**LvL:** " + NumberUtil.formatNicely(foraging), true)
-            .addField("Enchanting", "**LvL:** " + NumberUtil.formatNicely(enchanting), true)
-            .addField("Farming", "**LvL:** " + NumberUtil.formatNicely(farming), true)
-            .addField("Combat", "**LvL:** " + NumberUtil.formatNicely(combat), true)
-            .addField("Fishing", "**LvL:** " + NumberUtil.formatNicely(fishing), true)
-            .addField("Alchemy", "**LvL:** " + NumberUtil.formatNicely(alchemy), true)
-            .addField("Carpentry", "Unknown", true)
-            .addField("Runecrafting", "Unknown", true)
-            .setFooter(skillsNote)
-            .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
-            .buildEmbed()
-        ).queue();
+        message.editMessage(embedBuilder.build()).queue();
     }
 
-    private String formatStatTextValue(double value, boolean isRunecrafting) {
-        return "**LvL:** " + NumberUtil.formatNicelyWithDecimals(getSkillLevelFromExperience(value, isRunecrafting))
-            + "\n**EXP:** " + NumberUtil.formatNicely(value);
-    }
-
-    private double getSkillExperience(JsonObject object, String name) {
-        try {
-            return object.get(name).getAsDouble();
-        } catch (Exception e) {
-            return 0D;
+    private String formatStatTextValue(SkillsResponse.SkillStat stat) {
+        if (stat.getLevel() < 0) {
+            return "Unknown";
         }
-    }
 
-    private double getSkillLevelFromExperience(double experience, boolean isRunecrafting) {
-        int level = 0;
-        for (int toRemove : isRunecrafting ? Constants.RUNECRAFTING_SKILL_EXPERIENCE : Constants.GENERAL_SKILL_EXPERIENCE) {
-            experience -= toRemove;
-            if (experience < 0) {
-                return level + (1D - (experience * -1) / (double) toRemove);
-            }
-            level++;
+        String formattedStat = "**LvL:** " + NumberUtil.formatNicelyWithDecimals(stat.getLevel());
+        if (stat.getExperience() <= 0) {
+            return formattedStat;
         }
-        return level;
+        return formattedStat + "\n**EXP:** " + NumberUtil.formatNicely(stat.getExperience());
     }
 
     private void sendAPIIsDisabledMessage(Message message, SkyBlockProfileReply profileReply, String username) {

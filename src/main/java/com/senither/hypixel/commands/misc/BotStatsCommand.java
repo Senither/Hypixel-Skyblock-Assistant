@@ -34,6 +34,7 @@ import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.lang.management.ManagementFactory;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -92,6 +93,9 @@ public class BotStatsCommand extends Command {
             .addField("Cached UUIDs", NumberUtil.formatNicely(getTotalForType("uuids")), true)
             .addField("Cached Players", NumberUtil.formatNicely(getTotalForType("players")), true)
             .addField("Cached Profiles", NumberUtil.formatNicely(getTotalForType("profiles")), true)
+            .setFooter(String.format("There are %s verified users with the bot.",
+                NumberUtil.formatNicely(getTotalVerifiedPlayers())
+            ))
             .setTimestamp(Carbon.now().getTime().toInstant())
             .queue();
     }
@@ -120,6 +124,15 @@ public class BotStatsCommand extends Command {
             });
         } catch (ExecutionException e) {
             return 0L;
+        }
+    }
+
+    private int getTotalVerifiedPlayers() {
+        try {
+            return app.getDatabaseManager().query("SELECT count(*) as total FROM `uuids` WHERE `discord_id` IS NOT NULL")
+                .first().getInt("total");
+        } catch (SQLException e) {
+            return 0;
         }
     }
 }
