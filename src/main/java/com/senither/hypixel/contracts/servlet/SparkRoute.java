@@ -19,16 +19,33 @@
  *
  */
 
-package com.senither.hypixel.servlet.routes;
+package com.senither.hypixel.contracts.servlet;
 
-import com.senither.hypixel.contracts.servlet.SparkRoute;
-import spark.Request;
+import com.google.gson.JsonObject;
 import spark.Response;
+import spark.Route;
 
-public class HelloRoute extends SparkRoute {
+public abstract class SparkRoute implements Route {
 
-    @Override
-    public Object handle(Request request, Response response) throws Exception {
-        return buildResponse(response, 200, "Hello, World!");
+    protected JsonObject buildResponse(Response response, int code, String message) {
+        response.status(code);
+
+        JsonObject root = new JsonObject();
+
+        root.addProperty("status", code);
+        root.addProperty(code >= 200 && code < 400 ? "message" : "reason", message);
+
+        return root;
+    }
+
+    protected JsonObject buildDataResponse(Response response, int code, JsonObject object) {
+        response.status(code);
+
+        JsonObject root = new JsonObject();
+
+        root.addProperty("status", code);
+        root.add("data", object);
+
+        return root;
     }
 }

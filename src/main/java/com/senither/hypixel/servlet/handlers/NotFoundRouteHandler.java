@@ -21,20 +21,14 @@
 
 package com.senither.hypixel.servlet.handlers;
 
-import spark.ModelAndView;
+import com.senither.hypixel.contracts.servlet.SparkRoute;
 import spark.Request;
 import spark.Response;
-import spark.Route;
-import spark.template.velocity.VelocityTemplateEngine;
 
-import java.util.HashMap;
-
-public class NotFoundRouteHandler implements Route {
-
-    private final VelocityTemplateEngine engine = new VelocityTemplateEngine();
+public class NotFoundRouteHandler extends SparkRoute {
 
     @Override
-    public String handle(Request request, Response response) throws Exception {
-        return engine.render(new ModelAndView(new HashMap<>(), "views/errors/404.vm"));
+    public Object handle(Request request, Response response) throws Exception {
+        return buildResponse(response, 404, "Route was not found!");
     }
 }

@@ -19,33 +19,20 @@
  *
  */
 
-package com.senither.hypixel.servlet.handlers;
+package com.senither.hypixel.servlet.filters;
 
 import com.senither.hypixel.servlet.WebServlet;
-import spark.ExceptionHandler;
+import spark.Filter;
 import spark.Request;
 import spark.Response;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-public class SparkExceptionHandler implements ExceptionHandler<Exception> {
+public class HttpFilter implements Filter {
 
     @Override
-    public void handle(Exception exception, Request request, Response response) {
-        WebServlet.log.error(request.requestMethod() + " " + request.pathInfo(), exception);
+    public void handle(Request request, Response response) throws Exception {
+        WebServlet.log.debug(request.requestMethod() + " " + request.pathInfo());
 
-        try (StringWriter writer = new StringWriter()) {
-            try (PrintWriter printer = new PrintWriter(writer)) {
-                exception.printStackTrace(printer);
-
-                response.body(writer.toString());
-                response.type("text/plain");
-                response.status(500);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        response.header("Access-Control-Allow-Origin", "*");
+        response.type("application/json");
     }
 }

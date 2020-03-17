@@ -21,13 +21,13 @@
 
 package com.senither.hypixel.servlet;
 
-import com.senither.hypixel.contracts.servlet.Route;
+import com.senither.hypixel.servlet.filters.HttpFilter;
 import com.senither.hypixel.servlet.handlers.NotFoundRouteHandler;
 import com.senither.hypixel.servlet.handlers.SparkExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Route;
 import spark.Spark;
-import spark.template.velocity.VelocityTemplateEngine;
 
 public class WebServlet {
 
@@ -46,6 +46,7 @@ public class WebServlet {
 
         Spark.port(port);
 
+        Spark.after(new HttpFilter());
         Spark.notFound(new NotFoundRouteHandler());
         Spark.exception(Exception.class, new SparkExceptionHandler());
 
@@ -57,7 +58,7 @@ public class WebServlet {
             initialize();
         }
 
-        log.debug("GET {} has been registered to {}", path, route.getClass().getTypeName());
-        Spark.get(path, route, new VelocityTemplateEngine());
+        log.debug("GET {} has been registered o {}", path, route.getClass().getTypeName());
+        Spark.get(path, route);
     }
 }
