@@ -39,6 +39,10 @@ public class NumberUtil {
         }
     }
 
+    public static int getBetween(int number, int min, int max) {
+        return Math.min(max, Math.max(min, number));
+    }
+
     public static String formatNicely(int value) {
         return niceFormat.format(value);
     }
