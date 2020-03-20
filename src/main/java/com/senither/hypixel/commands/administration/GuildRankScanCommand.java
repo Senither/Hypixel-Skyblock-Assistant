@@ -78,6 +78,14 @@ public class GuildRankScanCommand extends Command {
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
+        if (!app.getConfiguration().getServlet().isEnabled()) {
+            MessageFactory.makeError(event.getMessage(),
+                "The command is disabled globally due to a bot configuration setting being disabled.\n"
+                    + "The web servlet setting must be enabled for this command to work properly."
+            ).setTitle("Command is disabled!").queue();
+            return;
+        }
+
         GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
         if (guildEntry == null) {
             MessageFactory.makeError(event.getMessage(),
