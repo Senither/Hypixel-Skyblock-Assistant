@@ -131,11 +131,11 @@ public class GuildRankScanCommand extends Command {
                 "The scan will take as estimate of :time to be completed.",
                 "You can view the completed scan by [clicking here](:link), or using the ID below.",
                 "",
-                "[:id](:link)"
+                "[:link](:link)"
             )))
                 .setTitle("Guild Scan Queued")
                 .set("id", uuid)
-                .set("link", "http://localhost:1256/report/" + uuid)
+                .set("link", app.getConfiguration().getServlet().generateReportUrl(uuid))
                 .set("time", time.diffForHumans(true))
                 .queue();
         } catch (SQLException e) {

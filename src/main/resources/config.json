@@ -8,6 +8,7 @@
         "database": "skyblock_assistant"
     },
     "servlet": {
+        "app_url": "http://localhost/",
         "enabled": true,
         "port": 1256
     }

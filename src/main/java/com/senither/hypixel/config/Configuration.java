@@ -21,6 +21,8 @@
 
 package com.senither.hypixel.config;
 
+import java.util.UUID;
+
 public class Configuration {
 
     private String discord_token;
@@ -83,8 +85,16 @@ public class Configuration {
 
     public class Servlet {
 
+        private String app_url;
         private boolean enabled;
         private int port;
+
+        public String generateReportUrl(UUID uuid) {
+            if (!app_url.endsWith("/")) {
+                app_url += "/";
+            }
+            return app_url + uuid.toString();
+        }
 
         public boolean isEnabled() {
             return enabled;
