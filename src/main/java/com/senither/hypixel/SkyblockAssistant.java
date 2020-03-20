@@ -41,7 +41,7 @@ import com.senither.hypixel.scheduler.jobs.DrainReportQueueJob;
 import com.senither.hypixel.scheduler.jobs.HypixelRankSynchronizeJob;
 import com.senither.hypixel.scheduler.jobs.RoleAssignmentJob;
 import com.senither.hypixel.servlet.WebServlet;
-import com.senither.hypixel.servlet.routes.HelloRoute;
+import com.senither.hypixel.servlet.routes.GetReportRoute;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -114,7 +114,7 @@ public class SkyblockAssistant {
         if (configuration.getServlet().isEnabled()) {
             log.info("Creating web servlet on port {}", configuration.getServlet().getPort());
             this.servlet = new WebServlet(configuration.getServlet().getPort());
-            servlet.registerGet("hello", new HelloRoute());
+            servlet.registerGet("report/:id", new GetReportRoute(this));
         } else {
             this.servlet = null;
         }
