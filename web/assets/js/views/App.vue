@@ -5,15 +5,22 @@
             :id="id"
             @loaded-report="handleLoadedReport"
         />
+
+        <report
+            v-if="this.stage == this.stages.HAS_REPORT"
+            :report="report"
+        />
     </div>
 </template>
 
 <script>
     import LoadingReport from './LoadingReport';
+    import Report from './Report';
 
     export default {
         components: {
-            LoadingReport
+            LoadingReport,
+            Report
         },
         mounted() {
             this.id = window.location.href.split('/').pop();
@@ -21,16 +28,19 @@
         },
         data() {
             return {
+                report: null,
                 stage: null,
                 stages: {
-                    LOADING_REPORT: 0
+                    LOADING_REPORT: 0,
+                    HAS_REPORT: 1,
                 },
                 id: null,
             };
         },
         methods: {
             handleLoadedReport(event) {
-                console.log(event.report);
+                this.report = event.report;
+                this.stage = this.stages.HAS_REPORT;
             }
         }
     };
