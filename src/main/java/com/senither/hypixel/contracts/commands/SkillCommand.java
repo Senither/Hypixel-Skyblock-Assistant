@@ -21,8 +21,6 @@
 
 package com.senither.hypixel.contracts.commands;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
@@ -30,7 +28,6 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
-import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.IMentionable;
@@ -50,10 +47,6 @@ import java.util.concurrent.TimeoutException;
 public abstract class SkillCommand extends Command {
 
     private static final Logger log = LoggerFactory.getLogger(SkillsCommand.class);
-
-    private static final Cache<Long, String> cache = CacheBuilder.newBuilder()
-        .expireAfterAccess(5, TimeUnit.MINUTES)
-        .build();
 
     private final String type;
 
@@ -179,19 +172,7 @@ public abstract class SkillCommand extends Command {
             }
         }
 
-        if (!(throwable instanceof FriendlyException)) {
-            log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
-        }
-
-        String exceptionMessage = (throwable instanceof FriendlyException)
-            ? throwable.getMessage()
-            : "Something went wrong: " + throwable.getMessage();
-
-        message.editMessage(embedBuilder
-            .setDescription(exceptionMessage)
-            .setColor(MessageType.ERROR.getColor())
-            .build()
-        ).queue();
+        sendExceptionMessage(message, embedBuilder, throwable);
     }
 
     protected JsonObject getProfileMemberFromPlayer(SkyBlockProfileReply profileReply, PlayerReply playerReply) {
@@ -249,31 +230,6 @@ public abstract class SkillCommand extends Command {
         ).queue();
 
         return null;
-    }
-
-    private String getUsernameFromUser(IMentionable user) {
-        String username = cache.getIfPresent(user.getIdLong());
-        if (username != null) {
-            return username;
-        }
-
-        try {
-            Collection result = app.getDatabaseManager().query(
-                "SELECT `username` FROM `uuids` WHERE `discord_id` = ?",
-                user.getIdLong()
-            );
-
-            if (result.isEmpty()) {
-                return null;
-            }
-
-            username = result.first().getString("username");
-            cache.put(user.getIdLong(), username);
-
-            return username;
-        } catch (SQLException e) {
-            return null;
-        }
     }
 
     private void updateUsernameForUuidEntry(UUID uuid, String newUsername) {

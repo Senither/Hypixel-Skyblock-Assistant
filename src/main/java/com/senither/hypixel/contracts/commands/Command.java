@@ -21,10 +21,16 @@
 
 package com.senither.hypixel.contracts.commands;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.IMentionable;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
@@ -33,10 +39,15 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public abstract class Command {
 
     private static final Logger log = LoggerFactory.getLogger(Command.class);
+
+    private static final Cache<Long, String> usernameCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(5, TimeUnit.MINUTES)
+        .build();
 
     protected final SkyblockAssistant app;
     private final boolean verificationRequired;
@@ -72,6 +83,47 @@ public abstract class Command {
 
     protected final boolean isGuildMasterOrOfficerOfServerGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
         return isPartOfGuildCheck(event, guildEntry, true);
+    }
+
+    protected final String getUsernameFromUser(IMentionable user) {
+        String username = usernameCache.getIfPresent(user.getIdLong());
+        if (username != null) {
+            return username;
+        }
+
+        try {
+            Collection result = app.getDatabaseManager().query(
+                "SELECT `username` FROM `uuids` WHERE `discord_id` = ?",
+                user.getIdLong()
+            );
+
+            if (result.isEmpty()) {
+                return null;
+            }
+
+            username = result.first().getString("username");
+            usernameCache.put(user.getIdLong(), username);
+
+            return username;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    protected final void sendExceptionMessage(Message message, EmbedBuilder builder, Throwable throwable) {
+        if (!(throwable instanceof FriendlyException)) {
+            log.error("Failed to get player data by name, error: {}", throwable.getMessage(), throwable);
+        }
+
+        String exceptionMessage = (throwable instanceof FriendlyException)
+            ? throwable.getMessage()
+            : "Something went wrong: " + throwable.getMessage();
+
+        message.editMessage(builder
+            .setDescription(exceptionMessage)
+            .setColor(MessageType.ERROR.getColor())
+            .build()
+        ).queue();
     }
 
     private boolean isPartOfGuildCheck(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, boolean allowOfficers) {
