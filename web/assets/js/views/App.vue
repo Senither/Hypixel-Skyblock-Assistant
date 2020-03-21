@@ -3,6 +3,7 @@
         <loading-report
             v-if="this.stage == this.stages.LOADING_REPORT"
             :id="id"
+            @loaded-report="handleLoadedReport"
         />
     </div>
 </template>
@@ -26,6 +27,11 @@
                 },
                 id: null,
             };
+        },
+        methods: {
+            handleLoadedReport(event) {
+                console.log(event.report);
+            }
         }
     };
 </script>
