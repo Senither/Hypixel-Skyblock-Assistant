@@ -48,7 +48,7 @@ public class GetReportRoute extends SparkRoute {
 
         DataRow report = result.first();
         if (report.getString("data") == null) {
-            return buildResponse(response, 204, "Report is still being generated!");
+            return buildResponse(response, 206, "Report is still being generated!");
         }
 
         JsonObject data = app.getHypixel().getGson().fromJson(
