@@ -61,6 +61,9 @@ public class GetReportRoute extends SparkRoute {
             ));
         }
 
+        data.addProperty("created_at", report.getString("created_at"));
+        data.addProperty("finished_at", report.getString("finished_at"));
+
         return buildDataResponse(response, 200, data);
     }
 }
