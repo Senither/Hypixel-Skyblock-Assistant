@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.contracts.rank.RankRequirementChecker;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.exceptions.NoRankRequirementException;
 import com.senither.hypixel.inventory.Item;
 import com.senither.hypixel.inventory.ItemType;
 import com.senither.hypixel.rank.RankCheckResponse;
@@ -69,6 +70,17 @@ public class ArmorChecker extends RankRequirementChecker {
 
         if (!isInventoryApiEnabled(member)) {
             throw new FriendlyException("Inventory API is disabled, unable to look for armor");
+        }
+
+        boolean hasRequirements = false;
+        for (GuildController.GuildEntry.RankRequirement requirement : guildEntry.getRankRequirements().values()) {
+            if (requirement.getArmorPoints() != Integer.MAX_VALUE && !requirement.getArmorItems().isEmpty()) {
+                hasRequirements = true;
+            }
+        }
+
+        if (!hasRequirements) {
+            throw new NoRankRequirementException("armor");
         }
 
         try {

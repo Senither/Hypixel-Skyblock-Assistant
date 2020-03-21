@@ -21,9 +21,17 @@
 
 package com.senither.hypixel.exceptions;
 
+import com.senither.hypixel.rank.RankCheckResponse;
+
 public class NoRankRequirementException extends FriendlyException {
+
+    private RankCheckResponse rankResponse;
 
     public NoRankRequirementException(String type) {
         super(String.format("No rank requirements are setup for %s", type));
+    }
+
+    public void setRankResponse(RankCheckResponse rankResponse) {
+        this.rankResponse = rankResponse;
     }
 }

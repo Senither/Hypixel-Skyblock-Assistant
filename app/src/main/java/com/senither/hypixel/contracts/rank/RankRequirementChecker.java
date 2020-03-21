@@ -43,9 +43,16 @@ public abstract class RankRequirementChecker {
     }
 
     public RankCheckResponse getRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
-        checkForRankRequirementsSetup(guildEntry, type);
+        RankCheckResponse response = handleGetRankForUser(guildEntry, guildReply, profileReply, playerUUID);
+        try {
+            checkForRankRequirementsSetup(guildEntry, type);
 
-        return handleGetRankForUser(guildEntry, guildReply, profileReply, playerUUID);
+            return response;
+        } catch (NoRankRequirementException e) {
+            e.setRankResponse(response);
+
+            throw e;
+        }
     }
 
     public abstract String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement);
