@@ -45,30 +45,26 @@
 
             <h3 class="title is-3 has-text-centered">Players</h3>
 
-            <article class="message" v-for="entry of playerReports" :key="entry.uuid">
-                <div class="message-header" v-on:click="toggleCollaps(entry)">
-                    <div class="columns is-gapless" style="width: 100%">
-                        <div class="column has-text-left">
-                            [<span class="rank">Some Rank</span>]
-                            {{ entry.username }}
-                        </div>
-                        <div class="column has-text-right uuid">{{ entry.uuid }}</div>
-                    </div>
-                </div>
-                <div class="message-body" v-if="!entry.collaps">
-                    <pre style="color:#000;border-radius: 4px">{{ entry }}</pre>
-                </div>
-            </article>
+            <player-report
+                v-for="entry of playerReports"
+                :key="entry.uuid"
+                :player="entry"
+                :guild="report.guildReply.guild"
+            />
         </div>
     </div>
 </template>
 
 <script>
     import moment from 'moment';
+    import PlayerReport from '../components/PlayerReport';
 
     export default {
         props: {
             report: Object
+        },
+        components: {
+            PlayerReport
         },
         mounted() {
             this.playerReports = this.report.playerReports.map(entry => {
