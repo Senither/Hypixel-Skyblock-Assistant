@@ -12,15 +12,17 @@
     "devDependencies": {
         "axios": "^0.18.1",
         "bulma": "^0.7.4",
+        "bulmaswatch": "^0.8.0",
         "cross-env": "^5.1",
         "laravel-mix": "^4.0.7",
+        "moment": "^2.24.0",
         "resolve-url-loader": "^2.3.1",
         "sass": "^1.17.0",
         "sass-loader": "^7.1.0",
         "vue": "^2.5.17",
-        "vue-template-compiler": "^2.6.6",
-        "bulmaswatch": "^0.8.0",
-        "moment": "^2.24.0"
+        "vue-template-compiler": "^2.6.6"
     },
-    "dependencies": {}
+    "dependencies": {
+        "@creativebulma/bulma-tooltip": "^1.0.1"
+    }
 }

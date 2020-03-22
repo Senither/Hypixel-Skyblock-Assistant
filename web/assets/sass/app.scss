@@ -4,12 +4,13 @@
 // Variables
 @import 'variables';
 
-// Bulma
+// Bulma + Bulmaswatch Theme
 @import '~bulmaswatch/darkly/_variables';
 @import '~bulma/bulma';
-
-// Bulmaswatch Theme
 @import '~bulmaswatch/darkly/_overrides';
+
+// Bulma Plugins
+@import '@creativebulma/bulma-tooltip';
 
 // Custom Styles
 @import 'pages/report';

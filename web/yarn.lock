@@ -762,6 +762,11 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
+"@creativebulma/bulma-tooltip@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@creativebulma/bulma-tooltip/-/bulma-tooltip-1.0.1.tgz#42172e19bbad3c2631f7f7b6a8f5f080737a8aaa"
+  integrity sha512-isq1Jwl+WOKBK+JFU3770fw59J/qAU8h14f4/pKuorKVHGMXN8gGIG9rop3jm8RfF+CDKGAKnoRcolFMC6iPeA==
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"

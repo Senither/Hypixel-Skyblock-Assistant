@@ -24,19 +24,19 @@
                     </div>
                 </div>
                 <div class="level-item has-text-centered">
-                    <div>
+                    <div :data-tooltip="`${guildAverages.slayer.users} users in the guild has a combined ${guildAverages.slayer.total} slayer XP`">
                         <p class="heading">Average Slayer</p>
                         <p class="title">{{ guildAverages.slayer.value }}</p>
                     </div>
                 </div>
                 <div class="level-item has-text-centered">
-                    <div>
+                    <div :data-tooltip="`${guildAverages.coins.users} users in the guild has a combined ${guildAverages.coins.total} coins`">
                         <p class="heading">Average Coins</p>
                         <p class="title">{{ guildAverages.coins.value }}</p>
                     </div>
                 </div>
                 <div class="level-item has-text-centered">
-                    <div>
+                    <div :data-tooltip="`${guildAverages.fairy.users} users in the guild has a combined ${guildAverages.fairy.total} fairy souls`">
                         <p class="heading">Average Fair Souls</p>
                         <p class="title">{{ guildAverages.fairy.value }}</p>
                     </div>
@@ -123,6 +123,10 @@
                         );
 
                         if (playerReportType == null) {
+                            continue;
+                        }
+
+                        if (playerReportType.metric.amount < 1) {
                             continue;
                         }
 
