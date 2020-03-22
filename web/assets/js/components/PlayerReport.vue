@@ -10,16 +10,26 @@
             </div>
         </div>
         <div class="message-body" v-if="!player.collaps">
-            <pre style="color:#000;border-radius: 4px">{{ player }}</pre>
+            <div v-for="type of Object.keys(player.checks)">
+                <strong>{{ type }}</strong>
+                <pre style="color:#000;border-radius: 4px">{{ getPlayerReportEntity(player.checks[type]) }}</pre>
+            </div>
         </div>
     </article>
 </template>
+
+<style lang="scss">
+    .message-header {
+        cursor: pointer;
+    }
+</style>
 
 <script>
     export default {
         props: {
             player: Object,
             guild: Object,
+            getPlayerReportEntity: Function,
         },
         methods: {
             toggleCollaps(item) {

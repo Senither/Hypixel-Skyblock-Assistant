@@ -50,6 +50,7 @@
                 :key="entry.uuid"
                 :player="entry"
                 :guild="report.guildReply.guild"
+                :getPlayerReportEntity="getResponseFromPlayerReportEntity"
             />
         </div>
     </div>
