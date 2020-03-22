@@ -20,25 +20,25 @@
                 <div class="level-item has-text-centered">
                     <div>
                         <p class="heading">Average Skill Level</p>
-                        <p class="title">3,456</p>
+                        <p class="title">{{ guildAverages.skill.value }}</p>
                     </div>
                 </div>
                 <div class="level-item has-text-centered">
                     <div>
                         <p class="heading">Average Slayer</p>
-                        <p class="title">123</p>
+                        <p class="title">{{ guildAverages.slayer.value }}</p>
                     </div>
                 </div>
                 <div class="level-item has-text-centered">
                     <div>
                         <p class="heading">Average Coins</p>
-                        <p class="title">456K</p>
+                        <p class="title">{{ guildAverages.coins.value }}</p>
                     </div>
                 </div>
                 <div class="level-item has-text-centered">
                     <div>
                         <p class="heading">Average Fair Souls</p>
-                        <p class="title">789</p>
+                        <p class="title">{{ guildAverages.fairy.value }}</p>
                     </div>
                 </div>
             </nav>
@@ -85,6 +85,16 @@
             toggleCollaps(item) {
                 item.collaps = !item.collaps;
                 this.$forceUpdate();
+            },
+            getResponseFromPlayerReportEntity(reportEntity) {
+                if (! reportEntity.metric.hasOwnProperty('exception')) {
+                    return reportEntity;
+                }
+
+                if (! reportEntity.metric.exception.hasOwnProperty('rankResponse')) {
+                    return null;
+                }
+                return reportEntity.metric.exception.rankResponse;
             }
         },
         computed: {
@@ -98,6 +108,38 @@
                     )
                 ).humanize();
             },
+            guildAverages() {
+                let averages = {
+                    skill: { value: 0, users: 0, type: 'AVERAGE_SKILLS' },
+                    slayer: { value: 0, users: 0, type: 'SLAYER' },
+                    coins: { value: 0, users: 0, type: 'BANK' },
+                    fairy: { value: 0, users: 0, type: 'FAIRY_SOULS' },
+                };
+
+                for (let player of this.report.playerReports) {
+                    for (let typeId of Object.keys(averages)) {
+                        let playerReportType = this.getResponseFromPlayerReportEntity(
+                            player.checks[averages[typeId].type]
+                        );
+
+                        if (playerReportType == null) {
+                            continue;
+                        }
+
+                        averages[typeId].users += 1;
+                        averages[typeId].value += playerReportType.metric.amount;
+                    }
+                }
+
+                for (let typeId of Object.keys(averages)) {
+                    averages[typeId].total = this.formatNumber(averages[typeId].value);
+                    averages[typeId].value = this.formatNumber(
+                        (averages[typeId].value / averages[typeId].users).toFixed(2)
+                    );
+                }
+
+                return averages;
+            }
         }
     }
 </script>
