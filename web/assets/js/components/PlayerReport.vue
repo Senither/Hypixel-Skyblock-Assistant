@@ -10,9 +10,80 @@
             </div>
         </div>
         <div class="message-body" v-if="!player.collaps">
-            <div v-for="type of Object.keys(player.checks)">
-                <strong>{{ type }}</strong>
-                <pre style="color:#000;border-radius: 4px">{{ getPlayerReportEntity(player.checks[type]) }}</pre>
+            <div class="columns">
+                <div class="column">
+                    <h4 class="subtitle is-4">Average Skills</h4>
+                    <p v-if="getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS) != null">
+                        {{ formatNumber(getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS).metric.amount.toFixed(2)) }}
+                    </p>
+                    <article v-else class="message is-danger">
+                        <div class="message-header">
+                            Skills API is disabled!
+                        </div>
+                    </article>
+                </div>
+                <div class="column">
+                    <h4 class="subtitle is-4">Bank</h4>
+                    <p v-if="getPlayerReportEntity(this.player.checks.BANK) != null">
+                        {{ formatNumber(getPlayerReportEntity(this.player.checks.BANK).metric.amount) }} total coins
+                    </p>
+                    <article v-else class="message is-danger">
+                        <div class="message-header">
+                            The player does not have their Bank API enabled!
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="columns">
+                <div class="column">
+                    <h4 class="subtitle is-4">Slayer XP</h4>
+                    <p v-if="getPlayerReportEntity(this.player.checks.SLAYER) != null">
+                        {{ formatNumber(getPlayerReportEntity(this.player.checks.SLAYER).metric.amount) }} total Slayer XP
+                    </p>
+                    <article v-else class="message is-danger">
+                        <div class="message-header">
+                            The player does not have any slayer XP!
+                        </div>
+                    </article>
+                </div>
+                <div class="column">
+                    <h4 class="subtitle is-4">Fairy Souls</h4>
+                    <p v-if="getPlayerReportEntity(this.player.checks.FAIRY_SOULS) != null">
+                        {{ getPlayerReportEntity(this.player.checks.FAIRY_SOULS).metric.amount }} Fairy Souls
+                    </p>
+                    <article v-else class="message is-danger">
+                        <div class="message-header">
+                            The player have not collected any fairy souls yet!
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <div class="columns">
+                <div class="column">
+                    <h4 class="subtitle is-4">Talismans</h4>
+                    <p v-if="getPlayerReportEntity(this.player.checks.TALISMANS) != null">
+                        {{ getPlayerReportEntity(this.player.checks.TALISMANS).metric.legendaries }} Legendaries
+                        & {{ getPlayerReportEntity(this.player.checks.TALISMANS).metric.epics }} Epic talismans.
+                    </p>
+                    <article v-else class="message is-danger">
+                        <div class="message-header">
+                            Inventory API is disabled!
+                        </div>
+                    </article>
+                </div>
+                <div class="column">
+                    <h4 class="subtitle is-4">Power Orb</h4>
+                    <p v-if="getPlayerReportEntity(this.player.checks.POWER_ORBS) != null">
+                        {{ getHumanizedPowerOrbName(getPlayerReportEntity(this.player.checks.POWER_ORBS).metric.item) }}
+                    </p>
+                    <article v-else class="message is-danger">
+                        <div class="message-header">
+                            Inventory API is disabled!
+                        </div>
+                    </article>
+                </div>
             </div>
         </div>
     </article>
@@ -43,6 +114,17 @@
                     }
                 }
                 return 'Unknown';
+            },
+            getHumanizedPowerOrbName(orb) {
+                switch (orb) {
+                    case 'OVERFLUX':
+                        return 'Overflux';
+                    case 'MANA_FLUX':
+                        return 'Mana Flux';
+                    case 'RADIANT_ORB':
+                        return 'Radiant Orb';
+                }
+                return orb;
             }
         }
     }
