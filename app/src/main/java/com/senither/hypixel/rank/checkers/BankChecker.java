@@ -55,12 +55,14 @@ public class BankChecker extends RankRequirementChecker {
     public RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID) {
         JsonObject member = getProfileMemberFromUUID(profileReply, playerUUID);
 
-        int totalCoins = member.get("coin_purse").getAsInt();
+        int bank = 0;
+        int purse = member.get("coin_purse").getAsInt();
 
         if (profileReply.getProfile().has("banking")) {
-            totalCoins += profileReply.getProfile().get("banking").getAsJsonObject().get("balance").getAsInt();
+            bank = profileReply.getProfile().get("banking").getAsJsonObject().get("balance").getAsInt();
         }
 
+        int totalCoins = bank + purse;
         for (GuildReply.Guild.Rank rank : getSortedRanksFromGuild(guildReply)) {
             if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
                 continue;
@@ -68,15 +70,17 @@ public class BankChecker extends RankRequirementChecker {
 
             GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
             if (requirement.getBankCoins() <= totalCoins) {
-                return createResponse(rank, totalCoins);
+                return createResponse(rank, bank, purse);
             }
         }
-        return createResponse(null, totalCoins);
+        return createResponse(null, bank, purse);
     }
 
-    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, int amount) {
+    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, int bank, int purse) {
         return new RankCheckResponse(rank, new HashMap<String, Object>() {{
-            put("amount", amount);
+            put("amount", bank + purse);
+            put("bank", bank);
+            put("purse", purse);
         }});
     }
 }

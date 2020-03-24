@@ -152,6 +152,21 @@ public class SkillsResponse extends StatisticsResponse {
         return combinedLevels / 7D;
     }
 
+    public double getAverageSkillLevelWithoutPorgress() {
+        double combinedLevels = Math.floor(getMining().getLevel()) +
+            Math.floor(getForaging().getLevel()) +
+            Math.floor(getEnchanting().getLevel()) +
+            Math.floor(getFarming().getLevel()) +
+            Math.floor(getCombat().getLevel()) +
+            Math.floor(getFishing().getLevel()) +
+            Math.floor(getAlchemy().getLevel());
+
+        if (combinedLevels <= 0) {
+            return 0D;
+        }
+        return combinedLevels / 7D;
+    }
+
     public class SkillStat {
 
         private final double level;

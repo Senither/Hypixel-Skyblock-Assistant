@@ -143,12 +143,14 @@
                             continue;
                         }
 
-                        if (playerReportType.metric.amount < 1) {
+
+                        let property = typeId == 'coins' ? 'bank' : 'amount';
+                        if (playerReportType.metric[property] < 1) {
                             continue;
                         }
 
                         averages[typeId].users += 1;
-                        averages[typeId].value += playerReportType.metric.amount;
+                        averages[typeId].value += playerReportType.metric[property];
                     }
                 }
 

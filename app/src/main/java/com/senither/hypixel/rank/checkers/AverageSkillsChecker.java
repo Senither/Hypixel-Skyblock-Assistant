@@ -70,15 +70,16 @@ public class AverageSkillsChecker extends RankRequirementChecker {
 
             GuildController.GuildEntry.RankRequirement requirement = guildEntry.getRankRequirements().get(rank.getName());
             if (requirement.getAverageSkills() <= Math.round(averageSkillLevel)) {
-                return createResponse(rank, averageSkillLevel);
+                return createResponse(rank, averageSkillLevel, response.getAverageSkillLevelWithoutPorgress());
             }
         }
-        return createResponse(null, averageSkillLevel);
+        return createResponse(null, averageSkillLevel, response.getAverageSkillLevelWithoutPorgress());
     }
 
-    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, double amount) {
+    private RankCheckResponse createResponse(GuildReply.Guild.Rank rank, double amount, double withoutProgress) {
         return new RankCheckResponse(rank, new HashMap<String, Object>() {{
             put("amount", amount);
+            put("amountWithoutProgress", withoutProgress);
         }});
     }
 }

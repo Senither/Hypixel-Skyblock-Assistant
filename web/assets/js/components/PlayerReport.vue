@@ -14,7 +14,7 @@
                 <div class="column">
                     <h4 class="subtitle is-4">Average Skills</h4>
                     <p v-if="getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS) != null">
-                        {{ formatNumber(getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS).metric.amount.toFixed(2)) }}
+                        {{ formatNumber(getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS).metric.amount.toFixed(2)) }} with level progress, and {{ formatNumber(getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS).metric.amountWithoutProgress.toFixed(2)) }} without level progress.
                     </p>
                     <article v-else class="message is-danger">
                         <div class="message-header">
@@ -23,13 +23,15 @@
                     </article>
                 </div>
                 <div class="column">
-                    <h4 class="subtitle is-4">Bank</h4>
-                    <p v-if="getPlayerReportEntity(this.player.checks.BANK) != null">
-                        {{ formatNumber(getPlayerReportEntity(this.player.checks.BANK).metric.amount) }} total coins
+                    <h4 class="subtitle is-4">Bank & Purse</h4>
+                    <p v-if="getPlayerReportEntity(this.player.checks.BANK) != null && getPlayerReportEntity(this.player.checks.BANK).metric.bank > 1">
+                        {{ formatNumber(getPlayerReportEntity(this.player.checks.BANK).metric.amount) }} total coins,
+                        with {{ formatNumber(getPlayerReportEntity(this.player.checks.BANK).metric.bank) }} in the bank,
+                        and {{ formatNumber(getPlayerReportEntity(this.player.checks.BANK).metric.purse) }} in their purse.
                     </p>
                     <article v-else class="message is-danger">
                         <div class="message-header">
-                            The player does not have their Bank API enabled!
+                            Bank API is disabled!
                         </div>
                     </article>
                 </div>
