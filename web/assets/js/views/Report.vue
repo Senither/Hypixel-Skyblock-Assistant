@@ -37,7 +37,7 @@
                 </div>
                 <div class="level-item has-text-centered">
                     <div :data-tooltip="`${guildAverages.fairy.users} users in the guild has a combined ${guildAverages.fairy.total} fairy souls`">
-                        <p class="heading">Average Fair Souls</p>
+                        <p class="heading">Average Fairy Souls</p>
                         <p class="title">{{ guildAverages.fairy.value }}</p>
                     </div>
                 </div>
