@@ -36,7 +36,15 @@
             </div>
             <div class="columns">
                 <div class="column">
-                    <h4 class="subtitle is-4">Average Skills</h4>
+                    <h4 class="subtitle is-4">
+                        Average Skills
+                        <span
+                            v-if="getRankFromPlayerReportEntity(this.player.checks.AVERAGE_SKILLS) != null"
+                            class="individual-entry-rank"
+                        >
+                            {{ getRankFromPlayerReportEntity(this.player.checks.AVERAGE_SKILLS) }}
+                        </span>
+                    </h4>
                     <p v-if="getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS) != null">
                         {{ formatNumber(getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS).metric.amount.toFixed(2)) }} with level progress, and {{ formatNumber(getPlayerReportEntity(this.player.checks.AVERAGE_SKILLS).metric.amountWithoutProgress.toFixed(2)) }} without level progress.
                     </p>
@@ -47,7 +55,15 @@
                     </article>
                 </div>
                 <div class="column">
-                    <h4 class="subtitle is-4">Bank & Purse</h4>
+                    <h4 class="subtitle is-4">
+                        Bank & Purse
+                        <span
+                            v-if="getRankFromPlayerReportEntity(this.player.checks.BANK) != null"
+                            class="individual-entry-rank"
+                        >
+                            {{ getRankFromPlayerReportEntity(this.player.checks.BANK) }}
+                        </span>
+                    </h4>
                     <p v-if="getPlayerReportEntity(this.player.checks.BANK) != null && getPlayerReportEntity(this.player.checks.BANK).metric.bank > 1">
                         {{ formatNumber(getPlayerReportEntity(this.player.checks.BANK).metric.amount) }} total coins,
                         with {{ formatNumber(getPlayerReportEntity(this.player.checks.BANK).metric.bank) }} in the bank,
@@ -63,7 +79,15 @@
 
             <div class="columns">
                 <div class="column">
-                    <h4 class="subtitle is-4">Slayer XP</h4>
+                    <h4 class="subtitle is-4">
+                        Slayer XP
+                        <span
+                            v-if="getRankFromPlayerReportEntity(this.player.checks.SLAYER) != null"
+                            class="individual-entry-rank"
+                        >
+                            {{ getRankFromPlayerReportEntity(this.player.checks.SLAYER) }}
+                        </span>
+                    </h4>
                     <p v-if="getPlayerReportEntity(this.player.checks.SLAYER) != null">
                         {{ formatNumber(getPlayerReportEntity(this.player.checks.SLAYER).metric.amount) }} total Slayer XP
                     </p>
@@ -74,7 +98,15 @@
                     </article>
                 </div>
                 <div class="column">
-                    <h4 class="subtitle is-4">Fairy Souls</h4>
+                    <h4 class="subtitle is-4">
+                        Fairy Souls
+                        <span
+                            v-if="getRankFromPlayerReportEntity(this.player.checks.FAIRY_SOULS) != null"
+                            class="individual-entry-rank"
+                        >
+                            {{ getRankFromPlayerReportEntity(this.player.checks.FAIRY_SOULS) }}
+                        </span>
+                    </h4>
                     <p v-if="getPlayerReportEntity(this.player.checks.FAIRY_SOULS) != null">
                         {{ getPlayerReportEntity(this.player.checks.FAIRY_SOULS).metric.amount }} Fairy Souls
                     </p>
@@ -88,7 +120,15 @@
 
             <div class="columns">
                 <div class="column">
-                    <h4 class="subtitle is-4">Talismans</h4>
+                    <h4 class="subtitle is-4">
+                        Talismans
+                        <span
+                            v-if="getRankFromPlayerReportEntity(this.player.checks.TALISMANS) != null"
+                            class="individual-entry-rank"
+                        >
+                            {{ getRankFromPlayerReportEntity(this.player.checks.TALISMANS) }}
+                        </span>
+                    </h4>
                     <p v-if="getPlayerReportEntity(this.player.checks.TALISMANS) != null">
                         {{ getPlayerReportEntity(this.player.checks.TALISMANS).metric.legendaries }} Legendaries
                         & {{ getPlayerReportEntity(this.player.checks.TALISMANS).metric.epics }} Epic talismans.
@@ -100,7 +140,15 @@
                     </article>
                 </div>
                 <div class="column">
-                    <h4 class="subtitle is-4">Power Orb</h4>
+                    <h4 class="subtitle is-4">
+                        Power Orb
+                        <span
+                            v-if="getRankFromPlayerReportEntity(this.player.checks.POWER_ORBS) != null"
+                            class="individual-entry-rank"
+                        >
+                            {{ getRankFromPlayerReportEntity(this.player.checks.POWER_ORBS) }}
+                        </span>
+                    </h4>
                     <p v-if="getPlayerReportEntity(this.player.checks.POWER_ORBS) != null">
                         {{ getHumanizedPowerOrbName(getPlayerReportEntity(this.player.checks.POWER_ORBS).metric.item) }}
                     </p>
@@ -118,6 +166,12 @@
 <style lang="scss">
     .rank-status {
         padding-right: 8px;
+    }
+    .individual-entry-rank {
+        margin-left: 8px;
+        padding-left: 8px;
+        border-left: solid 1px;
+        font-size: 1rem;
     }
     .message-header {
         cursor: pointer;
@@ -147,6 +201,13 @@
                         return 'Radiant Orb';
                 }
                 return orb;
+            },
+            getRankFromPlayerReportEntity(entry) {
+                let playerReport = this.getPlayerReportEntity(entry);
+                if (playerReport == null || !playerReport.hasOwnProperty('rank')) {
+                    return null;
+                }
+                return playerReport.rank.name;
             },
             getGuildRankFromName(name) {
                 if (name == 'Guild Master') {
