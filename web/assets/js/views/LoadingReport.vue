@@ -90,7 +90,7 @@
                 }).catch(error => {
                     console.error(error);
 
-                    this.stage = error.response.status == 404
+                    this.stage = this.isNotFoundError(error)
                         ? this.stages.NOT_FOUND
                         : this.stage.HAS_ERROR;
 
@@ -107,6 +107,13 @@
                         this.loadReport();
                     }
                 }, 1000);
+            },
+            isNotFoundError(error) {
+                return error != null
+                    && error.hasOwnProperty('response')
+                    && error.response != undefined
+                    && error.response.hasOwnProperty('status')
+                    && error.response.status == 404;
             },
             isUuid(uuid) {
                 return uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i) != null;
