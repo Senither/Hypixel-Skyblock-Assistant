@@ -28,6 +28,7 @@ import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.UUID;
 
@@ -36,21 +37,48 @@ public class PlayerReport {
     private final String username;
     private final UUID uuid;
     private final LinkedHashMap<RankRequirementType, RankCheckResponse> checks;
+    private final GuildReply.Guild.Rank rank;
 
     PlayerReport(String username, UUID uuid, GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply) {
         this.username = username;
         this.uuid = uuid;
 
         this.checks = new LinkedHashMap<>();
+        HashSet<GuildReply.Guild.Rank> rankQualifiers = new HashSet<>();
         for (RankRequirementType type : RankRequirementType.values()) {
             try {
-                this.checks.put(type, type.getChecker().getRankForUser(guildEntry, guildReply, profileReply, uuid));
+                RankCheckResponse response = type.getChecker().getRankForUser(guildEntry, guildReply, profileReply, uuid);
+
+                this.checks.put(type, response);
+
+                if (response == null || response.getRank() == null) {
+                    rankQualifiers.add(null);
+                    continue;
+                }
+                rankQualifiers.add(response.getRank());
             } catch (Exception e) {
                 this.checks.put(type, new RankCheckResponse(null, new HashMap<String, Object>() {{
                     put("exception", e);
                 }}));
             }
         }
+
+        GuildReply.Guild.Rank rankQualifier = guildReply.getGuild().getRanks().stream()
+            .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())
+            .findFirst().get();
+
+        for (GuildReply.Guild.Rank qualifier : rankQualifiers) {
+            if (qualifier == null) {
+                rankQualifier = null;
+                break;
+            }
+
+            if (qualifier.getPriority() < rankQualifier.getPriority()) {
+                rankQualifier = qualifier;
+            }
+        }
+
+        this.rank = rankQualifier;
     }
 
     public String getUsername() {
@@ -63,5 +91,9 @@ public class PlayerReport {
 
     public LinkedHashMap<RankRequirementType, RankCheckResponse> getChecks() {
         return checks;
+    }
+
+    public GuildReply.Guild.Rank getRank() {
+        return rank;
     }
 }

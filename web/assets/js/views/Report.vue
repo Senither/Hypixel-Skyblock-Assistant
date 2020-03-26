@@ -50,6 +50,7 @@
                 :key="entry.uuid"
                 :player="entry"
                 :guild="report.guildReply.guild"
+                :requirements="report.guildEntry.rankRequirements"
                 :getPlayerReportEntity="getResponseFromPlayerReportEntity"
             />
         </div>
@@ -87,7 +88,7 @@
                     return a.username > b.username ? 1 : -1;
                 }).forEach(player => {
                     player.collaps = true;
-                    player.rank = rank;
+                    player.currentRank = rank;
 
                     this.playerReports.push(player);
                 });
