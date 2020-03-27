@@ -26,8 +26,14 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.servlet.SparkRoute;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
+import com.senither.hypixel.reports.Report;
+import com.senither.hypixel.reports.ReportService;
+import com.senither.hypixel.reports.UnfinishedPlayerReport;
 import spark.Request;
 import spark.Response;
+
+import java.util.HashSet;
+import java.util.Map;
 
 public class GetReportRoute extends SparkRoute {
 
@@ -48,7 +54,19 @@ public class GetReportRoute extends SparkRoute {
 
         DataRow report = result.first();
         if (report.getString("data") == null) {
-            return buildResponse(response, 206, "Report is still being generated!");
+            int finished = 0, unfinished = 0;
+            for (Map.Entry<Report, HashSet<UnfinishedPlayerReport>> entry : ReportService.getPlayerQueue().entrySet()) {
+                if (entry.getKey().getId().toString().equals(reportId)) {
+                    unfinished = entry.getValue().size();
+                    finished = entry.getKey().getPlayerReports().size();
+                }
+            }
+
+            JsonObject state = new JsonObject();
+            state.addProperty("completed", finished);
+            state.addProperty("pending", unfinished);
+
+            return buildResponse(response, 206, "Report is still being generated!", state);
         }
 
         JsonObject data = app.getHypixel().getGson().fromJson(

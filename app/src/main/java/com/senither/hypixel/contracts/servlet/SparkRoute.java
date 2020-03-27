@@ -28,12 +28,20 @@ import spark.Route;
 public abstract class SparkRoute implements Route {
 
     protected JsonObject buildResponse(Response response, int code, String message) {
+        return buildResponse(response, code, message, null);
+    }
+
+    protected JsonObject buildResponse(Response response, int code, String message, JsonObject data) {
         response.status(code);
 
         JsonObject root = new JsonObject();
 
         root.addProperty("status", code);
         root.addProperty(code >= 200 && code < 400 ? "message" : "reason", message);
+
+        if (data != null) {
+            root.add("data", data);
+        }
 
         return root;
     }
