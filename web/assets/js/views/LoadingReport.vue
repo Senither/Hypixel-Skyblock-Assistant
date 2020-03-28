@@ -131,7 +131,7 @@
         computed: {
             pendingTimeLeft() {
                 return moment
-                    .duration(this.reportStage.pending * 5, 'seconds')
+                    .duration(this.reportStage.pending * 10, 'seconds')
                     .humanize();
             }
         }
