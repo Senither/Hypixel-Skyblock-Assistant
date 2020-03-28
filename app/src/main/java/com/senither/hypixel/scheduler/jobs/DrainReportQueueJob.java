@@ -32,7 +32,6 @@ import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class DrainReportQueueJob extends Job {
@@ -68,25 +67,35 @@ public class DrainReportQueueJob extends Job {
                 return;
             }
 
-            UnfinishedPlayerReport unfinishedPlayerReport = iterator.next();
+            while (iterator.hasNext()) {
+                boolean wasLoadedFromCache = loadPlayerForReport(entry.getKey(), iterator.next());
 
-            unfinishedPlayerReport.setUsername(
-                app.getHypixel().getUsernameFromUuid(unfinishedPlayerReport.getUuid())
-            );
+                iterator.remove();
 
-            SkyBlockProfileReply profileReply = app.getHypixel().getSelectedSkyBlockProfileFromUsername(unfinishedPlayerReport.getUsername())
-                .get(5, TimeUnit.SECONDS);
-
-            String stringifiedPlayerUUID = unfinishedPlayerReport.getUuid().toString().replace("-", "");
-            profileReply.getProfile().get("members").getAsJsonObject().keySet()
-                .removeIf(memberUUID -> !memberUUID.equals(stringifiedPlayerUUID));
-
-            UUID uuidFromName = app.getHypixel().getUUIDFromName(unfinishedPlayerReport.getUsername());
-
-            iterator.remove();
-            entry.getKey().createPlayerReport(unfinishedPlayerReport, uuidFromName, profileReply);
+                if (!wasLoadedFromCache) {
+                    break;
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean loadPlayerForReport(Report report, UnfinishedPlayerReport unfinishedPlayerReport) throws Exception {
+        unfinishedPlayerReport.setUsername(
+            app.getHypixel().getUsernameFromUuid(unfinishedPlayerReport.getUuid())
+        );
+
+        SkyBlockProfileReply profileReply = app.getHypixel().getSelectedSkyBlockProfileFromUsername(unfinishedPlayerReport.getUsername())
+            .get(5, TimeUnit.SECONDS);
+
+        String stringifiedPlayerUUID = unfinishedPlayerReport.getUuid().toString().replace("-", "");
+        profileReply.getProfile().get("members").getAsJsonObject().keySet()
+            .removeIf(memberUUID -> !memberUUID.equals(stringifiedPlayerUUID));
+
+        report.createPlayerReport(unfinishedPlayerReport, profileReply);
+
+        return profileReply.getProfile().has("isFromCache")
+            && profileReply.getProfile().get("isFromCache").getAsBoolean();
     }
 }

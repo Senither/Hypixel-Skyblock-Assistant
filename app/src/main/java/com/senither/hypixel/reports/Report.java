@@ -43,8 +43,12 @@ public class Report {
         this.guildReply = guildReply;
     }
 
-    public void createPlayerReport(UnfinishedPlayerReport unfinishedPlayerReport, UUID uuid, SkyBlockProfileReply profileReply) {
-        playerReports.add(new PlayerReport(unfinishedPlayerReport.getUsername(), uuid, guildEntry, guildReply, profileReply));
+    public void createPlayerReport(UnfinishedPlayerReport unfinishedPlayerReport, SkyBlockProfileReply profileReply) {
+        playerReports.add(new PlayerReport(
+            unfinishedPlayerReport.getUsername(),
+            unfinishedPlayerReport.getUuid(),
+            guildEntry, guildReply, profileReply
+        ));
     }
 
     public UUID getId() {

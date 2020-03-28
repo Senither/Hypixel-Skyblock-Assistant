@@ -267,6 +267,8 @@ public class Hypixel {
         if (cachedSkyBlockProfile != null && cachedSkyBlockProfile instanceof SkyBlockProfileReply) {
             log.debug("Found SkyBlock profile {} using the in-memory cache", name);
 
+            ((SkyBlockProfileReply) cachedSkyBlockProfile).getProfile().addProperty("isFromCache", true);
+
             future.complete((SkyBlockProfileReply) cachedSkyBlockProfile);
             return future;
         }
@@ -281,6 +283,8 @@ public class Hypixel {
                     SkyBlockProfileReply skyblockProfile = gson.fromJson(result.get(0).getString("data"), SkyBlockProfileReply.class);
                     if (skyblockProfile != null && skyblockProfile.getProfile() != null) {
                         log.debug("Found SkyBlock profile for {} using the database cache", name);
+
+                        skyblockProfile.getProfile().addProperty("isFromCache", true);
 
                         replyCache.put(cacheKey, skyblockProfile);
                         future.complete(skyblockProfile);
@@ -499,6 +503,6 @@ public class Hypixel {
     }
 
     private long getLastSaveFromMember(JsonObject object) {
-        return object.has("last_save") ? object.get("last_save").getAsLong() : Long.MIN_VALUE;
+        return object != null && object.has("last_save") ? object.get("last_save").getAsLong() : Long.MIN_VALUE;
     }
 }
