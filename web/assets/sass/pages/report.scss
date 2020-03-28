@@ -5,6 +5,7 @@
         border-radius: 5px
     }
 
-    & .rank { color: $grey; }
-    & .uuid { color: $grey; }
+    & .rank, & .uuid, & .profile-name {
+        color: $grey;
+    }
 }

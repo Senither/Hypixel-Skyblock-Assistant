@@ -22,7 +22,9 @@
                     [<span class="rank">{{ currentRank.name }}</span>]
                     {{ player.username }}
                 </div>
-                <div class="column has-text-right uuid">{{ player.uuid }}</div>
+                <div class="column has-text-right uuid">
+                    {{ player.uuid }}
+                </div>
             </div>
         </div>
         <div class="message-body" v-if="!player.collaps">
@@ -32,6 +34,10 @@
                 </div>
                 <div class="column" v-else>
                     <strong>{{ player.username }}</strong> meets the rank requirements for <strong>{{ satisfiedRank.name }}</strong>!
+                </div>
+                <div class="column is-one-third profile-name has-text-right">
+                    Loaded from the <strong>{{ player.profileName }}</strong> profile.
+                    <br><a target="blank" :href="`https://sky.lea.moe/stats/${this.player.username}/${this.player.profileName}`">View profile on Sky.lea.moe</a>
                 </div>
             </div>
             <div class="columns">

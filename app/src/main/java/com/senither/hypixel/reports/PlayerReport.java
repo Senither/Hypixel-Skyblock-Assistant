@@ -35,6 +35,7 @@ import java.util.UUID;
 public class PlayerReport {
 
     private final String username;
+    private final String profileName;
     private final UUID uuid;
     private final LinkedHashMap<RankRequirementType, RankCheckResponse> checks;
     private final GuildReply.Guild.Rank rank;
@@ -42,6 +43,8 @@ public class PlayerReport {
     PlayerReport(String username, UUID uuid, GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply) {
         this.username = username;
         this.uuid = uuid;
+
+        this.profileName = profileReply.getProfile().get("cute_name").getAsString();
 
         this.checks = new LinkedHashMap<>();
         HashSet<GuildReply.Guild.Rank> rankQualifiers = new HashSet<>();
@@ -83,6 +86,10 @@ public class PlayerReport {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getProfileName() {
+        return profileName;
     }
 
     public UUID getUuid() {
