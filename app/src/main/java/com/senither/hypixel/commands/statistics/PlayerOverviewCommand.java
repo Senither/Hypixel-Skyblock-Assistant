@@ -21,6 +21,7 @@
 
 package com.senither.hypixel.commands.statistics;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
@@ -112,26 +113,32 @@ public class PlayerOverviewCommand extends SkillCommand {
     }
 
     private String getCompletedCollections(SkyBlockProfileReply profileReply, JsonObject member) {
-        if (!member.has("collection")) {
+        if (!member.has("unlocked_coll_tiers")) {
             return "API is Disabled";
         }
 
-        HashSet<String> uniqueCrafts = new HashSet<>();
+        HashSet<Collection> uniqueCrafts = new HashSet<>();
         for (String profileId : profileReply.getProfile().getAsJsonObject("members").keySet()) {
             JsonObject profileMember = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(profileId);
-            if (!profileMember.has("collection")) {
+            if (!profileMember.has("unlocked_coll_tiers")) {
                 continue;
             }
 
-            JsonObject playerCollection = profileMember.get("collection").getAsJsonObject();
+            JsonArray playerUnlockedCollection = profileMember.get("unlocked_coll_tiers").getAsJsonArray();
             for (Collection collection : Collection.values()) {
-                if (!playerCollection.has(collection.getKey())) {
-                    continue;
-                }
+                String maxTierToken = collection.getKey() + "_" + collection.getMaxLevel();
 
-                if (playerCollection.get(collection.getKey()).getAsLong() >= collection.getMaxLevelExperience()) {
-                    uniqueCrafts.add(collection.getKey());
+                for (JsonElement element : playerUnlockedCollection) {
+                    if (element.getAsString().equals(maxTierToken)) {
+                        uniqueCrafts.add(collection);
+                    }
                 }
+            }
+        }
+
+        for (Collection collection : Collection.values()) {
+            if (!uniqueCrafts.contains(collection)) {
+                System.out.println(collection.name());
             }
         }
 

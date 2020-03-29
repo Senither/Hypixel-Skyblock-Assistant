@@ -25,86 +25,87 @@ package com.senither.hypixel.rank.items;
 public enum Collection {
 
     // Farming Collection
-    WHEAT("WHEAT", 25000),
-    CARROT("CARROT_ITEM", 100000),
-    POTATO("POTATO_ITEM", 100000),
-    PUMPKIN("PUMPKIN", 100000),
-    MELON("MELON", 250000),
-    SEEDS("SEEDS", 5000),
-    MUSHROOM("MUSHROOM_COLLECTION", 50000),
-    COCOA_BEANS("INK_SACK:3", 100000),
-    CACTUS("CACTUS", 50000),
-    SUGAR_CANE("SUGAR_CANE", 50000),
-    FEATHER("FEATHER", 50000),
-    LEATHER("LEATHER", 100000),
-    PORK("PORK", 50000),
-    CHICKEN("RAW_CHICKEN", 50000),
-    MUTTON("MUTTON", 50000),
-    RABBIT("RABBIT", 50000),
-    NETHER_WART("NETHER_STALK", 50000),
+    WHEAT("WHEAT", 9),
+    CARROT("CARROT_ITEM", 9),
+    POTATO("POTATO_ITEM", 9),
+    PUMPKIN("PUMPKIN", 9),
+    MELON("MELON", 9),
+    SEEDS("SEEDS", 6),
+    MUSHROOM("MUSHROOM_COLLECTION", 9),
+    COCOA_BEANS("INK_SACK:3", 9),
+    CACTUS("CACTUS", 9),
+    SUGAR_CANE("SUGAR_CANE", 9),
+    FEATHER("FEATHER", 9),
+    LEATHER("LEATHER", 10),
+    PORK("PORK", 9),
+    CHICKEN("RAW_CHICKEN", 9),
+    MUTTON("MUTTON", 9),
+    RABBIT("RABBIT", 9),
+    NETHER_WART("NETHER_STALK", 9),
 
     // Mining Collection
-    COBBLESTONE("COBBLESTONE", 70000),
-    COAL("COAL", 50000),
-    IRON("IRON_INGOT", 50000),
-    GOLD("GOLD_INGOT", 50000),
-    DIAMOND("DIAMOND", 50000),
-    LAPIS_LAZULI("INK_SACK:4", 150000),
-    EMERALD("EMERALD", 100000),
-    REDSTONE("REDSTONE", 800000),
-    QUARTZ("QUARTZ", 50000),
-    OBSIDIAN("OBSIDIAN", 50000),
-    GLOWSTONE("GLOWSTONE_DUST", 50000),
-    GRAVEL("GRAVEL", 50000),
-    ICE("ICE", 250000),
-    NETHERRACK("NETHERRACK", 500),
-    SAND("SAND", 5000),
-    END_STONE("ENDER_STONE", 50000),
+    COBBLESTONE("COBBLESTONE", 9),
+    COAL("COAL", 9),
+    IRON("IRON_INGOT", 9),
+    GOLD("GOLD_INGOT", 9),
+    DIAMOND("DIAMOND", 9),
+    LAPIS_LAZULI("INK_SACK:4", 9),
+    EMERALD("EMERALD", 9),
+    REDSTONE("REDSTONE", 13),
+    QUARTZ("QUARTZ", 9),
+    OBSIDIAN("OBSIDIAN", 9),
+    GLOWSTONE("GLOWSTONE_DUST", 9),
+    GRAVEL("GRAVEL", 9),
+    ICE("ICE", 10),
+    NETHERRACK("NETHERRACK", 3),
+    SAND("SAND", 7),
+    END_STONE("ENDER_STONE", 9),
 
     // Combat Collection
-    ROTTEN_FLESH("ROTTEN_FLESH", 50000),
-    BONE("BONE", 50000),
-    STRING("STRING", 50000),
-    SPIDER_EYE("SPIDER_EYE", 50000),
-    GUNPOWDER("SULPHUR", 50000),
-    ENDER_PEARL("ENDER_PEARL", 50000),
-    GHAST_TEAR("GHAST_TEAR", 50000),
-    SLIME_BALL("SLIME_BALL", 50000),
-    BLAZE_ROD("BLAZE_ROD", 50000),
-    MAGMA_CREAM("MAGMA_CREAM", 50000),
+    ROTTEN_FLESH("ROTTEN_FLESH", 9),
+    BONE("BONE", 9),
+    STRING("STRING", 9),
+    SPIDER_EYE("SPIDER_EYE", 9),
+    GUNPOWDER("SULPHUR", 9),
+    ENDER_PEARL("ENDER_PEARL", 9),
+    GHAST_TEAR("GHAST_TEAR", 9),
+    SLIME_BALL("SLIME_BALL", 9),
+    BLAZE_ROD("BLAZE_ROD", 9),
+    MAGMA_CREAM("MAGMA_CREAM", 9),
 
     // Wood Collection
-    OAK("LOG", 30000),
-    SPRUCE("LOG:1", 50000),
-    BIRCH("LOG:2", 10000),
-    DARK_OAK("LOG_2:1", 50000),
-    ACACIA("LOG_2", 25000),
-    JUNGLE("LOG:3", 50000),
+    OAK("LOG", 9),
+    SPRUCE("LOG:1", 9),
+    BIRCH("LOG:2", 9),
+    DARK_OAK("LOG_2:1", 9),
+    ACACIA("LOG_2", 9),
+    JUNGLE("LOG:3", 9),
 
-    RAW_FISH("RAW_FISH", 30000),
-    RAW_SALMON("RAW_FISH:1", 10000),
-    CLONFISH("RAW_FISH:2", 50),
-    PUFFERFISH("RAW_FISH:3", 800),
-    PRISMARINE_SHARD("PRISMARINE_SHARD", 200),
-    PRISMARINE_CRYSTALS("PRISMARINE_CRYSTALS", 800),
-    CLAY("CLAY_BALL", 2500),
-    LILY_PAD("WATER_LILY", 10000),
-    INK_SACK("INK_SACK", 4000),
-    SPONGE("SPONGE", 4000);
+    // Fishing Collection
+    RAW_FISH("RAW_FISH", 9),
+    RAW_SALMON("RAW_FISH:1", 9),
+    CLONFISH("RAW_FISH:2", 3),
+    PUFFERFISH("RAW_FISH:3", 6),
+    PRISMARINE_SHARD("PRISMARINE_SHARD", 5),
+    PRISMARINE_CRYSTALS("PRISMARINE_CRYSTALS", 7),
+    CLAY("CLAY_BALL", 5),
+    LILY_PAD("WATER_LILY", 9),
+    INK_SACK("INK_SACK", 9),
+    SPONGE("SPONGE", 9);
 
     private final String key;
-    private final long maxLevelExperience;
+    private final int maxLevel;
 
-    Collection(String key, long maxLevelExperience) {
+    Collection(String key, int maxLevel) {
         this.key = key;
-        this.maxLevelExperience = maxLevelExperience;
+        this.maxLevel = maxLevel;
     }
 
     public String getKey() {
         return key;
     }
 
-    public long getMaxLevelExperience() {
-        return maxLevelExperience;
+    public long getMaxLevel() {
+        return maxLevel;
     }
 }
