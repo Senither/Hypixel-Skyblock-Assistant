@@ -83,9 +83,11 @@ public class SkillsCommand extends SkillCommand {
 
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setTitle(getUsernameFromPlayer(playerReply) + "'s Skills")
-            .setDescription(String.format("**%s** has an average skill level of **%s**",
+            .setDescription(String.format("**%s** has an average skill level of **%s**, or **%s** without skill progress.",
                 getUsernameFromPlayer(playerReply), NumberUtil.formatNicelyWithDecimals(
                     skillsResponse.getAverageSkillLevel()
+                ), NumberUtil.formatNicelyWithDecimals(
+                    skillsResponse.getAverageSkillLevelWithoutPorgress()
                 )))
             .setColor(MessageType.SUCCESS.getColor())
             .addField("Mining", formatStatTextValue(skillsResponse.getMining()), true)
