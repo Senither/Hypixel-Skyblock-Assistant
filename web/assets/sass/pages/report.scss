@@ -1,0 +1,11 @@
+.report-container {
+    padding-top: 28px;
+
+    & .message>.message-header {
+        border-radius: 5px
+    }
+
+    & .rank, & .uuid, & .profile-name {
+        color: $grey;
+    }
+}

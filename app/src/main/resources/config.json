@@ -1,0 +1,15 @@
+{
+    "discord_token": null,
+    "hypixel_token": null,
+    "database": {
+        "hostname": "localhost:3306",
+        "username": "username",
+        "password": "password",
+        "database": "skyblock_assistant"
+    },
+    "servlet": {
+        "app_url": "http://localhost/",
+        "enabled": true,
+        "port": 1256
+    }
+}
