@@ -7,12 +7,19 @@ Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](ht
 
  - [Prerequisites](#prerequisites)
  - [Installing Hypixel Skyblock Assistant](#installing-hypixel-guild-assistant)
+ - [Installing Guild Report Web UI](#installing-guild-report-web-ui)
  - [Configuration](#configuration)
  
 ### Prerequisites
 
+##### App (Bot)
  * Java >= 8
  * Gradle >= 4
+ * Git
+
+#### Web UI
+ * NodeJS >= 11
+ * Yarn >= 1.15
  * Git
 
 ### Installing Hypixel Skyblock Assistant
@@ -21,15 +28,31 @@ To get started, clone down the repository using:
 
     git clone https://github.com/Senither/Hypixel-Skyblock-Assistant.git
 
-Next go into the `Hypixel-Skyblock-Assistant` folder to build the project using Gradle.
+Next go into the `Hypixel-Skyblock-Assistant/app` folder to build the project using Gradle.
 
     ./gradlew build
 
-If the build ran successfully there should now be a jar file called `HypixelSkyblockAssistant.jar` in the root of the project, this will be used to run the actual bot, you can now run the bot once to generate the `config.json` file.
+If the build ran successfully there should now be a jar file called `HypixelSkyblockAssistant.jar` inside the `app`directory of the project, this will be used to run the actual bot, you can now run the bot once to generate the `config.json` file.
 
     java -jar HypixelSkyblockAssistant.jar
 
 After you're finished editing the config with your personal details, run the bot again, if it starts up without any errors it should now work, and you can invite it to Discord servers.
+
+### Installing Guild Report Web UI
+
+To get started, clone down the repository using:
+
+    git clone https://github.com/Senither/Hypixel-Skyblock-Assistant.git
+
+Next go into the `Hypixel-Skyblock-Assistant/web` folder and install all the dependencies using Yarn.
+
+    yarn
+
+While the dependencies are being installed go to the config file to setup the app URL, the config can be found at `web/assets/js/config.js`, once that's done and the installation have finished, you can now build the project.
+
+    yarn prod
+
+Running the app with `prod` will build all the assets for a production environment, you can also use `dev` for a development environment, or `watch` for setting up a watcher that will re-build the project anytime it sees changes being made to the files.
 
 ### Configuration
 
@@ -46,6 +69,13 @@ The Hypixel token is used to communicate with Hypixels API, allowing to bot to g
 The database properties are used to connect to the database that the bot should use, the database is required for the bot to function correctly since UUIDs, guild, player, and profile data is cached for long periods of time in the database, as-well as verification so the bot remembers which Discord account is linked with what Minecraft username.
 
 > **Note** The MySQL user must be able to create, delete, and modify tables for the database that is used, since the bot uses a migration system to automatically roll out database changes between updates.
+
+#### Servlet
+
+The web servlet sets up a JSON API that runs within the bot itself, the API is used by the `web` portion of the bot, allowing people to view guild scan reports in an easy to read and understand way.
+The `app_url` property is the link to where the `web UI` is hosted, so linked for guild scan reports can be generated correctly.
+
+> **Note:** Make sure the port the web servlet is running on is open and accessible by the web UI.  
 
 ## Third Party Licenses
 
