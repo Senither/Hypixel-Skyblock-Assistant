@@ -19,12 +19,12 @@
  *
  */
 
-package com.senither.hypixel.commands.administration;
+package com.senither.hypixel.commands.administration.settings;
 
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
-import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.contracts.commands.SettingsSubCommand;
 import com.senither.hypixel.database.controller.GuildController;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
@@ -32,7 +32,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-public class AutoRenameCommand extends Command {
+public class AutoRenameCommand extends SettingsSubCommand {
 
     public AutoRenameCommand(SkyblockAssistant app) {
         super(app);
@@ -71,27 +71,11 @@ public class AutoRenameCommand extends Command {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("auto-rename", "rename");
+        return Arrays.asList("rename", "autorename", "auto-rename");
     }
 
     @Override
-    public void onCommand(MessageReceivedEvent event, String[] args) {
-        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
-        if (guildEntry == null) {
-            MessageFactory.makeError(event.getMessage(),
-                "The server is not currently setup with a guild, you must setup "
-                    + "the server with a guild before you can use this command!"
-            ).setTitle("Server is not setup").queue();
-            return;
-        }
-
-        if (!isGuildMasterOfServerGuild(event, guildEntry)) {
-            MessageFactory.makeError(event.getMessage(),
-                "You must be the guild master of the :name guild to use this command!"
-            ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
-            return;
-        }
-
+    public void onCommand(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, String[] args) {
         if (args.length == 0) {
             sendCurrentAutoRenameStatus(event, guildEntry);
             return;
@@ -129,7 +113,7 @@ public class AutoRenameCommand extends Command {
             "",
             "You can toggle the feature on and off by using `:command <status>`"
         )))
-            .set("command", Constants.COMMAND_PREFIX + getTriggers().get(0))
+            .set("command", Constants.COMMAND_PREFIX + "config " + getTriggers().get(0))
             .set("status", guildEntry.isAutoRename() ? "enabled" : "disabled")
             .queue();
     }

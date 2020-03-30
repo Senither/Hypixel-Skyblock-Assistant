@@ -19,11 +19,11 @@
  *
  */
 
-package com.senither.hypixel.commands.administration;
+package com.senither.hypixel.commands.administration.settings;
 
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
-import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.contracts.commands.SettingsSubCommand;
 import com.senither.hypixel.database.controller.GuildController;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -34,7 +34,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultRoleCommand extends Command {
+public class DefaultRoleCommand extends SettingsSubCommand {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultRoleCommand.class);
 
@@ -76,7 +76,7 @@ public class DefaultRoleCommand extends Command {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("default-role", "drole");
+        return Arrays.asList("autorole", "auto-role", "default-role");
     }
 
     @Override
@@ -87,22 +87,6 @@ public class DefaultRoleCommand extends Command {
                     + "the default role for the server, or `disable` to disable the "
                     + "default role feature."
             ).setTitle("Missing argument").queue();
-            return;
-        }
-
-        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
-        if (guildEntry == null) {
-            MessageFactory.makeError(event.getMessage(),
-                "The server is not currently setup with a guild, you must setup "
-                    + "the server with a guild before you can use this command!"
-            ).setTitle("Server is not setup").queue();
-            return;
-        }
-
-        if (!isGuildMasterOfServerGuild(event, guildEntry)) {
-            MessageFactory.makeError(event.getMessage(),
-                "You must be the guild master of the :name guild to use this command!"
-            ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
             return;
         }
 

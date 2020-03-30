@@ -75,12 +75,11 @@ public class SkyblockAssistant {
 
         log.info("Registering commands...");
         this.commandManager = new CommandManager(this);
-        commandManager.registerCommand(new AutoRenameCommand(this));
-        commandManager.registerCommand(new DefaultRoleCommand(this));
         commandManager.registerCommand(new GuildRankScanCommand(this));
         commandManager.registerCommand(new GuildSetupCommand(this));
         commandManager.registerCommand(new RankCheckCommand(this));
         commandManager.registerCommand(new RankRequirementCommand(this));
+        commandManager.registerCommand(new SettingsCommand(this));
         commandManager.registerCommand(new SkillsCalculatorCommand(this));
         commandManager.registerCommand(new VerifyCommand(this));
         commandManager.registerCommand(new SkillsCommand(this));
