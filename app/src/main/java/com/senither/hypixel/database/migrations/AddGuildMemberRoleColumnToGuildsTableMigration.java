@@ -19,24 +19,26 @@
  *
  */
 
-package com.senither.hypixel.contracts.commands;
+package com.senither.hypixel.database.migrations;
 
-import com.senither.hypixel.SkyblockAssistant;
-import com.senither.hypixel.database.controller.GuildController;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import com.senither.hypixel.contracts.database.Migration;
+import com.senither.hypixel.database.DatabaseManager;
 
-public abstract class SettingsSubCommand extends Command {
+import java.sql.SQLException;
 
-    public SettingsSubCommand(SkyblockAssistant app) {
-        super(app);
+public class AddGuildMemberRoleColumnToGuildsTableMigration implements Migration {
+
+    @Override
+    public boolean up(DatabaseManager databaseManager) throws SQLException {
+        return databaseManager.queryUpdate(
+            "ALTER TABLE `guilds` ADD `guild_member_role` BIGINT NULL DEFAULT NULL AFTER `default_role`;"
+        );
     }
 
     @Override
-    public void onCommand(MessageReceivedEvent event, String[] args) {
-        //
-    }
-
-    public void onCommand(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, String[] args) {
-        onCommand(event, args);
+    public boolean down(DatabaseManager databaseManager) throws SQLException {
+        return databaseManager.queryUpdate(
+            "ALTER TABLE `guilds` DROP `guild_member_role`;"
+        );
     }
 }

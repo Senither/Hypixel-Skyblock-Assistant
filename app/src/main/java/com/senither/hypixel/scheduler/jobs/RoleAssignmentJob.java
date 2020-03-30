@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -76,7 +77,11 @@ public class RoleAssignmentJob extends Job {
                 }
 
                 try {
-                    handleGuildRoleAssignments(guild, guildReply, guildEntry);
+                    if (guildEntry.getGuildMemberRole() == null) {
+                        handleGuildRankRoleAssignments(guild, guildReply, guildEntry);
+                    } else {
+                        handleGuildMemberRoleAssignments(guild, guildReply, guildEntry);
+                    }
                 } catch (Exception e) {
                     log.error("An error was thrown in the role assignment job while trying to handle guild with an ID of {}, error: {}",
                         guild.getId(), e.getMessage(), e
@@ -97,7 +102,62 @@ public class RoleAssignmentJob extends Job {
         }
     }
 
-    private void handleGuildRoleAssignments(Guild guild, GuildReply guildReply, GuildController.GuildEntry guildEntry) throws SQLException {
+    private void handleGuildMemberRoleAssignments(Guild guild, GuildReply guildReply, GuildController.GuildEntry guildEntry) throws SQLException {
+        GuildReply.Guild hypixelGuild = guildReply.getGuild();
+
+        Role defaultRole = guildEntry.getDefaultRole() == null ? null : guild.getRoleById(guildEntry.getDefaultRole());
+        Role memberRole = guildEntry.getGuildMemberRole() == null ? null : guild.getRoleById(guildEntry.getGuildMemberRole());
+
+        boolean canAssignRoles = guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES);
+        boolean canRenamePeople = guild.getSelfMember().hasPermission(Permission.NICKNAME_MANAGE);
+
+        Collection verifiedMembers = getEveryVerifiedMemberFromTheGuild(guild);
+
+        for (Member member : guild.getMembers()) {
+            if (member.getUser().isBot() || member.getUser().isFake()) {
+                continue;
+            }
+
+            List<DataRow> dataRows = verifiedMembers.where("discord_id", member.getIdLong());
+            if (dataRows.isEmpty()) {
+                markUserAsGuest(guild, member, Collections.singletonList(memberRole), defaultRole, false);
+                continue;
+            }
+
+            DataRow dataRow = dataRows.get(0);
+            String memberUUID = dataRow.getString("uuid");
+
+            if (canRenamePeople && shouldRename(guildEntry, member, dataRow) && guild.getSelfMember().canInteract(member)) {
+                guild.modifyNickname(member, dataRow.getString("username")).queue();
+            }
+
+            if (!canAssignRoles || memberRole == null || !guild.getSelfMember().canInteract(memberRole)) {
+                continue;
+            }
+
+            GuildReply.Guild.Member guildMember;
+            try {
+                guildMember = hypixelGuild.getMembers().stream()
+                    .filter(filterMember -> filterMember.getUuid().toString().equals(memberUUID))
+                    .findFirst().orElseGet(null);
+            } catch (NullPointerException ignored) {
+                guildMember = null;
+            }
+
+            if (guildMember == null) {
+                markUserAsGuest(guild, member, Collections.singletonList(memberRole), defaultRole, true);
+                continue;
+            }
+
+            guild.modifyMemberRoles(member, Collections.singletonList(memberRole), Collections.emptyList()).queue(null, throwable -> {
+                log.error("Failed to assign {} role to {} due to an error: {}",
+                    memberRole.getName(), member.getEffectiveName(), throwable.getMessage(), throwable
+                );
+            });
+        }
+    }
+
+    private void handleGuildRankRoleAssignments(Guild guild, GuildReply guildReply, GuildController.GuildEntry guildEntry) throws SQLException {
         GuildReply.Guild hypixelGuild = guildReply.getGuild();
 
         // Populates the Discord Roles cache list
@@ -115,32 +175,20 @@ public class RoleAssignmentJob extends Job {
             discordRoles.put(rank.getName(), rolesByName.get(0));
         }
 
-        List<String> memberIds = new ArrayList<>();
-        guild.getMembers().forEach(member -> memberIds.add(member.getId()));
-
-        StringBuilder stringifiedParams = new StringBuilder();
-        for (String ignored : memberIds) {
-            stringifiedParams.append("?, ");
-        }
-
-        // Gets every verified user from the guild from the database.
-        Collection rows = app.getDatabaseManager().query(String.format(
-            "SELECT * FROM `uuids` WHERE `discord_id` IN (%s)",
-            stringifiedParams.toString().substring(0, stringifiedParams.length() - 2)
-        ), memberIds.toArray());
-
         // Sets up the default role that should be given the users if they're not in the guild
         Role defaultRole = guildEntry.getDefaultRole() == null ? null : guild.getRoleById(guildEntry.getDefaultRole());
 
         boolean canAssignRoles = guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES);
         boolean canRenamePeople = guild.getSelfMember().hasPermission(Permission.NICKNAME_MANAGE);
 
+        Collection verifiedMembers = getEveryVerifiedMemberFromTheGuild(guild);
+
         for (Member member : guild.getMembers()) {
             if (member.getUser().isBot() || member.getUser().isFake()) {
                 continue;
             }
 
-            List<DataRow> dataRows = rows.where("discord_id", member.getIdLong());
+            List<DataRow> dataRows = verifiedMembers.where("discord_id", member.getIdLong());
             if (dataRows.isEmpty()) {
                 markUserAsGuest(guild, member, discordRoles.values(), defaultRole, false);
                 continue;
@@ -200,6 +248,22 @@ public class RoleAssignmentJob extends Job {
                 );
             });
         }
+    }
+
+    private Collection getEveryVerifiedMemberFromTheGuild(Guild guild) throws SQLException {
+        List<String> memberIds = new ArrayList<>();
+        guild.getMembers().forEach(member -> memberIds.add(member.getId()));
+
+        StringBuilder stringifiedParams = new StringBuilder();
+        for (String ignored : memberIds) {
+            stringifiedParams.append("?, ");
+        }
+
+        // Gets every verified user from the guild from the database.
+        return app.getDatabaseManager().query(String.format(
+            "SELECT * FROM `uuids` WHERE `discord_id` IN (%s)",
+            stringifiedParams.toString().substring(0, stringifiedParams.length() - 2)
+        ), memberIds.toArray());
     }
 
     private boolean shouldRename(GuildController.GuildEntry guildEntry, Member member, DataRow dataRow) {

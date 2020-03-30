@@ -238,51 +238,69 @@ public class VerifyCommand extends Command {
             .filter(guildMember -> guildMember.getUuid().equals(uuid))
             .findFirst().orElseGet(null);
 
-        HashMap<String, Role> discordRoles = new HashMap<>();
-        for (GuildReply.Guild.Member guildMember : guildReply.getGuild().getMembers()) {
-            if ("Guild Master".equalsIgnoreCase(guildMember.getRank())) {
-                continue;
-            }
-
-            if (discordRoles.containsKey(guildMember.getRank())) {
-                continue;
-            }
-
-            List<Role> rolesByName = event.getGuild().getRolesByName(guildMember.getRank(), false);
-            if (rolesByName.isEmpty()) {
-                continue;
-            }
-
-            discordRoles.put(guildMember.getRank(), rolesByName.get(0));
-        }
-
-        Role role = discordRoles.getOrDefault(member.getRank(), null);
-        if (role == null) {
+        if (member == null) {
             if (!rolesToAdd.isEmpty()) {
                 event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, null).queue();
             }
             return;
         }
 
-        rolesToRemove.addAll(
-            discordRoles.values().stream()
-                .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
-                .collect(Collectors.toList())
-        );
+        // Adds the role that matches the users rank in-game if there are no guild member role setup
+        if (guildEntry.getGuildMemberRole() == null) {
+            HashMap<String, Role> discordRoles = new HashMap<>();
+            for (GuildReply.Guild.Member guildMember : guildReply.getGuild().getMembers()) {
+                if ("Guild Master".equalsIgnoreCase(guildMember.getRank())) {
+                    continue;
+                }
 
-        if (guildEntry.getDefaultRole() != null) {
-            Role defaultRole = event.getGuild().getRoleById(guildEntry.getDefaultRole());
-            if (defaultRole != null) {
-                rolesToRemove.add(defaultRole);
+                if (discordRoles.containsKey(guildMember.getRank())) {
+                    continue;
+                }
+
+                List<Role> rolesByName = event.getGuild().getRolesByName(guildMember.getRank(), false);
+                if (rolesByName.isEmpty()) {
+                    continue;
+                }
+
+                discordRoles.put(guildMember.getRank(), rolesByName.get(0));
+            }
+
+            Role role = discordRoles.getOrDefault(member.getRank(), null);
+            if (role == null) {
+                if (!rolesToAdd.isEmpty()) {
+                    event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, null).queue();
+                }
+                return;
+            }
+
+            rolesToRemove.addAll(
+                discordRoles.values().stream()
+                    .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
+                    .collect(Collectors.toList())
+            );
+
+            if (guildEntry.getDefaultRole() != null) {
+                Role defaultRole = event.getGuild().getRoleById(guildEntry.getDefaultRole());
+                if (defaultRole != null) {
+                    rolesToRemove.add(defaultRole);
+                }
+            }
+
+            rolesToAdd.add(role);
+        }
+        // Adds the guild member role to the user instead of the role matching their in-game
+        // guild rank, since there is a default guild member role setup for the server.
+        else {
+            Role roleById = event.getGuild().getRoleById(guildEntry.getGuildMemberRole());
+            if (roleById != null) {
+                rolesToAdd.add(roleById);
             }
         }
 
-        rolesToAdd.add(role);
-
         //noinspection ConstantConditions
         event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, rolesToRemove).queue(null, throwable -> {
-            log.error("Failed to assign {} role to {} due to an error: {}",
-                role.getName(), event.getMember().getEffectiveName(), throwable.getMessage(), throwable
+            log.error("Failed to assign {} to {} due to an error: {}",
+                rolesToAdd, event.getMember().getEffectiveName(), throwable.getMessage(), throwable
             );
         });
     }

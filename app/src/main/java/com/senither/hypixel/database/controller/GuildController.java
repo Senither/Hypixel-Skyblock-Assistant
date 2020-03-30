@@ -99,6 +99,7 @@ public class GuildController {
         private final String name;
         private final String data;
         private final Long defaultRole;
+        private final Long guildMemberRole;
         private final boolean autoRename;
         private final LinkedHashMap<String, RankRequirement> rankRequirements;
 
@@ -111,6 +112,9 @@ public class GuildController {
 
             long defaultRole = row.getLong("default_role", 0L);
             this.defaultRole = defaultRole == 0L ? null : defaultRole;
+
+            long guildMemberRole = row.getLong("guild_member_role", 0L);
+            this.guildMemberRole = guildMemberRole == 0L ? null : guildMemberRole;
 
             rankRequirements = new LinkedHashMap<>();
             if (row.getString("rank_requirements") == null) {
@@ -141,6 +145,10 @@ public class GuildController {
 
         public Long getDefaultRole() {
             return defaultRole;
+        }
+
+        public Long getGuildMemberRole() {
+            return guildMemberRole;
         }
 
         public boolean isAutoRename() {
