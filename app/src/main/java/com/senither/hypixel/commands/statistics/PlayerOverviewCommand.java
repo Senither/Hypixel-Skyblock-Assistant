@@ -136,12 +136,6 @@ public class PlayerOverviewCommand extends SkillCommand {
             }
         }
 
-        for (Collection collection : Collection.values()) {
-            if (!uniqueCrafts.contains(collection)) {
-                System.out.println(collection.name());
-            }
-        }
-
         return String.format("%s / %s", uniqueCrafts.size(), Collection.values().length);
     }
 
