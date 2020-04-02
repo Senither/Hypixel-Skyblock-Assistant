@@ -19,20 +19,11 @@
  *
  */
 
-package com.senither.hypixel.servlet.handlers;
+package com.senither.hypixel.contracts.statistics;
 
-import com.senither.hypixel.contracts.servlet.SparkRoute;
-import spark.Request;
-import spark.Response;
+import com.google.gson.JsonObject;
 
-public class NotFoundRouteHandler extends SparkRoute {
+public interface Jsonable {
 
-    public NotFoundRouteHandler() {
-        super(null);
-    }
-
-    @Override
-    public Object handle(Request request, Response response) throws Exception {
-        return buildResponse(response, 404, "Route was not found!");
-    }
+    JsonObject toJson();
 }

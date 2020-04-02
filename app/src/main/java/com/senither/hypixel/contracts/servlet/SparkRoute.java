@@ -22,10 +22,18 @@
 package com.senither.hypixel.contracts.servlet;
 
 import com.google.gson.JsonObject;
+import com.senither.hypixel.SkyblockAssistant;
+import spark.Request;
 import spark.Response;
 import spark.Route;
 
 public abstract class SparkRoute implements Route {
+
+    protected final SkyblockAssistant app;
+
+    public SparkRoute(SkyblockAssistant app) {
+        this.app = app;
+    }
 
     protected JsonObject buildResponse(Response response, int code, String message) {
         return buildResponse(response, code, message, null);
@@ -55,5 +63,19 @@ public abstract class SparkRoute implements Route {
         root.add("data", object);
 
         return root;
+    }
+
+    protected boolean isAuthorized(Request request) {
+        String authorization = request.headers("Authorization");
+
+        return authorization != null
+            && authorization.startsWith("Bearer ")
+            && authorization.substring(7, authorization.length()).trim()
+            .equals(app.getConfiguration().getServlet().getAccessToken());
+
+    }
+
+    protected JsonObject generateUnauthornizedResponse(Response response) {
+        return buildResponse(response, 401, "Unauthorized request, invalid or missing access token!");
     }
 }

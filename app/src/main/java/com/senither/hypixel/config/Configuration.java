@@ -86,6 +86,7 @@ public class Configuration {
     public class Servlet {
 
         private String app_url;
+        private String access_token;
         private boolean enabled;
         private int port;
 
@@ -94,6 +95,10 @@ public class Configuration {
                 app_url += "/";
             }
             return app_url + uuid.toString();
+        }
+
+        public String getAccessToken() {
+            return access_token;
         }
 
         public boolean isEnabled() {

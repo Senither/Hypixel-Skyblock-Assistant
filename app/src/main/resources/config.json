@@ -10,6 +10,7 @@
     "servlet": {
         "app_url": "http://localhost/",
         "enabled": true,
-        "port": 1256
+        "port": 1256,
+        "access_token": null
     }
 }

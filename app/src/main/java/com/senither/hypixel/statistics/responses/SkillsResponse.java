@@ -21,9 +21,11 @@
 
 package com.senither.hypixel.statistics.responses;
 
+import com.google.gson.JsonObject;
+import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 
-public class SkillsResponse extends StatisticsResponse {
+public class SkillsResponse extends StatisticsResponse implements Jsonable {
 
     private final boolean hasData;
 
@@ -167,7 +169,28 @@ public class SkillsResponse extends StatisticsResponse {
         return combinedLevels / 7D;
     }
 
-    public class SkillStat {
+    @Override
+    public JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("average_skills_progress", getAverageSkillLevel());
+        json.addProperty("average_skills", getAverageSkillLevelWithoutPorgress());
+
+        JsonObject skills = new JsonObject();
+        skills.add("mining", getMining().toJson());
+        skills.add("foraging", getForaging().toJson());
+        skills.add("enchanting", getEnchanting().toJson());
+        skills.add("farming", getFarming().toJson());
+        skills.add("combat", getCombat().toJson());
+        skills.add("fishing", getFishing().toJson());
+        skills.add("alchemy", getAlchemy().toJson());
+        skills.add("carpentry", getCarpentry().toJson());
+        skills.add("runecrafting", getRunecrafting().toJson());
+        json.add("skills", skills);
+
+        return json;
+    }
+
+    public class SkillStat implements Jsonable {
 
         private final double level;
         private final double experience;
@@ -188,6 +211,16 @@ public class SkillsResponse extends StatisticsResponse {
 
         public double getExperience() {
             return experience;
+        }
+
+        @Override
+        public JsonObject toJson() {
+            JsonObject json = new JsonObject();
+
+            json.addProperty("level", level);
+            json.addProperty("experience", experience);
+
+            return json;
         }
     }
 }

@@ -37,10 +37,8 @@ import java.util.Map;
 
 public class GetReportRoute extends SparkRoute {
 
-    private final SkyblockAssistant app;
-
     public GetReportRoute(SkyblockAssistant app) {
-        this.app = app;
+        super(app);
     }
 
     @Override

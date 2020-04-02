@@ -21,10 +21,12 @@
 
 package com.senither.hypixel.statistics.responses;
 
+import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
+import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 
-public class SlayerResponse extends StatisticsResponse {
+public class SlayerResponse extends StatisticsResponse implements Jsonable {
 
     private long totalCoinsSpent = 0;
     private long totalSlayerExperience = 0;
@@ -87,7 +89,22 @@ public class SlayerResponse extends StatisticsResponse {
         return this;
     }
 
-    public class SlayerStat {
+    @Override
+    public JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("total_coins_spent", getTotalCoinsSpent());
+        json.addProperty("total_experience", getTotalSlayerExperience());
+
+        JsonObject bosses = new JsonObject();
+        bosses.add("revenant", revenant.toJson());
+        bosses.add("tarantula", tarantula.toJson());
+        bosses.add("sven", sven.toJson());
+        json.add("bosses", bosses);
+
+        return json;
+    }
+
+    public class SlayerStat implements Jsonable {
 
         private final int experience;
         private final int tier1Kills;
@@ -140,6 +157,22 @@ public class SlayerResponse extends StatisticsResponse {
                 }
             }
             return 9;
+        }
+
+        @Override
+        public JsonObject toJson() {
+            JsonObject json = new JsonObject();
+            json.addProperty("level", getLevelFromExperience());
+            json.addProperty("experience", getExperience());
+
+            JsonObject kills = new JsonObject();
+            kills.addProperty("tier_1", getTier1Kills());
+            kills.addProperty("tier_2", getTier2Kills());
+            kills.addProperty("tier_3", getTier3Kills());
+            kills.addProperty("tier_4", getTier4Kills());
+            json.add("kills", kills);
+
+            return json;
         }
     }
 }
