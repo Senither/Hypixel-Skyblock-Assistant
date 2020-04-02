@@ -21,6 +21,8 @@
 
 package com.senither.hypixel.servlet.handlers;
 
+import com.google.gson.JsonObject;
+import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.servlet.WebServlet;
 import spark.ExceptionHandler;
 import spark.Request;
@@ -34,6 +36,21 @@ public class SparkExceptionHandler implements ExceptionHandler<Exception> {
 
     @Override
     public void handle(Exception exception, Request request, Response response) {
+        response.status(500);
+
+        if (exception instanceof FriendlyException) {
+            JsonObject root = new JsonObject();
+
+            root.addProperty("status", 400);
+            root.addProperty("reason", exception.getMessage());
+
+            response.header("Access-Control-Allow-Origin", "*");
+            response.type("application/json");
+
+            response.body(root.toString());
+            return;
+        }
+
         WebServlet.log.error(request.requestMethod() + " " + request.pathInfo(), exception);
 
         try (StringWriter writer = new StringWriter()) {
@@ -42,7 +59,6 @@ public class SparkExceptionHandler implements ExceptionHandler<Exception> {
 
                 response.body(writer.toString());
                 response.type("text/plain");
-                response.status(500);
             }
         } catch (IOException e) {
             e.printStackTrace();
