@@ -28,6 +28,8 @@ import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -81,6 +83,14 @@ public class GuildSetupCommand extends Command {
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
+        if (!canRunCommand(event.getMember())) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must be a `Manage Server` or `Administrator` Discord permissions "
+                    + "for this server to use this command!"
+            ).setTitle("Missing Permissions").queue();
+            return;
+        }
+
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
                 "You must include the guild name for the guild you're the guild leader for!"
@@ -217,6 +227,12 @@ public class GuildSetupCommand extends Command {
                     .buildEmbed()
             ).queue();
         }
+    }
+
+    private boolean canRunCommand(Member member) {
+        return member.isOwner()
+            || member.hasPermission(Permission.ADMINISTRATOR)
+            || member.hasPermission(Permission.MANAGE_SERVER);
     }
 
     private GuildReply.Guild.Member getMemberFromUUID(GuildReply.Guild guild, UUID uuid) {
