@@ -27,6 +27,7 @@ public class Configuration {
 
     private String discord_token;
     private String hypixel_token;
+    private String[] hypixel_tokens;
     private Database database;
     private Servlet servlet;
 
@@ -36,6 +37,10 @@ public class Configuration {
 
     public String getHypixelToken() {
         return hypixel_token;
+    }
+
+    public String[] getHypixelTokens() {
+        return hypixel_tokens;
     }
 
     public Database getDatabase() {

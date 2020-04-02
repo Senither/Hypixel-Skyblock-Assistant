@@ -62,7 +62,7 @@ public class RoleAssignmentJob extends Job {
                     continue;
                 }
 
-                GuildReply guildReply = app.getHypixel().getAPI().getGuildById(row.getString("id")).get(5, TimeUnit.SECONDS);
+                GuildReply guildReply = app.getHypixel().getClientContainer().getNextClient().getGuildById(row.getString("id")).get(5, TimeUnit.SECONDS);
                 if (guildReply == null || guildReply.getGuild() == null) {
                     continue;
                 }

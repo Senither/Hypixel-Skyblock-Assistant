@@ -31,7 +31,6 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.time.Carbon;
-import net.hypixel.api.HypixelAPI;
 import net.hypixel.api.adapters.DateTimeTypeAdapter;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
 import net.hypixel.api.reply.AbstractReply;
@@ -83,22 +82,22 @@ public class Hypixel {
     private static final Pattern minecraftUsernameRegex = Pattern.compile("^\\w+$", Pattern.CASE_INSENSITIVE);
 
     private final SkyblockAssistant app;
-    private final HypixelAPI hypixelAPI;
+    private final ClientContainer clientContainer;
     private final HttpClient httpClient;
 
     public Hypixel(SkyblockAssistant app) {
         this.app = app;
 
         this.httpClient = HttpClientBuilder.create().build();
-        this.hypixelAPI = new HypixelAPI(UUID.fromString(app.getConfiguration().getHypixelToken()));
+        this.clientContainer = new ClientContainer(app);
     }
 
     public boolean isValidMinecraftUsername(@Nonnull String username) {
         return username.length() > 2 && username.length() < 17 && minecraftUsernameRegex.matcher(username).find();
     }
 
-    public HypixelAPI getAPI() {
-        return hypixelAPI;
+    public ClientContainer getClientContainer() {
+        return clientContainer;
     }
 
     public Gson getGson() {
@@ -151,7 +150,7 @@ public class Hypixel {
 
             log.debug("Requesting for player profile for \"{}\" using the API", name);
 
-            getAPI().getPlayerByUuid(uuid).whenCompleteAsync((playerReply, throwable) -> {
+            getClientContainer().getNextClient().getPlayerByUuid(uuid).whenCompleteAsync((playerReply, throwable) -> {
                 if (throwable != null) {
                     future.completeExceptionally(throwable);
                     return;
@@ -303,7 +302,7 @@ public class Hypixel {
         log.debug("Requesting for SkyBlock profile with an ID of {} from the API", name);
 
         boolean finalHasDatabaseEntry = hasDatabaseEntry;
-        hypixelAPI.getSkyBlockProfile(name).whenComplete((skyBlockProfileReply, throwable) -> {
+        clientContainer.getNextClient().getSkyBlockProfile(name).whenComplete((skyBlockProfileReply, throwable) -> {
             if (throwable != null) {
                 future.completeExceptionally(throwable);
                 return;
@@ -367,7 +366,7 @@ public class Hypixel {
 
         log.debug("Requesting for SkyBlock Guild with a name of {} from the API", name);
 
-        hypixelAPI.getGuildByName(name).whenComplete((skyBlockGuildReply, throwable) -> {
+        clientContainer.getNextClient().getGuildByName(name).whenComplete((skyBlockGuildReply, throwable) -> {
             if (throwable != null) {
                 future.completeExceptionally(throwable);
                 return;
@@ -451,7 +450,7 @@ public class Hypixel {
         }
 
         try {
-            PlayerReply playerReply = getAPI().getPlayerByUuid(uuid).get(10, TimeUnit.SECONDS);
+            PlayerReply playerReply = getClientContainer().getNextClient().getPlayerByUuid(uuid).get(10, TimeUnit.SECONDS);
 
             if (playerReply == null || playerReply.getPlayer() == null) {
                 return null;
