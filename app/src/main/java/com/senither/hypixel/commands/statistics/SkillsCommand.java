@@ -81,14 +81,23 @@ public class SkillsCommand extends SkillCommand {
             return;
         }
 
+        String embedMessage = String.format("**%s** has an average skill level of **%s**",
+            getUsernameFromPlayer(playerReply), NumberUtil.formatNicelyWithDecimals(
+                skillsResponse.getAverageSkillLevel()
+            )
+        );
+
+        if (skillsResponse.isApiEnable()) {
+            embedMessage += String.format(", or **%s** without skill progress",
+                NumberUtil.formatNicelyWithDecimals(
+                    skillsResponse.getAverageSkillLevelWithoutPorgress()
+                )
+            );
+        }
+
         EmbedBuilder embedBuilder = new EmbedBuilder()
             .setTitle(getUsernameFromPlayer(playerReply) + "'s Skills")
-            .setDescription(String.format("**%s** has an average skill level of **%s**, or **%s** without skill progress.",
-                getUsernameFromPlayer(playerReply), NumberUtil.formatNicelyWithDecimals(
-                    skillsResponse.getAverageSkillLevel()
-                ), NumberUtil.formatNicelyWithDecimals(
-                    skillsResponse.getAverageSkillLevelWithoutPorgress()
-                )))
+            .setDescription(embedMessage + ".")
             .setColor(MessageType.SUCCESS.getColor())
             .addField("Mining", formatStatTextValue(skillsResponse.getMining()), true)
             .addField("Foraging", formatStatTextValue(skillsResponse.getForaging()), true)
