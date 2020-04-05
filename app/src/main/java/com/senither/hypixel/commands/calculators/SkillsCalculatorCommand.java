@@ -162,30 +162,44 @@ public class SkillsCalculatorCommand extends Command {
                 SkillsResponse response = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
 
                 switch (args[0].toLowerCase()) {
+                    case "mine":
                     case "mining":
                         skillType = "Mining";
                         stat = response.getMining();
                         break;
+
+                    case "tree":
+                    case "forage":
                     case "foraging":
                         skillType = "Foraging";
                         stat = response.getForaging();
                         break;
+
+                    case "enchant":
                     case "enchanting":
                         skillType = "Enchanting";
                         stat = response.getEnchanting();
                         break;
+
+                    case "farm":
                     case "farming":
                         skillType = "Farming";
                         stat = response.getFarming();
                         break;
+
+                    case "fight":
                     case "combat":
                         skillType = "Combat";
                         stat = response.getCombat();
                         break;
+
+                    case "fish":
                     case "fishing":
                         skillType = "Fishing";
                         stat = response.getFishing();
                         break;
+
+                    case "alch":
                     case "alchemy":
                         skillType = "Alchemy";
                         stat = response.getAlchemy();
