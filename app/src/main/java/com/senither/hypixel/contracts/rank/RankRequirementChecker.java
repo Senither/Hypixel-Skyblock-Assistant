@@ -57,7 +57,7 @@ public abstract class RankRequirementChecker {
 
     public abstract String getRankRequirementNote(GuildController.GuildEntry.RankRequirement requirement);
 
-    protected abstract boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement);
+    public abstract boolean hasRequirementsSetup(GuildController.GuildEntry.RankRequirement requirement);
 
     protected abstract RankCheckResponse handleGetRankForUser(GuildController.GuildEntry guildEntry, GuildReply guildReply, SkyBlockProfileReply profileReply, UUID playerUUID);
 

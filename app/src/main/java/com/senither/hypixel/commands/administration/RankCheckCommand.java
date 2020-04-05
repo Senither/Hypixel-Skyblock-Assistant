@@ -43,6 +43,7 @@ import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class RankCheckCommand extends SkillCommand {
 
@@ -138,7 +139,7 @@ public class RankCheckCommand extends SkillCommand {
             .set("user", getUsernameFromPlayer(playerReply))
             .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant());
 
-        HashSet<GuildReply.Guild.Rank> rankQualifiers = new HashSet<>();
+        HashMap<RankRequirementType, GuildReply.Guild.Rank> rankQualifiers = new HashMap<>();
 
         placeholderMessage
             .addField(RankRequirementType.FAIRY_SOULS.getName(), getRankForType(
@@ -191,25 +192,42 @@ public class RankCheckCommand extends SkillCommand {
                 }
             ), true);
 
-        GuildReply.Guild.Rank rankQualifier = guildReply.getGuild().getRanks().stream()
+        GuildReply.Guild.Rank rankQualifier = null;
+        List<GuildReply.Guild.Rank> sortedRanks = guildReply.getGuild().getRanks().stream()
             .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())
-            .findFirst().get();
+            .collect(Collectors.toList());
 
-        for (GuildReply.Guild.Rank qualifier : rankQualifiers) {
-            if (qualifier == null) {
-                rankQualifier = null;
-                break;
+        RANK_LOOP:
+        for (GuildReply.Guild.Rank rank : sortedRanks) {
+            if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
+                continue;
             }
 
-            if (qualifier.getPriority() < rankQualifier.getPriority()) {
-                rankQualifier = qualifier;
+            GuildController.GuildEntry.RankRequirement requirements = guildEntry.getRankRequirements().get(rank.getName());
+            for (RankRequirementType type : RankRequirementType.values()) {
+                if (!type.getChecker().hasRequirementsSetup(requirements)) {
+                    continue;
+                }
+
+                if (!rankQualifiers.containsKey(type)) {
+                    continue RANK_LOOP;
+                }
+
+                GuildReply.Guild.Rank qualifierRank = rankQualifiers.get(type);
+                if (rank.getPriority() > qualifierRank.getPriority()) {
+                    continue RANK_LOOP;
+                }
             }
+
+            rankQualifier = rank;
+            break;
         }
 
         placeholderMessage.set("note", rankQualifier == null
             ? "doesn't qualify for any rank!"
             : "qualifies for the **" + rankQualifier.getName() + "** rank!"
         );
+
         message.editMessage(placeholderMessage.buildEmbed()).queue();
     }
 
@@ -218,7 +236,7 @@ public class RankCheckCommand extends SkillCommand {
     }
 
     private String getRankForType(
-        HashSet<GuildReply.Guild.Rank> rankQualifiers,
+        HashMap<RankRequirementType, GuildReply.Guild.Rank> rankQualifiers,
         RankRequirementType rankRequirementType,
         GuildController.GuildEntry guildEntry,
         GuildReply guildReply,
@@ -232,12 +250,10 @@ public class RankCheckCommand extends SkillCommand {
             );
 
             if (response == null || response.getRank() == null) {
-                rankQualifiers.add(null);
-
                 return "_Unranked_";
             }
 
-            rankQualifiers.add(response.getRank());
+            rankQualifiers.put(rankRequirementType, response.getRank());
 
             String metricMessage = metricsCallback.apply(response);
             if (metricMessage == null) {

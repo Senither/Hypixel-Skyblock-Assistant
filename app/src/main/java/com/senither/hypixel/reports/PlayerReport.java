@@ -28,9 +28,10 @@ import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class PlayerReport {
 
@@ -47,7 +48,7 @@ public class PlayerReport {
         this.profileName = profileReply.getProfile().get("cute_name").getAsString();
 
         this.checks = new LinkedHashMap<>();
-        HashSet<GuildReply.Guild.Rank> rankQualifiers = new HashSet<>();
+        HashMap<RankRequirementType, GuildReply.Guild.Rank> rankQualifiers = new HashMap<>();
         for (RankRequirementType type : RankRequirementType.values()) {
             try {
                 RankCheckResponse response = type.getChecker().getRankForUser(guildEntry, guildReply, profileReply, uuid);
@@ -55,10 +56,9 @@ public class PlayerReport {
                 this.checks.put(type, response);
 
                 if (response == null || response.getRank() == null) {
-                    rankQualifiers.add(null);
                     continue;
                 }
-                rankQualifiers.add(response.getRank());
+                rankQualifiers.put(type, response.getRank());
             } catch (Exception e) {
                 this.checks.put(type, new RankCheckResponse(null, new HashMap<String, Object>() {{
                     put("exception", e);
@@ -66,19 +66,35 @@ public class PlayerReport {
             }
         }
 
-        GuildReply.Guild.Rank rankQualifier = guildReply.getGuild().getRanks().stream()
+        GuildReply.Guild.Rank rankQualifier = null;
+        List<GuildReply.Guild.Rank> sortedRanks = guildReply.getGuild().getRanks().stream()
             .sorted((o1, o2) -> o2.getPriority() - o1.getPriority())
-            .findFirst().get();
+            .collect(Collectors.toList());
 
-        for (GuildReply.Guild.Rank qualifier : rankQualifiers) {
-            if (qualifier == null) {
-                rankQualifier = null;
-                break;
+        RANK_LOOP:
+        for (GuildReply.Guild.Rank rank : sortedRanks) {
+            if (!guildEntry.getRankRequirements().containsKey(rank.getName())) {
+                continue;
             }
 
-            if (qualifier.getPriority() < rankQualifier.getPriority()) {
-                rankQualifier = qualifier;
+            GuildController.GuildEntry.RankRequirement requirements = guildEntry.getRankRequirements().get(rank.getName());
+            for (RankRequirementType type : RankRequirementType.values()) {
+                if (!type.getChecker().hasRequirementsSetup(requirements)) {
+                    continue;
+                }
+
+                if (!rankQualifiers.containsKey(type)) {
+                    continue RANK_LOOP;
+                }
+
+                GuildReply.Guild.Rank qualifierRank = rankQualifiers.get(type);
+                if (rank.getPriority() > qualifierRank.getPriority()) {
+                    continue RANK_LOOP;
+                }
             }
+
+            rankQualifier = rank;
+            break;
         }
 
         this.rank = rankQualifier;
