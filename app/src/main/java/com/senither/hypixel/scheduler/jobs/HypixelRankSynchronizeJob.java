@@ -27,6 +27,7 @@ import com.senither.hypixel.contracts.scheduler.Job;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.hypixel.HypixelRank;
+import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -53,8 +54,14 @@ public class HypixelRankSynchronizeJob extends Job {
 
     @Override
     public void run() {
+        final Carbon time = Carbon.now().subMinutes(30);
+
         try {
-            Collection query = app.getDatabaseManager().query("SELECT * FROM `uuids` WHERE `discord_id` IS NOT NULL ORDER BY `last_checked_at` ASC LIMIT 1;");
+            Collection query = app.getDatabaseManager().query(
+                "SELECT * FROM `uuids` WHERE `discord_id` AND `last_checked_at` < ? IS NOT NULL ORDER BY `last_checked_at` ASC LIMIT 1;",
+                time
+            );
+
             if (query.isEmpty()) {
                 return;
             }
@@ -70,7 +77,10 @@ public class HypixelRankSynchronizeJob extends Job {
             log.error("Failed to find any user for the synchronize job, error: {}", e.getMessage(), e);
 
             try {
-                app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `last_checked_at` = NOW() WHERE `discord_id` IS NOT NULL ORDER BY `last_checked_at` ASC LIMIT 1;");
+                app.getDatabaseManager().queryUpdate(
+                    "UPDATE `uuids` SET `last_checked_at` = NOW() WHERE `discord_id` IS NOT NULL AND `last_checked_at` < ? ORDER BY `last_checked_at` ASC LIMIT 1;",
+                    time
+                );
             } catch (SQLException sqlException) {
                 log.error("Failed to update last_checked_at data for the last checked row, error: {}", sqlException.getMessage(), sqlException);
             }
