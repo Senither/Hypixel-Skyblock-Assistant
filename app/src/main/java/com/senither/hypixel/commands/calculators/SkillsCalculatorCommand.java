@@ -207,13 +207,20 @@ public class SkillsCalculatorCommand extends Command {
 
                 double experience = stat.getExperience() == -1 ? getExperienceForLevel((int) stat.getLevel()) : stat.getExperience();
                 int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], 50), 0, Constants.GENERAL_SKILL_EXPERIENCE.size());
+                double diff = getExperienceForLevel(max) - experience;
+
+                String note = "You need another **%s** XP to reach level **%s**!";
+                if (diff < 0) {
+                    diff = diff * -1;
+                    note = "You're currently **%s** XP above level **%s**!";
+                }
 
                 message.editMessage(embedBuilder
                     .setTitle(skillType + " Skill Calculation for " + username)
-                    .setDescription(String.format("You're currently %s level **%s** with **%s** XP!\nYou need another **%s** XP to reach level **%s**!",
+                    .setDescription(String.format("You're currently %s level **%s** with **%s** XP!\n" + note,
                         skillType,
                         (int) stat.getLevel(), NumberUtil.formatNicelyWithDecimals(experience),
-                        NumberUtil.formatNicelyWithDecimals(getExperienceForLevel(max) - experience), max
+                        NumberUtil.formatNicelyWithDecimals(diff), max
                     ))
                     .setColor(MessageType.SUCCESS.getColor())
                     .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
