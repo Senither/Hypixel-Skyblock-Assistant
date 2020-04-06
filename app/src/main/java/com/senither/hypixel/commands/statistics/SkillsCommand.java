@@ -109,7 +109,7 @@ public class SkillsCommand extends SkillCommand {
             .addField("Carpentry", formatStatTextValue(skillsResponse.getCarpentry()), true)
             .addField("Runecrafting", formatStatTextValue(skillsResponse.getRunecrafting()), true)
             .setFooter(String.format(
-                "Note > Carpentry and Runecrafting are cosmetic skills, and are therefor not included in the average skill calculation. | Profile: %s",
+                "Note > Carpentry and Runecrafting are cosmetic skills, and are therefore not included in the average skill calculation. | Profile: %s",
                 profileReply.getProfile().get("cute_name").getAsString()
             ))
             .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant());
