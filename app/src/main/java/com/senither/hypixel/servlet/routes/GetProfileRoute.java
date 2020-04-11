@@ -68,6 +68,7 @@ public class GetProfileRoute extends SparkRoute {
         JsonObject member = profile.getProfile().getAsJsonObject("members").getAsJsonObject(uuid.toString().replace("-", ""));
 
         JsonObject data = new JsonObject();
+        data.addProperty("uuid", formatUUID(player.getPlayer().get("uuid").getAsString()));
         data.addProperty("username", player.getPlayer().get("displayname").getAsString());
         data.add("profile", profile.getProfile());
 
@@ -77,5 +78,9 @@ public class GetProfileRoute extends SparkRoute {
         data.add("stats", stats);
 
         return buildDataResponse(response, 200, data);
+    }
+
+    private String formatUUID(String uuid) {
+        return uuid.substring(0, 8) + "-" + uuid.substring(8, 12) + "-" + uuid.substring(12, 16) + "-" + uuid.substring(16, 20) + "-" + uuid.substring(20, 32);
     }
 }
