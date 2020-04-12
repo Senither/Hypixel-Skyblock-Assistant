@@ -72,7 +72,7 @@ public class GuildExperienceLeaderboardCommand extends Command {
     @Override
     public List<String> getTriggers() {
         return Arrays.asList(
-            "leaderboard", "glead", "lead", "gtop"
+            "expleaderboard", "gxplead", "glead", "gtop"
         );
     }
 
