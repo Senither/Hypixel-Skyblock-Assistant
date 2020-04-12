@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.time.Carbon;
 import net.hypixel.api.adapters.DateTimeTypeAdapter;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
@@ -72,6 +73,10 @@ public class Hypixel {
 
     private static final Cache<String, AbstractReply> replyCache = CacheBuilder.newBuilder()
         .expireAfterWrite(90, TimeUnit.SECONDS)
+        .build();
+
+    private static final Cache<String, GuildLeaderboardResponse> guildCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.HOURS)
         .build();
 
     private static final Gson gson = new GsonBuilder()
@@ -378,6 +383,36 @@ public class Hypixel {
         });
 
         return future;
+    }
+
+    public GuildLeaderboardResponse getGuildLeaderboard() {
+        final String cacheKey = "skyblock-leaderboard";
+
+        GuildLeaderboardResponse cachedLeaderboard = guildCache.getIfPresent(cacheKey);
+        if (cachedLeaderboard != null) {
+            log.debug("Found Guild Leaderboard using the in-memory cache");
+
+            return cachedLeaderboard;
+        }
+
+        log.debug("Requesting for Guild Leaderboard from the API");
+
+        try {
+            GuildLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet("http://hypixel-app-api.senither.com/leaderboard"), obj -> {
+                String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
+                return gson.fromJson(content, GuildLeaderboardResponse.class);
+            });
+
+            if (leaderboardResponse == null) {
+                return null;
+            }
+
+            guildCache.put(cacheKey, leaderboardResponse);
+
+            return leaderboardResponse;
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     public UUID getUUIDFromName(String name) throws SQLException {
