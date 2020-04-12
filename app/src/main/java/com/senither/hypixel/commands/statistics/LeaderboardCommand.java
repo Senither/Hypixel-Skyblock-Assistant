@@ -91,13 +91,13 @@ public class LeaderboardCommand extends Command {
 
         for (int i = 0; i < sortedBySkills.size(); i++) {
             GuildLeaderboardResponse.Guild skillsGuild = sortedBySkills.get(i);
-            skillsRow.add(String.format("#%s : %s\n   > %s",
-                i + 1, skillsGuild.getName(), NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill())
+            skillsRow.add(String.format("#%s : %s [%s]\n   > %s",
+                i + 1, skillsGuild.getName(), skillsGuild.getMembers(), NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill())
             ));
 
             GuildLeaderboardResponse.Guild slayerGuild = sortedBySlayer.get(i);
-            slayerRow.add(String.format("#%s : %s\n   > %s",
-                i + 1, slayerGuild.getName(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer())
+            slayerRow.add(String.format("#%s : %s [%s]\n   > %s",
+                i + 1, slayerGuild.getName(), skillsGuild.getMembers(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer())
             ));
         }
 

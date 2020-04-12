@@ -45,6 +45,7 @@ public class GuildLeaderboardResponse {
 
         protected String id;
         protected String name;
+        private int members;
         protected double average_skill;
         protected double average_slayer;
 
@@ -54,6 +55,10 @@ public class GuildLeaderboardResponse {
 
         public String getName() {
             return name;
+        }
+
+        public int getMembers() {
+            return members;
         }
 
         public double getAverageSkill() {
