@@ -97,7 +97,7 @@ public class LeaderboardCommand extends Command {
 
             GuildLeaderboardResponse.Guild slayerGuild = sortedBySlayer.get(i);
             slayerRow.add(String.format("#%s : %s [%s]\n   > %s",
-                i + 1, slayerGuild.getName(), skillsGuild.getMembers(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer())
+                i + 1, slayerGuild.getName(), slayerGuild.getMembers(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer())
             ));
         }
 
