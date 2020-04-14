@@ -45,9 +45,9 @@ public class GuildLeaderboardResponse {
 
         protected String id;
         protected String name;
-        private int members;
         protected double average_skill;
         protected double average_slayer;
+        private int members;
 
         public String getId() {
             return id;

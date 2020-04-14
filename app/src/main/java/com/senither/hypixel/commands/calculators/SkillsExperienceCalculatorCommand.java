@@ -37,94 +37,67 @@ import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class SkillsCalculatorCommand extends CalculatorCommand {
+public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
 
-    public SkillsCalculatorCommand(SkyblockAssistant app) {
+    public SkillsExperienceCalculatorCommand(SkyblockAssistant app) {
         super(app);
     }
 
     @Override
     public String getName() {
-        return "Skills Calculator";
+        return "Experience Calculator";
     }
 
     @Override
     public List<String> getDescription() {
-        return Arrays.asList(
-            "Calculates the needed XP between two levels, or the XP required to reach a given level."
+        return Collections.singletonList(
+            "Calculates the level you'll get to after gaining the given amount of XP for any given skill."
         );
     }
 
     @Override
     public List<String> getUsageInstructions() {
-        return Arrays.asList(
-            "`:command <to> <from>` - Calculates the required XP using the given levels.",
-            "`:command <skill> <level>` - Calculates the XP needed to reach the given level from your current skill XP."
+        return Collections.singletonList(
+            "`:command <skill> <xp>` - Calculates the level you'll get after gaining the given amount of XP."
         );
     }
 
     @Override
     public List<String> getExampleUsage() {
         return Arrays.asList(
-            "`:command 3 45` - Calculates the XP needed to go from level 3 to 45.",
-            "`:command combat 50` - Calculates the amount of XP you need to reach combat level 50."
+            "`:command combat 75000` - Calculates your level after getting 75,000 XP.",
+            "`:command enchanting 20k` - Calculates your level after getting 20,000 XP.",
+            "`:command farming 1.5m` - Calculates your level after getting 1,500,000 XP."
         );
     }
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("calcskill", "calcskills");
+        return Arrays.asList("calcsxp", "xp");
     }
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
-                "You must specify the minimum level or skill type you want the calculate the level different for."
+                "You must specify the skill type you want the calculate the level XP for."
             ).setTitle("Missing argument").queue();
             return;
         }
 
         if (args.length == 1) {
             MessageFactory.makeError(event.getMessage(),
-                "You must specify the maximum level so skill difference can be calculated."
+                "You must specify the amount of XP want to use in the calculation."
             ).setTitle("Missing argument").queue();
             return;
         }
 
-        if (NumberUtil.isNumeric(args[0])) {
-            handleCalculateSkillFromLevel(event, args);
-        } else {
-            handleCalculateSkillFromSkill(event, args);
-        }
-    }
-
-    private void handleCalculateSkillFromLevel(MessageReceivedEvent event, String[] args) {
-        int min = NumberUtil.getBetween(NumberUtil.parseInt(args[0], 0), 0, Constants.GENERAL_SKILL_EXPERIENCE.size());
-        int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], 50), 0, Constants.GENERAL_SKILL_EXPERIENCE.size());
-
-        if (min > max) {
-            int temp = min;
-            min = max;
-            max = temp;
-        }
-
-        MessageFactory.makeSuccess(event.getMessage(), "You need **:xp** XP to go from level **:first** to **:second**!")
-            .setTitle("Skill Calculation")
-            .set("xp", NumberUtil.formatNicelyWithDecimals(
-                getExperienceForLevel(max) - getExperienceForLevel(min)
-            ))
-            .set("first", min)
-            .set("second", max)
-            .queue();
-    }
-
-    private void handleCalculateSkillFromSkill(MessageReceivedEvent event, String[] args) {
         String username = getUsernameFromUser(event.getAuthor());
         if (username == null) {
             MessageFactory.makeError(event.getMessage(), "Failed to load your minecraft username, please try again later.").queue();
@@ -154,7 +127,7 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                 JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
 
                 SkillsResponse response = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
-                CalculatorCommand.SkillType type = getSkillTypeFromName(args[0], response);
+                SkillType type = getSkillTypeFromName(args[0], response);
 
                 if (type == null) {
                     message.editMessage(embedBuilder
@@ -169,22 +142,40 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                     return;
                 }
 
-                double experience = type.getStat().getExperience() == -1 ? getExperienceForLevel((int) type.getStat().getLevel()) : type.getStat().getExperience();
-                int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], 50), 0, Constants.GENERAL_SKILL_EXPERIENCE.size());
-                double diff = getExperienceForLevel(max) - experience;
-
-                String note = "You need another **%s** XP to reach level **%s**!";
-                if (diff < 0) {
-                    diff = diff * -1;
-                    note = "You're currently **%s** XP above level **%s**!";
+                if (type.getStat().getLevel() >= 50) {
+                    message.editMessage(embedBuilder
+                        .setColor(MessageType.INFO.getColor())
+                        .setTitle("Already max level")
+                        .setDescription(String.format(
+                            "You have already reached the max level in the **%s** skill.",
+                            type.getName()
+                        ))
+                        .build()
+                    ).queue();
+                    return;
                 }
 
+                double experience = getExperienceFromString(args[1]);
+                double skillXp = (type.getStat().getExperience() == -1 ? getExperienceForLevel((int) type.getStat().getLevel()) : type.getStat().getExperience());
+                double combinedXp = experience + skillXp;
+                double newLevel = getLevelFromExperience(combinedXp);
+
+                String note = newLevel >= 50D ?
+                    String.format("You'll reach level **50** and max out your %s skill after gaining **%s** XP!",
+                        type.getName(), NumberUtil.formatNicelyWithDecimals(experience)
+                    ) :
+                    String.format("You'll reach level **%s** after gaining **%s** %s XP!",
+                        NumberUtil.formatNicelyWithDecimals(newLevel),
+                        NumberUtil.formatNicely(experience),
+                        type.getName()
+                    );
+
                 message.editMessage(embedBuilder
-                    .setTitle(type.getName() + " Skill Calculation for " + username)
+                    .setTitle(type.getName() + " XP Calculation for " + username)
                     .setDescription(String.format("You're currently %s level **%s** with **%s** XP!\n" + note,
                         type.getName(),
-                        (int) type.getStat().getLevel(), NumberUtil.formatNicelyWithDecimals(experience),
-                        NumberUtil.formatNicelyWithDecimals(diff), max
+                        NumberUtil.formatNicelyWithDecimals(type.getStat().getLevel()),
+                        NumberUtil.formatNicelyWithDecimals(skillXp)
                     ))
                     .setColor(MessageType.SUCCESS.getColor())
                     .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
@@ -197,11 +188,37 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
         });
     }
 
+    private double getExperienceFromString(String experience) {
+        try {
+            return Double.max(Double.parseDouble(experience), 0);
+        } catch (NumberFormatException e) {
+            if (experience.toLowerCase().endsWith("m")) {
+                return Double.max(NumberUtil.parseDouble(experience.substring(0, experience.length() - 1), 0) * 1000000, 0);
+            } else if (experience.toLowerCase().endsWith("k")) {
+                return Double.max(NumberUtil.parseDouble(experience.substring(0, experience.length() - 1), 0) * 1000, 0);
+            } else {
+                return 0D;
+            }
+        }
+    }
+
     private double getExperienceForLevel(int level) {
         double totalRequiredExperience = 0;
         for (int i = 0; i < Math.min(level, Constants.GENERAL_SKILL_EXPERIENCE.size()); i++) {
             totalRequiredExperience += Constants.GENERAL_SKILL_EXPERIENCE.asList().get(i);
         }
         return totalRequiredExperience;
+    }
+
+    private double getLevelFromExperience(double experience) {
+        int level = 0;
+        for (int toRemove : Constants.GENERAL_SKILL_EXPERIENCE) {
+            experience -= toRemove;
+            if (experience < 0) {
+                return level + (1D - (experience * -1) / (double) toRemove);
+            }
+            level++;
+        }
+        return level;
     }
 }

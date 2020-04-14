@@ -24,6 +24,7 @@ package com.senither.hypixel;
 import com.senither.hypixel.commands.CommandManager;
 import com.senither.hypixel.commands.administration.*;
 import com.senither.hypixel.commands.calculators.SkillsCalculatorCommand;
+import com.senither.hypixel.commands.calculators.SkillsExperienceCalculatorCommand;
 import com.senither.hypixel.commands.general.HelpCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.BotStatsCommand;
@@ -83,6 +84,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new RankRequirementCommand(this));
         commandManager.registerCommand(new SettingsCommand(this));
         commandManager.registerCommand(new SkillsCalculatorCommand(this));
+        commandManager.registerCommand(new SkillsExperienceCalculatorCommand(this));
         commandManager.registerCommand(new VerifyCommand(this));
         commandManager.registerCommand(new SkillsCommand(this));
         commandManager.registerCommand(new SlayerCommand(this));

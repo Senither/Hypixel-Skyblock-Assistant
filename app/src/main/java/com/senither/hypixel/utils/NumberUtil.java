@@ -39,6 +39,14 @@ public class NumberUtil {
         }
     }
 
+    public static double parseDouble(String number, int fallback) {
+        try {
+            return Double.parseDouble(number);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
     public static int getBetween(int number, int min, int max) {
         return Math.min(max, Math.max(min, number));
     }
