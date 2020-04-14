@@ -79,7 +79,7 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("calcsxp", "xp");
+        return Arrays.asList("calcxp", "xp");
     }
 
     @Override
