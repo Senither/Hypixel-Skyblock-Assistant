@@ -28,9 +28,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.contracts.hypixel.Response;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
+import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
 import com.senither.hypixel.time.Carbon;
 import net.hypixel.api.adapters.DateTimeTypeAdapter;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
@@ -75,8 +77,8 @@ public class Hypixel {
         .expireAfterWrite(90, TimeUnit.SECONDS)
         .build();
 
-    private static final Cache<String, GuildLeaderboardResponse> guildCache = CacheBuilder.newBuilder()
-        .expireAfterWrite(1, TimeUnit.HOURS)
+    private static final Cache<String, Response> responseCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(30, TimeUnit.MINUTES)
         .build();
 
     private static final Gson gson = new GsonBuilder()
@@ -388,11 +390,11 @@ public class Hypixel {
     public GuildLeaderboardResponse getGuildLeaderboard() {
         final String cacheKey = "skyblock-leaderboard";
 
-        GuildLeaderboardResponse cachedLeaderboard = guildCache.getIfPresent(cacheKey);
-        if (cachedLeaderboard != null) {
+        Response cachedLeaderboard = responseCache.getIfPresent(cacheKey);
+        if (cachedLeaderboard != null && cachedLeaderboard instanceof GuildLeaderboardResponse) {
             log.debug("Found Guild Leaderboard using the in-memory cache");
 
-            return cachedLeaderboard;
+            return (GuildLeaderboardResponse) cachedLeaderboard;
         }
 
         log.debug("Requesting for Guild Leaderboard from the API");
@@ -407,7 +409,37 @@ public class Hypixel {
                 return null;
             }
 
-            guildCache.put(cacheKey, leaderboardResponse);
+            responseCache.put(cacheKey, leaderboardResponse);
+
+            return leaderboardResponse;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    public PlayerLeaderboardResponse getGuildPlayersLeaderboard(String guildId) {
+        final String cacheKey = "skyblock-player-leaderboard-" + guildId;
+
+        Response cachedLeaderboard = responseCache.getIfPresent(cacheKey);
+        if (cachedLeaderboard != null && cachedLeaderboard instanceof PlayerLeaderboardResponse) {
+            log.debug("Found Player Leaderboard for {} using the in-memory cache", guildId);
+
+            return (PlayerLeaderboardResponse) cachedLeaderboard;
+        }
+
+        log.debug("Requesting for Player Leaderboard for {} from the API", guildId);
+
+        try {
+            PlayerLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet("http://hypixel-app-api.senither.com/leaderboard/players/" + guildId), obj -> {
+                String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
+                return gson.fromJson(content, PlayerLeaderboardResponse.class);
+            });
+
+            if (leaderboardResponse == null) {
+                return null;
+            }
+
+            responseCache.put(cacheKey, leaderboardResponse);
 
             return leaderboardResponse;
         } catch (IOException e) {

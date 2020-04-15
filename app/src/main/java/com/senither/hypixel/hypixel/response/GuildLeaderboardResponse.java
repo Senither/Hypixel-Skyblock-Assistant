@@ -21,21 +21,14 @@
 
 package com.senither.hypixel.hypixel.response;
 
+import com.senither.hypixel.contracts.hypixel.Response;
+
 import java.util.List;
 
 @SuppressWarnings("WeakerAccess")
-public class GuildLeaderboardResponse {
+public class GuildLeaderboardResponse extends Response {
 
-    protected int status;
     protected List<Guild> data;
-
-    public boolean isSuccess() {
-        return getStatus() == 200;
-    }
-
-    public int getStatus() {
-        return status;
-    }
 
     public List<Guild> getData() {
         return data;
@@ -47,7 +40,7 @@ public class GuildLeaderboardResponse {
         protected String name;
         protected double average_skill;
         protected double average_slayer;
-        private int members;
+        protected int members;
 
         public String getId() {
             return id;
