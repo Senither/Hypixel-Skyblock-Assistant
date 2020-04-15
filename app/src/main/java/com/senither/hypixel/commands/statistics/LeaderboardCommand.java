@@ -213,7 +213,7 @@ public class LeaderboardCommand extends Command {
         TOTAL_SLAYER("Total Slayer", Arrays.asList("slayers", "slayer"), PlayerLeaderboardResponse.Player::getTotalSlayer),
         MINING("Mining", Arrays.asList("mining", "mine", "ore"), PlayerLeaderboardResponse.Player::getMining),
         FORAGING("Foraging", Arrays.asList("foraging", "forage", "tree"), PlayerLeaderboardResponse.Player::getForaging),
-        ENCHANTING("Enchanting", Arrays.asList("", "enchant"), PlayerLeaderboardResponse.Player::getEnchanting),
+        ENCHANTING("Enchanting", Arrays.asList("enchanting", "enchant"), PlayerLeaderboardResponse.Player::getEnchanting),
         FARMING("Farming", Arrays.asList("farming", "farm"), PlayerLeaderboardResponse.Player::getFarming),
         COMBAT("Combat", Arrays.asList("combat", "fight"), PlayerLeaderboardResponse.Player::getCombat),
         FISHING("Fishing", Arrays.asList("fishing", "fish"), PlayerLeaderboardResponse.Player::getFishing),
