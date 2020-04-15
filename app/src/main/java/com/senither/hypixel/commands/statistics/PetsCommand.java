@@ -107,11 +107,13 @@ public class PetsCommand extends SkillCommand {
                 otherPets.add(pet.toFormattedString());
             });
 
-        builder.addField(String.format("Other Pets (%s in total)",
-            otherPets.size() + (response.getActivePet() == null ? 0 : 1)
-        ), String.format("```php\n%s```", String.join(
-            "\n", otherPets
-        )), false);
+        if (!otherPets.isEmpty()) {
+            builder.addField(String.format("Other Pets (%s in total)",
+                otherPets.size() + (response.getActivePet() == null ? 0 : 1)
+            ), String.format("```php\n%s```", String.join(
+                "\n", otherPets
+            )), false);
+        }
 
         message.editMessage(builder.build()).queue();
     }
