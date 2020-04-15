@@ -126,7 +126,7 @@ public class PetsResponse extends StatisticsResponse {
             return String.format("LvL %s %s %s",
                 NumberUtil.formatNicely(getLevel()),
                 getTier().getName(),
-                getName()
+                getName().replaceAll("_", " ")
             );
         }
     }
