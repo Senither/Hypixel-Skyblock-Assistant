@@ -31,6 +31,7 @@ import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.sql.SQLException;
@@ -88,8 +89,8 @@ public class LeaderboardCommand extends Command {
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
-        if (args.length == 0) {
-            showGuildLeaderboard(event);
+        if (args.length == 0 || NumberUtil.isNumeric(args[0])) {
+            showGuildLeaderboard(event, args);
             return;
         }
 
@@ -190,7 +191,7 @@ public class LeaderboardCommand extends Command {
     }
 
     @SuppressWarnings("ComparatorMethodParameterNotUsed")
-    private void showGuildLeaderboard(MessageReceivedEvent event) {
+    private void showGuildLeaderboard(MessageReceivedEvent event, String[] args) {
         GuildLeaderboardResponse leaderboard = app.getHypixel().getGuildLeaderboard();
 
         List<String> slayerRow = new ArrayList<>();
@@ -217,18 +218,34 @@ public class LeaderboardCommand extends Command {
             ));
         }
 
+        int currentPage = 1;
+        if (args.length > 0) {
+            currentPage = NumberUtil.parseInt(args[0], 1);
+        }
+
+        SimplePaginator<String> skillsPaginator = new SimplePaginator<>(skillsRow, 10, currentPage);
+        skillsRow.clear();
+        skillsPaginator.forEach((index, key, val) -> skillsRow.add(val));
+
+        SimplePaginator<String> slayerPaginator = new SimplePaginator<>(slayerRow, 10, currentPage);
+        slayerRow.clear();
+        slayerPaginator.forEach((index, key, val) -> slayerRow.add(val));
+
         MessageFactory.makeInfo(event.getMessage(), "The guild leaderboards are the total average skill and slayer stats for each guild, the stats are refreshed every 24 hours.")
             .setTitle("Guild Leaderboard")
             .setTimestamp(Carbon.now().getTime().toInstant())
             .addField("Skills Leaderboard", String.format("```elm\n%s```", String.join("\n", skillsRow)), true)
             .addField("Slayer Leaderboard", String.format("```elm\n%s```", String.join("\n", slayerRow)), true)
+            .addField(EmbedBuilder.ZERO_WIDTH_SPACE, skillsPaginator.generateFooter(
+                Constants.COMMAND_PREFIX + getTriggers().get(0)
+            ), false)
             .queue();
     }
 
     private GuildLeaderboardResponse.Guild getGuildFromName(String name) {
         GuildLeaderboardResponse guildLeaderboard = app.getHypixel().getGuildLeaderboard();
         for (GuildLeaderboardResponse.Guild guild : guildLeaderboard.getData()) {
-            if (guild.getName().equalsIgnoreCase(name)) {
+            if (name.equalsIgnoreCase(guild.getName())) {
                 return guild;
             }
         }
