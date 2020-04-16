@@ -137,10 +137,10 @@ public class CommandManager {
         }
 
         try {
-            boolean hasResult = !app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `discord_id` = ?", user.getIdLong()).isEmpty();
+            boolean result = app.getHypixel().getUUIDFromUser(user) != null;
 
-            verifyCache.put(user.getIdLong(), hasResult);
-            return hasResult;
+            verifyCache.put(user.getIdLong(), result);
+            return result;
         } catch (SQLException ignored) {
             return false;
         }

@@ -33,9 +33,11 @@ import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class LeaderboardCommand extends Command {
@@ -111,6 +113,14 @@ public class LeaderboardCommand extends Command {
             return;
         }
 
+        UUID userUUID = null;
+        final int[] position = {-1};
+
+        try {
+            userUUID = app.getHypixel().getUUIDFromUser(event.getAuthor());
+        } catch (SQLException ignored) {
+        }
+
         int pageNumber = 1;
         String guildName = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
         if (NumberUtil.isNumeric(args[args.length - 1])) {
@@ -136,14 +146,18 @@ public class LeaderboardCommand extends Command {
         }
 
         final int[] index = {1};
+        final UUID finalUserUUID = userUUID;
         List<String> completeRows = new ArrayList<>();
         leaderboard.getData().stream()
             .sorted((o1, o2) -> type.function.getStat(o2) > type.function.getStat(o1) ? 1 : -1)
             .forEach(player -> {
+                if (player.getUuid().equals(finalUserUUID)) {
+                    position[0] = index[0];
+                }
                 completeRows.add(String.format("#%s : %s\n   > %s",
                     index[0]++, player.getUsername(),
                     type.function.getStat(player) == -1
-                        ? " API IS DISABLED"
+                        ? "API IS DISABLED"
                         : NumberUtil.formatNicelyWithDecimals(type.function.getStat(player))
                 ));
             });
@@ -157,8 +171,20 @@ public class LeaderboardCommand extends Command {
             type.aliases.get(0), guild.getName()
         );
 
-        MessageFactory.makeInfo(event.getMessage(), String.format("```ada\n%s```", String.join("\n", rows)) + "\n" + paginator.generateFooter(command))
+        String note = "";
+        if (finalUserUUID != null && position[0] > 0) {
+            note = String.format("> You're ranked **#%s** in %s the guild!\n\n",
+                position[0], type.name
+            );
+        }
+
+        MessageFactory.makeInfo(event.getMessage(), String.format(
+            "```ada\n%s```",
+            String.join("\n", rows)) + "\n"
+            + note + paginator.generateFooter(command)
+        )
             .setTitle(String.format("%s's %s Leaderboard", guild.getName(), type.name))
+            .setFooter("Requested by " + event.getAuthor().getAsTag(), event.getAuthor().getEffectiveAvatarUrl())
             .setTimestamp(Carbon.now().getTime().toInstant())
             .queue();
     }

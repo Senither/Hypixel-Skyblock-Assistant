@@ -34,6 +34,7 @@ import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
 import com.senither.hypixel.time.Carbon;
+import net.dv8tion.jda.api.entities.User;
 import net.hypixel.api.adapters.DateTimeTypeAdapter;
 import net.hypixel.api.adapters.UUIDTypeAdapter;
 import net.hypixel.api.reply.AbstractReply;
@@ -445,6 +446,25 @@ public class Hypixel {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public UUID getUUIDFromUser(User user) throws SQLException {
+        UUID cachedUUID = uuidCache.getIfPresent(user.getId());
+        if (cachedUUID != null) {
+            log.debug("Found UUID for {} using the in-memory cache (ID: {})", user.getAsTag(), cachedUUID);
+            return cachedUUID;
+        }
+
+        Collection result = app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `discord_id` = ?", user.getIdLong());
+        if (!result.isEmpty()) {
+            UUID uuid = UUID.fromString(result.get(0).getString("uuid"));
+            uuidCache.put(user.getId(), uuid);
+            log.debug("Found UUID for {} using the database cache (ID: {})", user, uuid);
+
+            return uuid;
+        }
+
+        return null;
     }
 
     public UUID getUUIDFromName(String name) throws SQLException {
