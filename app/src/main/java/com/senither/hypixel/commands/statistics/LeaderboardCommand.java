@@ -150,7 +150,7 @@ public class LeaderboardCommand extends Command {
         final UUID finalUserUUID = userUUID;
         List<String> completeRows = new ArrayList<>();
         leaderboard.getData().stream()
-            .sorted((o1, o2) -> type.function.getStat(o2) > type.function.getStat(o1) ? 1 : -1)
+            .sorted((o1, o2) -> Double.compare(type.function.getStat(o2), type.function.getStat(o1)))
             .forEach(player -> {
                 if (player.getUuid().equals(finalUserUUID)) {
                     position[0] = index[0];
@@ -197,13 +197,13 @@ public class LeaderboardCommand extends Command {
         List<String> slayerRow = new ArrayList<>();
         List<GuildLeaderboardResponse.Guild> sortedBySlayer = leaderboard.getData().stream()
             .filter(guild -> guild.getName() != null)
-            .sorted((o1, o2) -> o2.getAverageSlayer() > o1.getAverageSlayer() ? 1 : -1)
+            .sorted((o1, o2) -> Double.compare(o2.getAverageSlayer(), o1.getAverageSlayer()))
             .collect(Collectors.toList());
 
         List<String> skillsRow = new ArrayList<>();
         List<GuildLeaderboardResponse.Guild> sortedBySkills = leaderboard.getData().stream()
             .filter(guild -> guild.getName() != null)
-            .sorted((o1, o2) -> o2.getAverageSkill() > o1.getAverageSkill() ? 1 : -1)
+            .sorted((o1, o2) -> Double.compare(o2.getAverageSkill(), o1.getAverageSkill()))
             .collect(Collectors.toList());
 
         for (int i = 0; i < sortedBySkills.size(); i++) {
