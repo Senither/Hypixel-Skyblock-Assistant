@@ -174,7 +174,7 @@ public class LeaderboardCommand extends Command {
 
         String note = "";
         if (finalUserUUID != null && position[0] > 0) {
-            note = String.format("> You're ranked **#%s** in %s the guild!\n\n",
+            note = String.format("> You're ranked **#%s** in %s in the guild!\n\n",
                 position[0], type.name
             );
         }
