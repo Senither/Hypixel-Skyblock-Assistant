@@ -207,13 +207,13 @@ public class LeaderboardCommand extends Command {
 
         for (int i = 0; i < sortedBySkills.size(); i++) {
             GuildLeaderboardResponse.Guild skillsGuild = sortedBySkills.get(i);
-            skillsRow.add(String.format("#%s : %s [%s]\n   > %s",
-                i + 1, skillsGuild.getName(), skillsGuild.getMembers(), NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill())
+            skillsRow.add(String.format("%s: %s\n    > %s < [%s]",
+                padPosition("#" + (i + 1)), skillsGuild.getName(), NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill()), skillsGuild.getMembers()
             ));
 
             GuildLeaderboardResponse.Guild slayerGuild = sortedBySlayer.get(i);
-            slayerRow.add(String.format("#%s : %s [%s]\n   > %s",
-                i + 1, slayerGuild.getName(), slayerGuild.getMembers(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer())
+            slayerRow.add(String.format("%s: %s\n    > %s < [%s]",
+                padPosition("#" + (i + 1)), slayerGuild.getName(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer()), slayerGuild.getMembers()
             ));
         }
 
@@ -234,6 +234,14 @@ public class LeaderboardCommand extends Command {
         }
 
         return null;
+    }
+
+    private String padPosition(String string) {
+        StringBuilder builder = new StringBuilder(string);
+        while (builder.length() <= 3) {
+            builder.append(" ");
+        }
+        return builder.toString();
     }
 
     enum LeaderboardType {
