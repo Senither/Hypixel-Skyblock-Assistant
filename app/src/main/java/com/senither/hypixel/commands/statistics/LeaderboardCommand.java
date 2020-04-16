@@ -141,7 +141,10 @@ public class LeaderboardCommand extends Command {
             .sorted((o1, o2) -> type.function.getStat(o2) > type.function.getStat(o1) ? 1 : -1)
             .forEach(player -> {
                 completeRows.add(String.format("#%s : %s\n   > %s",
-                    index[0]++, player.getUsername(), NumberUtil.formatNicelyWithDecimals(type.function.getStat(player))
+                    index[0]++, player.getUsername(),
+                    type.function.getStat(player) == -1
+                        ? " API IS DISABLED"
+                        : NumberUtil.formatNicelyWithDecimals(type.function.getStat(player))
                 ));
             });
 
