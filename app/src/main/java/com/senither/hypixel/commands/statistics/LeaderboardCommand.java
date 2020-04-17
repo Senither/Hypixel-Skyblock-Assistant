@@ -265,6 +265,9 @@ public class LeaderboardCommand extends Command {
 
         AVERAGE_SKILL("Average Skill", Arrays.asList("skills", "skill"), PlayerLeaderboardResponse.Player::getAverageSkill),
         TOTAL_SLAYER("Total Slayer", Arrays.asList("slayers", "slayer"), PlayerLeaderboardResponse.Player::getTotalSlayer),
+        REVENANT("Revenant Slayer", Arrays.asList("revenant", "rev", "zombie"), PlayerLeaderboardResponse.Player::getRevenantXP),
+        TARANTULA("Tarantula Slayer", Arrays.asList("tarantula", "tara", "spider"), PlayerLeaderboardResponse.Player::getTarantulaXP),
+        SVEN("Sven Slayer", Arrays.asList("sven", "wolf", "dog"), PlayerLeaderboardResponse.Player::getSvenXP),
         MINING("Mining", Arrays.asList("mining", "mine", "ore"), PlayerLeaderboardResponse.Player::getMining, PlayerLeaderboardResponse.Player::getMiningXP),
         FORAGING("Foraging", Arrays.asList("foraging", "forage", "tree"), PlayerLeaderboardResponse.Player::getForaging, PlayerLeaderboardResponse.Player::getForagingXP),
         ENCHANTING("Enchanting", Arrays.asList("enchanting", "enchant"), PlayerLeaderboardResponse.Player::getEnchanting, PlayerLeaderboardResponse.Player::getEnchantingXP),

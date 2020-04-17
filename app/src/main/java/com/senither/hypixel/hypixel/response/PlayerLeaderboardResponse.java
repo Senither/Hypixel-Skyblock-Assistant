@@ -43,6 +43,9 @@ public class PlayerLeaderboardResponse extends Response {
         protected String username;
         protected double average_skill;
         protected double total_slayer;
+        protected double revenant_xp;
+        protected double tarantula_xp;
+        protected double sven_xp;
         protected double mining;
         protected double mining_xp;
         protected double foraging;
@@ -76,6 +79,18 @@ public class PlayerLeaderboardResponse extends Response {
 
         public double getTotalSlayer() {
             return total_slayer;
+        }
+
+        public double getRevenantXP() {
+            return revenant_xp;
+        }
+
+        public double getTarantulaXP() {
+            return revenant_xp;
+        }
+
+        public double getSvenXP() {
+            return sven_xp;
         }
 
         public double getMining() {
