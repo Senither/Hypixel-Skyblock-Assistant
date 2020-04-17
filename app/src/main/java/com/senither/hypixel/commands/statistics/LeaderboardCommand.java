@@ -150,16 +150,16 @@ public class LeaderboardCommand extends Command {
         final UUID finalUserUUID = userUUID;
         List<String> completeRows = new ArrayList<>();
         leaderboard.getData().stream()
-            .sorted((o1, o2) -> Double.compare(type.function.getStat(o2), type.function.getStat(o1)))
+            .sorted((o1, o2) -> Double.compare(type.orderFunction.getStat(o2), type.orderFunction.getStat(o1)))
             .forEach(player -> {
                 if (player.getUuid().equals(finalUserUUID)) {
                     position[0] = index[0];
                 }
                 completeRows.add(String.format("#%s : %s\n   > %s",
                     index[0]++, player.getUsername(),
-                    type.function.getStat(player) == -1
+                    type.statFunction.getStat(player) == -1
                         ? "API IS DISABLED"
-                        : NumberUtil.formatNicelyWithDecimals(type.function.getStat(player))
+                        : NumberUtil.formatNicelyWithDecimals(type.statFunction.getStat(player))
                 ));
             });
 
@@ -265,24 +265,30 @@ public class LeaderboardCommand extends Command {
 
         AVERAGE_SKILL("Average Skill", Arrays.asList("skills", "skill"), PlayerLeaderboardResponse.Player::getAverageSkill),
         TOTAL_SLAYER("Total Slayer", Arrays.asList("slayers", "slayer"), PlayerLeaderboardResponse.Player::getTotalSlayer),
-        MINING("Mining", Arrays.asList("mining", "mine", "ore"), PlayerLeaderboardResponse.Player::getMining),
-        FORAGING("Foraging", Arrays.asList("foraging", "forage", "tree"), PlayerLeaderboardResponse.Player::getForaging),
-        ENCHANTING("Enchanting", Arrays.asList("enchanting", "enchant"), PlayerLeaderboardResponse.Player::getEnchanting),
-        FARMING("Farming", Arrays.asList("farming", "farm"), PlayerLeaderboardResponse.Player::getFarming),
-        COMBAT("Combat", Arrays.asList("combat", "fight"), PlayerLeaderboardResponse.Player::getCombat),
-        FISHING("Fishing", Arrays.asList("fishing", "fish"), PlayerLeaderboardResponse.Player::getFishing),
-        ALCHEMY("Alchemy", Arrays.asList("alchemy", "pot"), PlayerLeaderboardResponse.Player::getAlchemy),
-        CARPENTRY("Carpentry", Arrays.asList("carpentry", "craft"), PlayerLeaderboardResponse.Player::getCarpentry),
-        RUNECRAFTING("Runecrafting", Arrays.asList("runecrafting", "rune"), PlayerLeaderboardResponse.Player::getRunecrafting);
+        MINING("Mining", Arrays.asList("mining", "mine", "ore"), PlayerLeaderboardResponse.Player::getMining, PlayerLeaderboardResponse.Player::getMiningXP),
+        FORAGING("Foraging", Arrays.asList("foraging", "forage", "tree"), PlayerLeaderboardResponse.Player::getForaging, PlayerLeaderboardResponse.Player::getForagingXP),
+        ENCHANTING("Enchanting", Arrays.asList("enchanting", "enchant"), PlayerLeaderboardResponse.Player::getEnchanting, PlayerLeaderboardResponse.Player::getEnchantingXP),
+        FARMING("Farming", Arrays.asList("farming", "farm"), PlayerLeaderboardResponse.Player::getFarming, PlayerLeaderboardResponse.Player::getFarmingXP),
+        COMBAT("Combat", Arrays.asList("combat", "fight"), PlayerLeaderboardResponse.Player::getCombat, PlayerLeaderboardResponse.Player::getCombatXP),
+        FISHING("Fishing", Arrays.asList("fishing", "fish"), PlayerLeaderboardResponse.Player::getFishing, PlayerLeaderboardResponse.Player::getFishingXP),
+        ALCHEMY("Alchemy", Arrays.asList("alchemy", "pot"), PlayerLeaderboardResponse.Player::getAlchemy, PlayerLeaderboardResponse.Player::getAlchemyXP),
+        CARPENTRY("Carpentry", Arrays.asList("carpentry", "craft"), PlayerLeaderboardResponse.Player::getCarpentry, PlayerLeaderboardResponse.Player::getCarpentryXP),
+        RUNECRAFTING("Runecrafting", Arrays.asList("runecrafting", "rune"), PlayerLeaderboardResponse.Player::getRunecrafting, PlayerLeaderboardResponse.Player::getRunecraftingXP);
 
         protected final String name;
         protected final List<String> aliases;
-        protected final PlayerStatConversionFunction function;
+        protected final PlayerStatConversionFunction statFunction;
+        protected final PlayerStatConversionFunction orderFunction;
 
-        LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction function) {
+        LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction, PlayerStatConversionFunction orderFunction) {
             this.name = name;
             this.aliases = aliases;
-            this.function = function;
+            this.statFunction = statFunction;
+            this.orderFunction = orderFunction;
+        }
+
+        LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction) {
+            this(name, aliases, statFunction, statFunction);
         }
 
         public static LeaderboardType fromName(String name) {
