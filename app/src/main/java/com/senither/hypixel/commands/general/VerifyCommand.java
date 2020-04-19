@@ -169,6 +169,7 @@ public class VerifyCommand extends Command {
             e.printStackTrace();
         }
 
+        clearUsernameCacheFor(event.getAuthor());
         app.getCommandManager().clearVerificationCacheFor(event.getAuthor());
 
         message.editMessage(embedBuilder

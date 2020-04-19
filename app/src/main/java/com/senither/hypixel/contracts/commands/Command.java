@@ -31,6 +31,7 @@ import com.senither.hypixel.exceptions.FriendlyException;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
@@ -75,6 +76,10 @@ public abstract class Command {
 
     public final boolean isVerificationRequired() {
         return verificationRequired;
+    }
+
+    protected final void clearUsernameCacheFor(User user) {
+        usernameCache.invalidate(user.getIdLong());
     }
 
     protected final boolean isGuildMasterOfServerGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
