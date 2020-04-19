@@ -27,6 +27,7 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.hypixel.PlayerStatConversionFunction;
+import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
 import com.senither.hypixel.time.Carbon;
@@ -94,13 +95,6 @@ public class LeaderboardCommand extends Command {
             return;
         }
 
-        if (args.length == 1) {
-            MessageFactory.makeError(event.getMessage(),
-                "You must also specify the name of the guild you wish to see the stats for."
-            ).setTitle("Missing guild name").queue();
-            return;
-        }
-
         LeaderboardType type = LeaderboardType.fromName(args[0].trim());
         if (type == null) {
             List<String> types = new ArrayList<>();
@@ -123,13 +117,30 @@ public class LeaderboardCommand extends Command {
         }
 
         int pageNumber = 1;
-        String guildName = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
-        if (NumberUtil.isNumeric(args[args.length - 1])) {
-            pageNumber = NumberUtil.parseInt(args[args.length - 1], 1);
-            guildName = guildName.substring(0, guildName.length() - args[args.length - 1].length()).trim();
+        String guildName;
+        GuildLeaderboardResponse.Guild guild;
+        if (args.length == 1 || NumberUtil.isNumeric(args[1])) {
+            GuildController.GuildEntry guildById = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
+            if (guildById == null) {
+                MessageFactory.makeError(event.getMessage(),
+                    "You must also specify the name of the guild you wish to see the stats for."
+                ).setTitle("Missing guild name").queue();
+                return;
+            }
+            guildName = guildById.getName();
+            guild = getGuildFromName(guildById.getName());
+            if (NumberUtil.isNumeric(args[args.length - 1])) {
+                pageNumber = NumberUtil.parseInt(args[args.length - 1], 1);
+            }
+        } else {
+            guildName = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+            if (NumberUtil.isNumeric(args[args.length - 1])) {
+                pageNumber = NumberUtil.parseInt(args[args.length - 1], 1);
+                guildName = guildName.substring(0, guildName.length() - args[args.length - 1].length()).trim();
+            }
+            guild = getGuildFromName(guildName);
         }
 
-        GuildLeaderboardResponse.Guild guild = getGuildFromName(guildName);
         if (guild == null) {
             MessageFactory.makeError(event.getMessage(),
                 "There are no guild called `:name` that are being tracked by the bot currently, "
