@@ -28,20 +28,29 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.hypixel.HypixelRank;
 import com.senither.hypixel.rank.items.Collection;
 import com.senither.hypixel.statistics.StatisticsChecker;
 import com.senither.hypixel.statistics.responses.SlayerResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.hypixel.api.reply.GuildReply;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class PlayerOverviewCommand extends SkillCommand {
+
+    private static final Logger log = LoggerFactory.getLogger(PlayerOverviewCommand.class);
 
     public PlayerOverviewCommand(SkyblockAssistant app) {
         super(app, "Overview");
@@ -76,10 +85,24 @@ public class PlayerOverviewCommand extends SkillCommand {
     @Override
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
+        HypixelRank hypixelRank = app.getHypixel().getRankFromPlayer(playerReply);
+
+        String embeddedMessage = hypixelRank.equals(HypixelRank.DEFAULT)
+            ? "**:name** does not have any rank on Hypixel"
+            : "**:name** has the **:rank** rank on Hypixel";
+
+        String guildName = getGuildNameForPlayer(playerReply.getPlayer().get("uuid").getAsString());
+        if (guildName != null) {
+            embeddedMessage += ", and is a member **:guild**";
+        }
 
         final PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(
-            message, ""
-        ).setTitle(getUsernameFromPlayer(playerReply) + "'s Profile Overview");
+            message, embeddedMessage + "!"
+        )
+            .set("name", playerReply.getPlayer().get("displayname").getAsString())
+            .set("rank", hypixelRank.getName())
+            .set("guild", guildName)
+            .setTitle(getUsernameFromPlayer(playerReply) + "'s Profile Overview");
 
         message.editMessage(placeholderMessage
             .addField("Average Skill Level", NumberUtil.formatNicelyWithDecimals(
@@ -163,5 +186,19 @@ public class PlayerOverviewCommand extends SkillCommand {
         return String.format("%s _(%s/572 Crafts)_",
             minionSlots, craftedMinions
         );
+    }
+
+    private String getGuildNameForPlayer(String uuid) {
+        try {
+            GuildReply guild = app.getHypixel().getGuildByPlayer(uuid).get(5, TimeUnit.SECONDS);
+            if (guild == null || guild.getGuild() == null) {
+                return null;
+            }
+            return guild.getGuild().getName();
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            log.error("Failed to fetch guild from player {} due to an exception: {}", uuid, e.getMessage(), e);
+
+            return null;
+        }
     }
 }

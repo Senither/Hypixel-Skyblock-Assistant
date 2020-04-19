@@ -340,6 +340,35 @@ public class Hypixel {
         return future;
     }
 
+    public CompletableFuture<GuildReply> getGuildByPlayer(String uuid) {
+        CompletableFuture<GuildReply> future = new CompletableFuture<>();
+
+        final String cacheKey = "skyblock-guild-player-" + uuid;
+
+        AbstractReply cachedSkyBlockGuild = replyCache.getIfPresent(cacheKey);
+        if (cachedSkyBlockGuild != null && cachedSkyBlockGuild instanceof GuildReply) {
+            log.debug("Found SkyBlock Guild from player {} using the in-memory cache", uuid);
+
+            future.complete((GuildReply) cachedSkyBlockGuild);
+            return future;
+        }
+
+        log.debug("Requesting for SkyBlock Guild from player {} from the API", uuid);
+
+        clientContainer.getNextClient().getGuildByPlayer(uuid).whenComplete((skyBlockGuildReply, throwable) -> {
+            if (throwable != null) {
+                future.completeExceptionally(throwable);
+                return;
+            }
+
+            replyCache.put(cacheKey, skyBlockGuildReply);
+
+            future.complete(skyBlockGuildReply);
+        });
+
+        return future;
+    }
+
     public CompletableFuture<GuildReply> getGuildByName(String name) {
         CompletableFuture<GuildReply> future = new CompletableFuture<>();
 
