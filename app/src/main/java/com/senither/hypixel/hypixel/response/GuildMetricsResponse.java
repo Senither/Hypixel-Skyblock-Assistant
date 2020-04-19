@@ -26,35 +26,20 @@ import com.senither.hypixel.time.Carbon;
 
 import java.util.List;
 
-@SuppressWarnings("WeakerAccess")
-public class GuildLeaderboardResponse extends Response {
+public class GuildMetricsResponse extends Response {
 
-    protected List<Guild> data;
+    protected List<GuildMetrics> data;
 
-    public List<Guild> getData() {
+    public List<GuildMetrics> getData() {
         return data;
     }
 
-    public class Guild {
+    public class GuildMetrics {
 
-        protected String id;
-        protected String name;
         protected double average_skill;
         protected double average_slayer;
         protected int members;
-        private String last_updated_at;
-
-        public String getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public int getMembers() {
-            return members;
-        }
+        private String created_at;
 
         public double getAverageSkill() {
             return average_skill;
@@ -64,8 +49,12 @@ public class GuildLeaderboardResponse extends Response {
             return average_slayer;
         }
 
-        public Carbon getLastUpdatedAt() {
-            return timestampToCarbonInstance(last_updated_at);
+        public int getMembers() {
+            return members;
+        }
+
+        public Carbon getCreatedAt() {
+            return timestampToCarbonInstance(created_at);
         }
     }
 }

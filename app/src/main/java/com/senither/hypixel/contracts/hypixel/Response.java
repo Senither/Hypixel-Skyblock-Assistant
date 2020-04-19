@@ -21,8 +21,17 @@
 
 package com.senither.hypixel.contracts.hypixel;
 
+import com.senither.hypixel.time.Carbon;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 @SuppressWarnings("WeakerAccess")
 public abstract class Response {
+
+    public static final SimpleDateFormat ISO_8601_DateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.UK);
 
     protected int status;
 
@@ -32,5 +41,18 @@ public abstract class Response {
 
     public int getStatus() {
         return status;
+    }
+
+    protected static Carbon timestampToCarbonInstance(String timestamp) {
+        try {
+            Date date = Response.ISO_8601_DateFormat.parse(timestamp
+                .replace("Z", "0")
+                .replace(".", "+")
+            );
+
+            return Carbon.now().setTimestamp(date.getTime() / 1000);
+        } catch (ParseException e) {
+            return null;
+        }
     }
 }

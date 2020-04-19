@@ -24,11 +24,13 @@ package com.senither.hypixel.commands.statistics;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.hypixel.PlayerStatConversionFunction;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
+import com.senither.hypixel.hypixel.response.GuildMetricsResponse;
 import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
@@ -149,6 +151,11 @@ public class LeaderboardCommand extends Command {
             return;
         }
 
+        if (type.equals(LeaderboardType.OVERVIEW)) {
+            showGuildOverview(event, guild);
+            return;
+        }
+
         PlayerLeaderboardResponse leaderboard = app.getHypixel().getGuildPlayersLeaderboard(guild.getId());
         if (leaderboard == null || !leaderboard.isSuccess()) {
             MessageFactory.makeError(event.getMessage(),
@@ -199,6 +206,39 @@ public class LeaderboardCommand extends Command {
             .setFooter("Requested by " + event.getAuthor().getAsTag(), event.getAuthor().getEffectiveAvatarUrl())
             .setTimestamp(Carbon.now().getTime().toInstant())
             .queue();
+    }
+
+    private void showGuildOverview(MessageReceivedEvent event, GuildLeaderboardResponse.Guild guild) {
+        GuildMetricsResponse metrics = app.getHypixel().getGuildLeaderboardMetrics(guild.getId());
+        if (metrics.getData().isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(), "There are no metrics for this guild yet!\nTry again later.")
+                .setTitle(guild.getName() + " Overview")
+                .queue();
+            return;
+        }
+
+        GuildMetricsResponse.GuildMetrics weekOldMetrics = metrics.getData().get(Math.min(7, metrics.getData().size()) - 1);
+
+        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(),
+            "The guild was last updated :time!\n\nSince last week the guild has gone up:\n> **:skills** average skill levels\n> **:slayers** average slayer XP"
+        )
+            .setTitle(guild.getName() + " Overview")
+            .set("time", guild.getLastUpdatedAt().diffForHumans())
+            .set("skills", NumberUtil.formatNicelyWithDecimals(guild.getAverageSkill() - weekOldMetrics.getAverageSkill()))
+            .set("slayers", NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer() - weekOldMetrics.getAverageSlayer()));
+
+        for (int i = 0; i < Math.min(7, metrics.getData().size()); i++) {
+            GuildMetricsResponse.GuildMetrics guildMetrics = metrics.getData().get(i);
+
+            message.addField("Stats from " + guildMetrics.getCreatedAt().diffForHumans(), String.format(
+                "```elm\nAverage Skills  > %s\nAverage Slayers > %s\nMembers         > %s```",
+                NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkill()),
+                NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
+                NumberUtil.formatNicely(guildMetrics.getMembers())
+            ), false);
+        }
+
+        message.queue();
     }
 
     @SuppressWarnings("ComparatorMethodParameterNotUsed")
@@ -274,6 +314,7 @@ public class LeaderboardCommand extends Command {
 
     enum LeaderboardType {
 
+        OVERVIEW("Overview", Arrays.asList("guild", "overview", "view", "metrics", "metric"), null),
         AVERAGE_SKILL("Average Skill", Arrays.asList("skills", "skill"), PlayerLeaderboardResponse.Player::getAverageSkill),
         TOTAL_SLAYER("Total Slayer", Arrays.asList("slayers", "slayer"), PlayerLeaderboardResponse.Player::getTotalSlayer),
         REVENANT("Revenant Slayer", Arrays.asList("revenant", "rev", "zombie"), PlayerLeaderboardResponse.Player::getRevenantXP),
