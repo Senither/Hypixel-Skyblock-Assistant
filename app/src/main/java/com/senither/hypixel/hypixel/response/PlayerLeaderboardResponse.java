@@ -86,7 +86,7 @@ public class PlayerLeaderboardResponse extends Response {
         }
 
         public double getTarantulaXP() {
-            return revenant_xp;
+            return tarantula_xp;
         }
 
         public double getSvenXP() {
