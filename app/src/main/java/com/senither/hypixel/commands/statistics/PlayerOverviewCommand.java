@@ -31,6 +31,7 @@ import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.hypixel.HypixelRank;
 import com.senither.hypixel.rank.items.Collection;
 import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.SkillsResponse;
 import com.senither.hypixel.statistics.responses.SlayerResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
@@ -104,9 +105,12 @@ public class PlayerOverviewCommand extends SkillCommand {
             .set("guild", guildName)
             .setTitle(getUsernameFromPlayer(playerReply) + "'s Profile Overview");
 
+        SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
+
         message.editMessage(placeholderMessage
-            .addField("Average Skill Level", NumberUtil.formatNicelyWithDecimals(
-                StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member).getAverageSkillLevel()
+            .addField("Average Skill Level", String.format("%s [%s w/o progress]",
+                NumberUtil.formatNicelyWithDecimals(skillsResponse.getAverageSkillLevel()),
+                NumberUtil.formatNicelyWithDecimals(skillsResponse.getAverageSkillLevelWithoutPorgress())
             ), true)
             .addField("Collection", getCompletedCollections(profileReply, member), true)
             .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
