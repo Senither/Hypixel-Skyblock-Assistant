@@ -94,7 +94,7 @@ public class PlayerOverviewCommand extends SkillCommand {
 
         String guildName = getGuildNameForPlayer(playerReply.getPlayer().get("uuid").getAsString());
         if (guildName != null) {
-            embeddedMessage += ", and is a member **:guild**";
+            embeddedMessage += ", and is a member of **:guild**";
         }
 
         final PlaceholderMessage placeholderMessage = MessageFactory.makeSuccess(
