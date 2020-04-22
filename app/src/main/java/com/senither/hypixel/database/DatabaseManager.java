@@ -63,6 +63,7 @@ public class DatabaseManager {
             migrationManager.register(new AddLastCheckedColumnToUuidsTableMigration());
             migrationManager.register(new CreateReportsTableMigration());
             migrationManager.register(new AddGuildMemberRoleColumnToGuildsTableMigration());
+            migrationManager.register(new CreateDonationPointsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();
