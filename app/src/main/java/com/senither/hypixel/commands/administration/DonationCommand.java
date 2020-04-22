@@ -91,6 +91,16 @@ public class DonationCommand extends Command {
             return;
         }
 
+        if (!guildEntry.isDonationsTrackerEnabled()) {
+            MessageFactory.makeError(event.getMessage(),
+                "The donation tracker feature have not yet been enabled for the server, you "
+                    + "must setup the feature before being able to use this command, you can enable the "
+                    + "feature by running:"
+                    + "\n```h!settings donation 5 1d```"
+            ).setTitle("Donation tracker is not setup").queue();
+            return;
+        }
+
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
                 "You must specify the action you wish to preform for the donation points."
@@ -167,12 +177,12 @@ public class DonationCommand extends Command {
             );
             paginator.forEach((index, key, val) -> message.add(val));
 
-            MessageFactory.makeInfo(event.getMessage(), String.format("Donation points are currently setup to decrease by **:points** every **:unit**```ada\n%s```\n%s",
+            MessageFactory.makeInfo(event.getMessage(), String.format("Donation points currently decrease by **:points** points every **:time** hours!```ada\n%s```\n%s",
                 String.join("\n", message), paginator.generateFooter(Constants.COMMAND_PREFIX + getTriggers().get(0) + " list")
             ))
                 .setTitle("Donation Points Leaderboard")
-                .set("points", "TODO: UNKNOWN")
-                .set("unit", "TODO: UNKNOWN")
+                .set("points", guildEntry.getDonationPoints())
+                .set("time", guildEntry.getDonationTime())
                 .queue();
         } catch (SQLException e) {
             e.printStackTrace();
