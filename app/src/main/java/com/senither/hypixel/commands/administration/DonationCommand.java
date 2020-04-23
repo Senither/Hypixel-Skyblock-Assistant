@@ -32,6 +32,7 @@ import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.database.controller.PlayerDonationController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.GuildReply;
 
@@ -118,10 +119,16 @@ public class DonationCommand extends Command {
             case "add":
             case "give:":
             case "reward":
-                if (!isGuildMasterOrOfficerOfServerGuild(event, guildEntry)) {
-                    MessageFactory.makeError(event.getMessage(),
-                        "You must be the guild master or an officer of the **:name** guild to add donation points to people!"
-                    ).set("name", guildEntry.getName()).setTitle("Missing permissions").queue();
+                if (!hasPermissionToAddPoints(event, guildEntry)) {
+                    Role donationRole = event.getGuild().getRoleById(guildEntry.getDonationRole());
+                    MessageFactory.makeError(event.getMessage(), donationRole == null
+                        ? "You must be the guild master or an officer of the **:name** guild to add donation points to people!"
+                        : "You must be the guild master or an officer of the **:name** guild, or have the :role Discord role to add donation points to people!"
+                    )
+                        .set("name", guildEntry.getName())
+                        .set("role", donationRole == null ? "" : donationRole.getAsMention())
+                        .setTitle("Missing permissions")
+                        .queue();
                     return;
                 }
                 addPointsToPlayer(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
@@ -261,6 +268,26 @@ public class DonationCommand extends Command {
 
             MessageFactory.makeError(event.getMessage(), "Failed to store the donation points due to an error: " + e.getMessage()).queue();
         }
+    }
+
+
+    private boolean hasPermissionToAddPoints(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
+        if (isGuildMasterOrOfficerOfServerGuild(event, guildEntry)) {
+            return true;
+        }
+
+        Long donationRole = guildEntry.getDonationRole();
+        if (donationRole == null || donationRole == 0L || event.getMember() == null) {
+            return false;
+        }
+
+        for (Role memberRole : event.getMember().getRoles()) {
+            if (memberRole.getIdLong() == donationRole) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private String padString(String string, int size) {

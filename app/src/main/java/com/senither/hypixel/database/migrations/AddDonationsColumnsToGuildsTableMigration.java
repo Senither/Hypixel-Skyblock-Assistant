@@ -33,14 +33,15 @@ public class AddDonationsColumnsToGuildsTableMigration implements Migration {
         return databaseManager.queryUpdate(
             "ALTER TABLE `guilds`\n" +
                 "    ADD `donation_time` INT NULL DEFAULT NULL AFTER `auto_rename`,\n" +
-                "    ADD `donation_points` INT NULL DEFAULT NULL AFTER `donation_time`;"
+                "    ADD `donation_points` INT NULL DEFAULT NULL AFTER `donation_time`,\n" +
+                "    ADD `donation_role` BIGINT NULL DEFAULT NULL AFTER `donation_points`;"
         );
     }
 
     @Override
     public boolean down(DatabaseManager databaseManager) throws SQLException {
         return databaseManager.queryUpdate(
-            "ALTER TABLE `guilds` DROP `donation_time`, 'donation_points';"
+            "ALTER TABLE `guilds` DROP `donation_time`, 'donation_points', `donation_role`;"
         );
     }
 }
