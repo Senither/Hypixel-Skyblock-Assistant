@@ -26,13 +26,13 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.SettingsSubCommand;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class DonationTrackerCommand extends SettingsSubCommand {
@@ -52,10 +52,10 @@ public class DonationTrackerCommand extends SettingsSubCommand {
     public List<String> getDescription() {
         return Arrays.asList(
             "This command can be used to setup or disable the donation tracking system, when enabled,",
-            "the system allows staff of a guild to add points to members of the guild which will",
-            "slowly decay over time, this settings command are used to setup the time that",
-            "should elapse between points decaying, and the amount of points that should",
-            "decay each time."
+            "the system allows staff of a guild, or any with the donation manger Discord role, to",
+            "add points to members of the guild which will slowly decay over time, this settings",
+            "command are used to setup the time that should elapse between points decaying, and",
+            "the amount of points that should decay each time."
         );
     }
 
@@ -63,14 +63,16 @@ public class DonationTrackerCommand extends SettingsSubCommand {
     public List<String> getUsageInstructions() {
         return Arrays.asList(
             "`:command <points> <time>` - Sets the donation tracker decay settings.",
+            "`:command role <name>` - Setups the donation manager role.",
             "`:command disable` - Disables the donation tracking feature."
         );
     }
 
     @Override
     public List<String> getExampleUsage() {
-        return Collections.singletonList(
-            "`:command 5 24h` - Sets up the tracking system to decrease by 5 points every 24 hours."
+        return Arrays.asList(
+            "`:command 5 24h` - Sets up the tracking system to decrease by 5 points every 24 hours.",
+            "`:command role Moderator` - Sets up the donation manager role to use the `Moderator` Discord role."
         );
     }
 
@@ -84,8 +86,15 @@ public class DonationTrackerCommand extends SettingsSubCommand {
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
                 "You must include the donation tracker settings you wish to use as "
-                    + "the for the server, or `disable` to disable the donation tracker feature."
+                    + "the for the server, or `role` to setup the Discord role that will "
+                    + "allow people to add donation points, or `disable` to disable the "
+                    + "donation tracker feature."
             ).setTitle("Missing argument").queue();
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("role")) {
+            setupDonationRole(event, Arrays.copyOfRange(args, 1, args.length));
             return;
         }
 
@@ -138,6 +147,63 @@ public class DonationTrackerCommand extends SettingsSubCommand {
             );
 
             MessageFactory.makeError(event.getMessage(), "Something went wrong while trying to setup the servers donation tracker settings!").queue();
+        }
+    }
+
+    private void setupDonationRole(MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the name of the Discord role you wish to setup as "
+                    + "the \"Donate Manager\" role, or enter `disable` to disable "
+                    + "the donater role feature."
+            ).setTitle("Missing arguments").queue();
+            return;
+        }
+
+        String roleName = String.join(" ", args).trim();
+        if (roleName.equalsIgnoreCase("disable")) {
+            try {
+                app.getDatabaseManager().queryUpdate("UPDATE `guilds` SET `donation_role` = NULL WHERE `discord_id` = ?", event.getGuild().getIdLong());
+                GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
+                MessageFactory.makeSuccess(event.getMessage(), "The donator manager role have been disabled successfully!").queue();
+            } catch (SQLException e) {
+                log.error("Something went wrong while trying to reset the new donator role: {}", e.getMessage(), e);
+
+                MessageFactory.makeError(event.getMessage(),
+                    "Something went wrong while trying to save the new donator role value: " + e.getMessage()
+                ).queue();
+            }
+            return;
+        }
+
+        List<Role> rolesByName = event.getGuild().getRolesByName(roleName, true);
+        if (rolesByName.isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(), "Found one Discord role called **:name**, please use the name of an existing Discord role.")
+                .setTitle("Invalid Discord role given")
+                .set("name", roleName)
+                .queue();
+            return;
+        }
+
+        Role role = rolesByName.get(0);
+
+        try {
+            app.getDatabaseManager().queryUpdate(
+                "UPDATE `guilds` SET `donation_role` = ? WHERE `discord_id` = ?",
+                role.getIdLong(), event.getGuild().getIdLong()
+            );
+            GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
+            MessageFactory.makeSuccess(event.getMessage(), "The donator manager role have been setup to use :role successfully!")
+                .set("role", role.getAsMention())
+                .queue();
+        } catch (SQLException e) {
+            log.error("Something went wrong while trying to setup the new donator role: {}", e.getMessage(), e);
+
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to save the new donator role value: " + e.getMessage()
+            ).queue();
         }
     }
 
