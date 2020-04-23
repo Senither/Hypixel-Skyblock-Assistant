@@ -118,6 +118,12 @@ public class DonationCommand extends Command {
             case "add":
             case "give:":
             case "reward":
+                if (!isGuildMasterOrOfficerOfServerGuild(event, guildEntry)) {
+                    MessageFactory.makeError(event.getMessage(),
+                        "You must be the guild master or an officer of the **:name** guild to add donation points to people!"
+                    ).set("name", guildEntry.getName()).setTitle("Missing permissions").queue();
+                    return;
+                }
                 addPointsToPlayer(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
