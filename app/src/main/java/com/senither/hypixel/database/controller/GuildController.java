@@ -100,6 +100,9 @@ public class GuildController {
         private final String data;
         private final Long defaultRole;
         private final Long guildMemberRole;
+        private final Integer donationTime;
+        private final Integer donationPoints;
+        private final Long donationRole;
         private final boolean autoRename;
         private final LinkedHashMap<String, RankRequirement> rankRequirements;
 
@@ -108,6 +111,9 @@ public class GuildController {
             discordId = row.getLong("discord_id");
             name = row.getString("name");
             data = row.getString("data");
+            donationTime = row.getInt("donation_time");
+            donationPoints = row.getInt("donation_points");
+            donationRole = row.getLong("donation_role");
             autoRename = row.getBoolean("auto_rename");
 
             long defaultRole = row.getLong("default_role", 0L);
@@ -141,6 +147,25 @@ public class GuildController {
 
         public String getData() {
             return data;
+        }
+
+        public Integer getDonationTime() {
+            return donationTime;
+        }
+
+        public Integer getDonationPoints() {
+            return donationPoints;
+        }
+
+        public Long getDonationRole() {
+            return donationRole;
+        }
+
+        public boolean isDonationsTrackerEnabled() {
+            return getDonationTime() != null
+                && getDonationTime() > 0
+                && getDonationPoints() != null
+                && getDonationPoints() > 0;
         }
 
         public Long getDefaultRole() {

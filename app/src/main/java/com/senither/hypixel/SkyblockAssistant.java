@@ -39,6 +39,7 @@ import com.senither.hypixel.listeners.MemberActivityEventListener;
 import com.senither.hypixel.listeners.MessageEventListener;
 import com.senither.hypixel.reports.ReportService;
 import com.senither.hypixel.scheduler.ScheduleManager;
+import com.senither.hypixel.scheduler.jobs.DecayDonationPointsJob;
 import com.senither.hypixel.scheduler.jobs.DrainReportQueueJob;
 import com.senither.hypixel.scheduler.jobs.HypixelRankSynchronizeJob;
 import com.senither.hypixel.scheduler.jobs.RoleAssignmentJob;
@@ -78,6 +79,7 @@ public class SkyblockAssistant {
 
         log.info("Registering commands...");
         this.commandManager = new CommandManager(this);
+        commandManager.registerCommand(new DonationCommand(this));
         commandManager.registerCommand(new GuildRankScanCommand(this));
         commandManager.registerCommand(new GuildSetupCommand(this));
         commandManager.registerCommand(new RankCheckCommand(this));
@@ -105,6 +107,7 @@ public class SkyblockAssistant {
         this.scheduleManager = new ScheduleManager(this);
         scheduleManager.registerJob(new RoleAssignmentJob(this));
         scheduleManager.registerJob(new DrainReportQueueJob(this));
+        scheduleManager.registerJob(new DecayDonationPointsJob(this));
         scheduleManager.registerJob(new HypixelRankSynchronizeJob(this));
         log.info("{} jobs have been registered!", scheduleManager.entrySet().size());
 
