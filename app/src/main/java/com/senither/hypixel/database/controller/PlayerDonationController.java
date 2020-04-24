@@ -102,6 +102,7 @@ public class PlayerDonationController {
         private final UUID uuid;
         private final long discordId;
         private final Carbon lastCheckedAt;
+        private final Carbon lastDonatedAt;
         private long points;
 
         PlayerDonationEntry(long discordId, UUID uuid) {
@@ -110,6 +111,7 @@ public class PlayerDonationController {
 
             points = 0;
             lastCheckedAt = Carbon.now();
+            lastDonatedAt = Carbon.now();
         }
 
         PlayerDonationEntry(DataRow row) {
@@ -117,6 +119,7 @@ public class PlayerDonationController {
             discordId = row.getLong("discord_id");
             points = row.getLong("points");
             lastCheckedAt = row.getTimestamp("last_checked_at");
+            lastDonatedAt = row.getTimestamp("last_donated_at");
         }
 
         public UUID getUuid() {
@@ -137,6 +140,10 @@ public class PlayerDonationController {
 
         public Carbon getLastCheckedAt() {
             return lastCheckedAt;
+        }
+
+        public Carbon lastDonatedAt() {
+            return lastDonatedAt;
         }
     }
 }

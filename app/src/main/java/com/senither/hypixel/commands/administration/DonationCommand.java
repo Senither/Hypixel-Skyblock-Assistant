@@ -31,6 +31,7 @@ import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.database.controller.PlayerDonationController;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -191,16 +192,17 @@ public class DonationCommand extends Command {
                     points = player.getPoints();
                 }
 
-                messageRows.add(String.format("#%s: %s > %s",
+                messageRows.add(String.format("#%s: %s > %s\n-----: Last donated %s",
                     padString(String.valueOf(rank++), 4),
                     padString(memberUsernameMap.get(player.getUuid()), 16),
-                    player.getPoints()
+                    player.getPoints(),
+                    player.lastDonatedAt().diffForHumans()
                 ));
                 memberUsernameMap.remove(player.getUuid());
             }
 
             for (String username : memberUsernameMap.values()) {
-                messageRows.add(String.format("#%s: %s > 0",
+                messageRows.add(String.format("#%s: %s > 0\n-----: Has never donated",
                     padString(String.valueOf(rank++), 4),
                     padString(username, 16)
                 ));
@@ -208,7 +210,7 @@ public class DonationCommand extends Command {
 
             List<String> message = new ArrayList<>();
             SimplePaginator<String> paginator = new SimplePaginator<>(
-                messageRows, 25, args.length == 0 ? 1 : NumberUtil.parseInt(args[0], 0)
+                messageRows, 10, args.length == 0 ? 1 : NumberUtil.parseInt(args[0], 0)
             );
             paginator.forEach((index, key, val) -> message.add(val));
 
@@ -287,8 +289,8 @@ public class DonationCommand extends Command {
         donationEntry.setPoints(donationEntry.getPoints() + points);
 
         try {
-            app.getDatabaseManager().queryUpdate("UPDATE `donation_points` SET `points` = ? WHERE `discord_id` = ? AND `uuid` = ?",
-                donationEntry.getPoints(), donationEntry.getDiscordId(), donationEntry.getUuid()
+            app.getDatabaseManager().queryUpdate("UPDATE `donation_points` SET `points` = ?, `last_donated_at` = ? WHERE `discord_id` = ? AND `uuid` = ?",
+                donationEntry.getPoints(), Carbon.now(), donationEntry.getDiscordId(), donationEntry.getUuid()
             );
 
             MessageFactory.makeSuccess(event.getMessage(), "**:points** donation points have been given to **:name**")
