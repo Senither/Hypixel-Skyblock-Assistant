@@ -63,7 +63,7 @@ public class DonationCommand extends Command {
     @Override
     public List<String> getUsageInstructions() {
         return Arrays.asList(
-            "`:command list [page]` - Lists every player in the guild, and their donation points",
+            "`:command [page]` - Lists every player in the guild, and their donation points",
             "`:command add <player> <points>` - Gives the player X amount of points"
         );
     }
@@ -103,9 +103,7 @@ public class DonationCommand extends Command {
         }
 
         if (args.length == 0) {
-            MessageFactory.makeError(event.getMessage(),
-                "You must specify the action you wish to preform for the donation points."
-            ).setTitle("Missing argument").queue();
+            showLeaderboard(guildEntry, event, new String[0]);
             return;
         }
 
@@ -135,6 +133,10 @@ public class DonationCommand extends Command {
                 break;
 
             default:
+                if (NumberUtil.isNumeric(args[0])) {
+                    showLeaderboard(guildEntry, event, args);
+                    break;
+                }
                 MessageFactory.makeError(event.getMessage(),
                     "Invalid donation points action provided, please use either `list` to view the donation points leaderboard, or `add` to add points to a player."
                 ).setTitle("Invalid Argument").queue();
@@ -269,7 +271,6 @@ public class DonationCommand extends Command {
             MessageFactory.makeError(event.getMessage(), "Failed to store the donation points due to an error: " + e.getMessage()).queue();
         }
     }
-
 
     private boolean hasPermissionToAddPoints(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
         if (isGuildMasterOrOfficerOfServerGuild(event, guildEntry)) {
