@@ -165,12 +165,32 @@ public class DonationCommand extends Command {
                 memberUsernameMap.put(UUID.fromString(row.getString("uuid")), row.getString("username"));
             }
 
+            UUID userUUID = null;
+            try {
+                userUUID = app.getHypixel().getUUIDFromUser(event.getAuthor());
+            } catch (SQLException ignored) {
+            }
+
+            UUID finalUserUUID = userUUID;
+            boolean isGuildMember = guildReply.getGuild().getMembers().stream()
+                .filter(member -> member.getUuid().equals(finalUserUUID))
+                .count() > 0;
+
             int rank = 1;
+            int position = -1;
+            long points = 0;
+
             List<String> messageRows = new ArrayList<>();
             for (PlayerDonationController.PlayerDonationEntry player : PlayerDonationController.getPlayersById(app.getDatabaseManager(), event.getGuild().getIdLong())) {
                 if (!memberUsernameMap.containsKey(player.getUuid())) {
                     continue;
                 }
+
+                if (player.getUuid().equals(userUUID)) {
+                    position = rank;
+                    points = player.getPoints();
+                }
+
                 messageRows.add(String.format("#%s: %s > %s",
                     padString(String.valueOf(rank++), 4),
                     padString(memberUsernameMap.get(player.getUuid()), 16),
@@ -192,8 +212,18 @@ public class DonationCommand extends Command {
             );
             paginator.forEach((index, key, val) -> message.add(val));
 
-            MessageFactory.makeInfo(event.getMessage(), String.format("Donation points currently decrease by **:points** points every **:time** hours!```ada\n%s```\n%s",
-                String.join("\n", message), paginator.generateFooter(Constants.COMMAND_PREFIX + getTriggers().get(0) + " list")
+            String note = "";
+            if (isGuildMember) {
+                note = position < 0
+                    ? "> You're currently unranked with **0** points as you have yet to donate anything.\n\n"
+                    : String.format("> You're ranked **#%s** in the guild with **%s** points!\n\n",
+                    position, points
+                );
+            }
+
+            MessageFactory.makeInfo(event.getMessage(), String.format(
+                "Donation points currently decrease by **:points** points every **:time** hours!```ada\n%s```\n%s%s",
+                String.join("\n", message), note, paginator.generateFooter(Constants.COMMAND_PREFIX + getTriggers().get(0) + " list")
             ))
                 .setTitle("Donation Points Leaderboard")
                 .set("points", guildEntry.getDonationPoints())
