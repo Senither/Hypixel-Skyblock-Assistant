@@ -21,26 +21,33 @@
 
 package com.senither.hypixel.inventory;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 public enum ItemRarity {
 
-    SPECIAL("Special"),
-    LEGENDARY("Legendary"),
-    EPIC("Epic"),
-    RARE("Rare"),
-    UNCOMMON("Uncommon"),
-    COMMON("Common"),
+    SPECIAL("Special", "spec", "s"),
+    LEGENDARY("Legendary", "legend", "leg", "l"),
+    EPIC("Epic", "e"),
+    RARE("Rare", "r"),
+    UNCOMMON("Uncommon", "uncom", "u"),
+    COMMON("Common", "com", "c"),
     UNKNOWN(true, "Unknown");
 
     private final boolean isDefault;
     private final String name;
+    private final HashSet<String> aliases;
 
-    ItemRarity(String name) {
-        this(false, name);
+    ItemRarity(String name, String... aliases) {
+        this(false, name, aliases);
     }
 
-    ItemRarity(boolean isDefault, String name) {
+    ItemRarity(boolean isDefault, String name, String... aliases) {
         this.isDefault = isDefault;
         this.name = name;
+
+        this.aliases = new HashSet<>(Arrays.asList(aliases));
+        this.aliases.add(name);
     }
 
     public static ItemRarity fromName(String name) {
@@ -56,11 +63,30 @@ public enum ItemRarity {
         return UNKNOWN;
     }
 
+    public static ItemRarity fromAlias(String name) {
+        if (name == null) {
+            return UNKNOWN;
+        }
+
+        for (ItemRarity rarity : values()) {
+            for (String alias : rarity.getAliases()) {
+                if (alias.equalsIgnoreCase(name)) {
+                    return rarity;
+                }
+            }
+        }
+        return UNKNOWN;
+    }
+
     public boolean isDefault() {
         return isDefault;
     }
 
     public String getName() {
         return name;
+    }
+
+    public HashSet<String> getAliases() {
+        return aliases;
     }
 }
