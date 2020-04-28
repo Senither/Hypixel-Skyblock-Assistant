@@ -527,7 +527,7 @@ public class Hypixel {
         return null;
     }
 
-    public UUID getUUIDFromName(String name) throws SQLException {
+    public synchronized UUID getUUIDFromName(String name) throws SQLException {
         UUID cachedUUID = uuidCache.getIfPresent(name.toLowerCase());
         if (cachedUUID != null) {
             log.debug("Found UUID for {} using the in-memory cache (ID: {})", name, cachedUUID);
@@ -580,7 +580,7 @@ public class Hypixel {
         usernameCache.invalidate(uuid);
     }
 
-    public String getUsernameFromUuid(UUID uuid) throws SQLException {
+    public synchronized String getUsernameFromUuid(UUID uuid) throws SQLException {
         String cachedUsername = usernameCache.getIfPresent(uuid);
         if (cachedUsername != null) {
             log.debug("Found Username for {} using the in-memory cache (Username: {})", uuid, cachedUsername);
