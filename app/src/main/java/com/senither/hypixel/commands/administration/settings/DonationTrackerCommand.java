@@ -27,6 +27,7 @@ import com.senither.hypixel.contracts.commands.SettingsSubCommand;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,7 @@ public class DonationTrackerCommand extends SettingsSubCommand {
         return Arrays.asList(
             "`:command <points> <time>` - Sets the donation tracker decay settings.",
             "`:command role <name>` - Setups the donation manager role.",
+            "`:command channel <name>` - Setups the donation log channel.",
             "`:command disable` - Disables the donation tracking feature."
         );
     }
@@ -72,7 +74,8 @@ public class DonationTrackerCommand extends SettingsSubCommand {
     public List<String> getExampleUsage() {
         return Arrays.asList(
             "`:command 5 24h` - Sets up the tracking system to decrease by 5 points every 24 hours.",
-            "`:command role Moderator` - Sets up the donation manager role to use the `Moderator` Discord role."
+            "`:command role Moderator` - Sets up the donation manager role to use the `Moderator` Discord role.",
+            "`:command channel splash-contributions` - Sets up the donation log channel role to use the `splash-contributions` channel."
         );
     }
 
@@ -95,6 +98,11 @@ public class DonationTrackerCommand extends SettingsSubCommand {
 
         if (args[0].equalsIgnoreCase("role")) {
             setupDonationRole(event, Arrays.copyOfRange(args, 1, args.length));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("channel")) {
+            setupDonationChannel(event, Arrays.copyOfRange(args, 1, args.length));
             return;
         }
 
@@ -179,7 +187,7 @@ public class DonationTrackerCommand extends SettingsSubCommand {
 
         List<Role> rolesByName = event.getGuild().getRolesByName(roleName, true);
         if (rolesByName.isEmpty()) {
-            MessageFactory.makeWarning(event.getMessage(), "Found one Discord role called **:name**, please use the name of an existing Discord role.")
+            MessageFactory.makeWarning(event.getMessage(), "Found no Discord role called **:name**, please use the name of an existing Discord role.")
                 .setTitle("Invalid Discord role given")
                 .set("name", roleName)
                 .queue();
@@ -203,6 +211,63 @@ public class DonationTrackerCommand extends SettingsSubCommand {
 
             MessageFactory.makeError(event.getMessage(),
                 "Something went wrong while trying to save the new donator role value: " + e.getMessage()
+            ).queue();
+        }
+    }
+
+    private void setupDonationChannel(MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the name of the channel you wish to setup as "
+                    + "the donation log channel, or enter `disable` to disable "
+                    + "the donation channel log feature."
+            ).setTitle("Missing arguments").queue();
+            return;
+        }
+
+        String channelName = String.join(" ", args).trim();
+        if (channelName.equalsIgnoreCase("disable")) {
+            try {
+                app.getDatabaseManager().queryUpdate("UPDATE `guilds` SET `donation_channel` = NULL WHERE `discord_id` = ?", event.getGuild().getIdLong());
+                GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
+                MessageFactory.makeSuccess(event.getMessage(), "The donation log channel have been disabled successfully!").queue();
+            } catch (SQLException e) {
+                log.error("Something went wrong while trying to reset the new donation log channel: {}", e.getMessage(), e);
+
+                MessageFactory.makeError(event.getMessage(),
+                    "Something went wrong while trying to save the new donation log channel value: " + e.getMessage()
+                ).queue();
+            }
+            return;
+        }
+
+        List<TextChannel> channelsByName = event.getGuild().getTextChannelsByName(channelName, true);
+        if (channelsByName.isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(), "Found no Discord text channel called **:name**, please use the name of an existing text channel.")
+                .setTitle("Invalid Discord text channel given")
+                .set("name", channelName)
+                .queue();
+            return;
+        }
+
+        TextChannel channel = channelsByName.get(0);
+
+        try {
+            app.getDatabaseManager().queryUpdate(
+                "UPDATE `guilds` SET `donation_channel` = ? WHERE `discord_id` = ?",
+                channel.getIdLong(), event.getGuild().getIdLong()
+            );
+            GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
+            MessageFactory.makeSuccess(event.getMessage(), "The donation log channel have been setup to use :channel successfully!")
+                .set("channel", channel.getAsMention())
+                .queue();
+        } catch (SQLException e) {
+            log.error("Something went wrong while trying to setup the new donation log channel: {}", e.getMessage(), e);
+
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to save the new donation log channel value: " + e.getMessage()
             ).queue();
         }
     }

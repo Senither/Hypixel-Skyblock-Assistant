@@ -24,6 +24,7 @@ package com.senither.hypixel.commands.administration;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
@@ -34,6 +35,7 @@ import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.hypixel.api.reply.GuildReply;
 
@@ -65,15 +67,16 @@ public class DonationCommand extends Command {
     public List<String> getUsageInstructions() {
         return Arrays.asList(
             "`:command [page]` - Lists every player in the guild, and their donation points",
-            "`:command add <player> <points>` - Gives the player X amount of points"
+            "`:command add <player> <points> [message]` - Gives the player X amount of points"
         );
     }
 
     @Override
     public List<String> getExampleUsage() {
         return Arrays.asList(
-            "`:command list 2` - Views page 2 of the donation leaderboard",
-            "`:command add Senither 5` - Gives Senither 5 donation points"
+            "`:command 2` - Views page 2 of the donation leaderboard",
+            "`:command add Senither 5` - Gives Senither 5 donation points",
+            "`:command add Senither 10 Some cool stuff` - Gives Senither 10 donation points with the note of \"Some coll stuff\""
         );
     }
 
@@ -225,7 +228,7 @@ public class DonationCommand extends Command {
 
             MessageFactory.makeInfo(event.getMessage(), String.format(
                 "Donation points currently decrease by **:points** points every **:time** hours!```ada\n%s```\n%s%s",
-                String.join("\n", message), note, paginator.generateFooter(Constants.COMMAND_PREFIX + getTriggers().get(0) + " list")
+                String.join("\n", message), note, paginator.generateFooter(Constants.COMMAND_PREFIX + getTriggers().get(0))
             ))
                 .setTitle("Donation Points Leaderboard")
                 .set("points", guildEntry.getDonationPoints())
@@ -297,6 +300,27 @@ public class DonationCommand extends Command {
                 .set("points", points)
                 .set("name", args[0])
                 .queue();
+
+            if (guildEntry.getDonationChannel() == null || guildEntry.getDonationChannel() == 0) {
+                return;
+            }
+
+            TextChannel logChannel = event.getGuild().getTextChannelById(guildEntry.getDonationChannel());
+            if (logChannel == null) {
+                return;
+            }
+
+            String message = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+            MessageFactory.makeEmbeddedMessage(logChannel, MessageType.INFO.getColor(), message.isEmpty()
+                ? "**:user** was given **:points** points by **:author**, no note were given!"
+                : "**:user** was given **:points** points by **:author** for \":note\""
+            ).setFooter("The points where given by " + event.getAuthor().getAsTag() + " (ID: " + event.getAuthor().getId() + ")")
+                .set("user", app.getHypixel().getUsernameFromUuid(uuid))
+                .set("points", points)
+                .set("author", getUsernameFromUser(event.getAuthor()))
+                .set("note", message)
+                .queue();
+
         } catch (SQLException e) {
             e.printStackTrace();
 
