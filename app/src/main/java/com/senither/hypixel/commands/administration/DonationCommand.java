@@ -277,7 +277,7 @@ public class DonationCommand extends Command {
         if (!isMember) {
             MessageFactory.makeError(event.getMessage(),
                 ":name is not a member of the guild, and can therefore not be given any donation points."
-            ).set("name", args[0]).setTitle("User is not a guild member").queue();
+            ).set("name", formatPlayerUsername(args[0])).setTitle("User is not a guild member").queue();
             return;
         }
 
@@ -298,7 +298,7 @@ public class DonationCommand extends Command {
 
             MessageFactory.makeSuccess(event.getMessage(), "**:points** donation points have been given to **:name**")
                 .set("points", points)
-                .set("name", args[0])
+                .set("name", formatPlayerUsername(args[0]))
                 .queue();
 
             if (guildEntry.getDonationChannel() == null || guildEntry.getDonationChannel() == 0) {
@@ -315,9 +315,9 @@ public class DonationCommand extends Command {
                 ? "**:user** was given **:points** points by **:author**, no note were given!"
                 : "**:user** was given **:points** points by **:author** for \":note\""
             ).setFooter("The points where given by " + event.getAuthor().getAsTag() + " (ID: " + event.getAuthor().getId() + ")")
-                .set("user", app.getHypixel().getUsernameFromUuid(uuid))
+                .set("user", formatPlayerUsername(app.getHypixel().getUsernameFromUuid(uuid)))
+                .set("author", formatPlayerUsername(getUsernameFromUser(event.getAuthor())))
                 .set("points", points)
-                .set("author", getUsernameFromUser(event.getAuthor()))
                 .set("note", message)
                 .queue();
 
@@ -345,6 +345,13 @@ public class DonationCommand extends Command {
         }
 
         return false;
+    }
+
+    private String formatPlayerUsername(String username) {
+        if (!username.startsWith("_")) {
+            return username;
+        }
+        return "\\" + username;
     }
 
     private String padString(String string, int size) {
