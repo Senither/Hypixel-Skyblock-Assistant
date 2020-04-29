@@ -37,12 +37,17 @@ public class GuildMetricsResponse extends Response {
     public class GuildMetrics {
 
         protected double average_skill;
+        protected double average_skill_progress;
         protected double average_slayer;
         protected int members;
         private String created_at;
 
         public double getAverageSkill() {
             return average_skill;
+        }
+
+        public double getAverageSkillProgress() {
+            return average_skill_progress;
         }
 
         public double getAverageSlayer() {

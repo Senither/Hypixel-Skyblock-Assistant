@@ -164,6 +164,11 @@ public class LeaderboardCommand extends Command {
             return;
         }
 
+        PlayerStatConversionFunction extraStatsFunction = type.equals(LeaderboardType.AVERAGE_SKILL)
+            ? PlayerLeaderboardResponse.Player::getAverageSkillProgress : null;
+
+        final String rowMessage = "#%s : %s\n   > %s" + (extraStatsFunction == null ? "" : " (%s)");
+
         final int[] index = {1};
         final UUID finalUserUUID = userUUID;
         List<String> completeRows = new ArrayList<>();
@@ -173,11 +178,14 @@ public class LeaderboardCommand extends Command {
                 if (player.getUuid().equals(finalUserUUID)) {
                     position[0] = index[0];
                 }
-                completeRows.add(String.format("#%s : %s\n   > %s",
+                completeRows.add(String.format(rowMessage,
                     index[0]++, player.getUsername(),
                     type.statFunction.getStat(player) == -1
                         ? "API IS DISABLED"
-                        : NumberUtil.formatNicelyWithDecimals(type.statFunction.getStat(player))
+                        : NumberUtil.formatNicelyWithDecimals(type.statFunction.getStat(player)),
+                    extraStatsFunction != null
+                        ? NumberUtil.formatNicelyWithDecimals(extraStatsFunction.getStat(player))
+                        : ""
                 ));
             });
 
@@ -231,8 +239,10 @@ public class LeaderboardCommand extends Command {
             GuildMetricsResponse.GuildMetrics guildMetrics = metrics.getData().get(i);
 
             message.addField("Stats from " + guildMetrics.getCreatedAt().diffForHumans(), String.format(
-                "```elm\nAverage Skills  > %s\nAverage Slayers > %s\nMembers         > %s```",
+                "```elm\nAverage Skills  > %s (%s)\nAverage Slayers > %s\nMembers         > %s```",
+                NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkillProgress()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkill()),
+                NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
                 NumberUtil.formatNicely(guildMetrics.getMembers())
             ), false);
@@ -259,8 +269,11 @@ public class LeaderboardCommand extends Command {
 
         for (int i = 0; i < sortedBySkills.size(); i++) {
             GuildLeaderboardResponse.Guild skillsGuild = sortedBySkills.get(i);
-            skillsRow.add(String.format("%s: %s\n    > %s < [%s]",
-                padPosition("#" + (i + 1)), skillsGuild.getName(), NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill()), skillsGuild.getMembers()
+            skillsRow.add(String.format("%s: %s\n    > %s (%s) < [%s]",
+                padPosition("#" + (i + 1)), skillsGuild.getName(),
+                NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkillProgress()),
+                NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill()),
+                skillsGuild.getMembers()
             ));
 
             GuildLeaderboardResponse.Guild slayerGuild = sortedBySlayer.get(i);

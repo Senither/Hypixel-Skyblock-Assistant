@@ -42,6 +42,7 @@ public class PlayerLeaderboardResponse extends Response {
         protected UUID uuid;
         protected String username;
         protected double average_skill;
+        protected double average_skill_progress;
         protected double total_slayer;
         protected double revenant_xp;
         protected double tarantula_xp;
@@ -75,6 +76,10 @@ public class PlayerLeaderboardResponse extends Response {
 
         public double getAverageSkill() {
             return average_skill;
+        }
+
+        public double getAverageSkillProgress() {
+            return average_skill_progress;
         }
 
         public double getTotalSlayer() {

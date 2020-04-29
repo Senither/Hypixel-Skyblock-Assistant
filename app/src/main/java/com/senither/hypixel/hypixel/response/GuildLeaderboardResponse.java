@@ -40,6 +40,7 @@ public class GuildLeaderboardResponse extends Response {
         protected String id;
         protected String name;
         protected double average_skill;
+        protected double average_skill_progress;
         protected double average_slayer;
         protected int members;
         private String last_updated_at;
@@ -58,6 +59,10 @@ public class GuildLeaderboardResponse extends Response {
 
         public double getAverageSkill() {
             return average_skill;
+        }
+
+        public double getAverageSkillProgress() {
+            return average_skill_progress;
         }
 
         public double getAverageSlayer() {
