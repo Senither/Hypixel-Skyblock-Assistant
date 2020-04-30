@@ -29,6 +29,8 @@ import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.hypixel.PlayerStatConversionFunction;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.hypixel.leaderboard.LeaderboardPlayer;
+import com.senither.hypixel.hypixel.leaderboard.LeaderboardType;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.hypixel.response.GuildMetricsResponse;
 import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
@@ -101,7 +103,7 @@ public class LeaderboardCommand extends Command {
         if (type == null) {
             List<String> types = new ArrayList<>();
             for (LeaderboardType leaderboardType : LeaderboardType.values()) {
-                types.add(leaderboardType.aliases.get(0));
+                types.add(leaderboardType.getAliases().get(0));
             }
 
             MessageFactory.makeError(event.getMessage(),
@@ -165,7 +167,7 @@ public class LeaderboardCommand extends Command {
         }
 
         PlayerStatConversionFunction extraStatsFunction = type.equals(LeaderboardType.AVERAGE_SKILL)
-            ? PlayerLeaderboardResponse.Player::getAverageSkillProgress : null;
+            ? LeaderboardPlayer::getAverageSkillProgress : null;
 
         final String rowMessage = "#%s : %s\n   > %s" + (extraStatsFunction == null ? "" : " (%s)");
 
@@ -173,16 +175,16 @@ public class LeaderboardCommand extends Command {
         final UUID finalUserUUID = userUUID;
         List<String> completeRows = new ArrayList<>();
         leaderboard.getData().stream()
-            .sorted((o1, o2) -> Double.compare(type.orderFunction.getStat(o2), type.orderFunction.getStat(o1)))
+            .sorted((o1, o2) -> Double.compare(type.getOrderFunction().getStat(o2), type.getOrderFunction().getStat(o1)))
             .forEach(player -> {
                 if (player.getUuid().equals(finalUserUUID)) {
                     position[0] = index[0];
                 }
                 completeRows.add(String.format(rowMessage,
                     index[0]++, player.getUsername(),
-                    type.statFunction.getStat(player) == -1
+                    type.getStatFunction().getStat(player) == -1
                         ? "API IS DISABLED"
-                        : NumberUtil.formatNicelyWithDecimals(type.statFunction.getStat(player)),
+                        : NumberUtil.formatNicelyWithDecimals(type.getStatFunction().getStat(player)),
                     extraStatsFunction != null
                         ? NumberUtil.formatNicelyWithDecimals(extraStatsFunction.getStat(player))
                         : ""
@@ -195,13 +197,13 @@ public class LeaderboardCommand extends Command {
 
         String command = String.format("%s%s %s %s",
             Constants.COMMAND_PREFIX, getTriggers().get(0),
-            type.aliases.get(0), guild.getName()
+            type.getAliases().get(0), guild.getName()
         );
 
         String note = "";
         if (finalUserUUID != null && position[0] > 0) {
             note = String.format("> You're ranked **#%s** in %s in the guild!\n\n",
-                position[0], type.name
+                position[0], type.getName()
             );
         }
 
@@ -210,7 +212,7 @@ public class LeaderboardCommand extends Command {
             String.join("\n", rows)) + "\n"
             + note + paginator.generateFooter(command)
         )
-            .setTitle(String.format("%s's %s Leaderboard", guild.getName(), type.name))
+            .setTitle(String.format("%s's %s Leaderboard", guild.getName(), type.getName()))
             .setFooter("Requested by " + event.getAuthor().getAsTag(), event.getAuthor().getEffectiveAvatarUrl())
             .setTimestamp(Carbon.now().getTime().toInstant())
             .queue();
@@ -323,54 +325,5 @@ public class LeaderboardCommand extends Command {
             builder.append(" ");
         }
         return builder.toString();
-    }
-
-    enum LeaderboardType {
-
-        OVERVIEW("Overview", Arrays.asList("guild", "overview", "view", "metrics", "metric"), null),
-        AVERAGE_SKILL("Average Skill", Arrays.asList("skills", "skill"), PlayerLeaderboardResponse.Player::getAverageSkill),
-        TOTAL_SLAYER("Total Slayer", Arrays.asList("slayers", "slayer"), PlayerLeaderboardResponse.Player::getTotalSlayer),
-        REVENANT("Revenant Slayer", Arrays.asList("revenant", "rev", "zombie"), PlayerLeaderboardResponse.Player::getRevenantXP),
-        TARANTULA("Tarantula Slayer", Arrays.asList("tarantula", "tara", "spider"), PlayerLeaderboardResponse.Player::getTarantulaXP),
-        SVEN("Sven Slayer", Arrays.asList("sven", "wolf", "dog"), PlayerLeaderboardResponse.Player::getSvenXP),
-        MINING("Mining", Arrays.asList("mining", "mine", "ore"), PlayerLeaderboardResponse.Player::getMining, PlayerLeaderboardResponse.Player::getMiningXP),
-        FORAGING("Foraging", Arrays.asList("foraging", "forage", "tree"), PlayerLeaderboardResponse.Player::getForaging, PlayerLeaderboardResponse.Player::getForagingXP),
-        ENCHANTING("Enchanting", Arrays.asList("enchanting", "enchant"), PlayerLeaderboardResponse.Player::getEnchanting, PlayerLeaderboardResponse.Player::getEnchantingXP),
-        FARMING("Farming", Arrays.asList("farming", "farm"), PlayerLeaderboardResponse.Player::getFarming, PlayerLeaderboardResponse.Player::getFarmingXP),
-        COMBAT("Combat", Arrays.asList("combat", "fight"), PlayerLeaderboardResponse.Player::getCombat, PlayerLeaderboardResponse.Player::getCombatXP),
-        FISHING("Fishing", Arrays.asList("fishing", "fish"), PlayerLeaderboardResponse.Player::getFishing, PlayerLeaderboardResponse.Player::getFishingXP),
-        ALCHEMY("Alchemy", Arrays.asList("alchemy", "pot"), PlayerLeaderboardResponse.Player::getAlchemy, PlayerLeaderboardResponse.Player::getAlchemyXP),
-        CARPENTRY("Carpentry", Arrays.asList("carpentry", "craft"), PlayerLeaderboardResponse.Player::getCarpentry, PlayerLeaderboardResponse.Player::getCarpentryXP),
-        RUNECRAFTING("Runecrafting", Arrays.asList("runecrafting", "rune"), PlayerLeaderboardResponse.Player::getRunecrafting, PlayerLeaderboardResponse.Player::getRunecraftingXP);
-
-        protected final String name;
-        protected final List<String> aliases;
-        protected final PlayerStatConversionFunction statFunction;
-        protected final PlayerStatConversionFunction orderFunction;
-
-        LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction, PlayerStatConversionFunction orderFunction) {
-            this.name = name;
-            this.aliases = aliases;
-            this.statFunction = statFunction;
-            this.orderFunction = orderFunction;
-        }
-
-        LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction) {
-            this(name, aliases, statFunction, statFunction);
-        }
-
-        public static LeaderboardType fromName(String name) {
-            if (name == null) {
-                return null;
-            }
-
-            for (LeaderboardType leaderboardType : values()) {
-                if (leaderboardType.aliases.contains(name.toLowerCase())) {
-                    return leaderboardType;
-                }
-            }
-
-            return null;
-        }
     }
 }

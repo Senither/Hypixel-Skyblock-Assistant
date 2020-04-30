@@ -21,10 +21,10 @@
 
 package com.senither.hypixel.contracts.hypixel;
 
-import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
+import com.senither.hypixel.hypixel.leaderboard.LeaderboardPlayer;
 
 @FunctionalInterface
 public interface PlayerStatConversionFunction {
 
-    double getStat(PlayerLeaderboardResponse.Player player);
+    double getStat(LeaderboardPlayer player);
 }
