@@ -61,7 +61,7 @@ public class GetProfileRoute extends SparkRoute {
             }
         }
 
-        SkyBlockProfileReply profile = app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).get(10, TimeUnit.SECONDS);
+        SkyBlockProfileReply profile = app.getHypixel().getMostProgressedSkyBlockProfileFromUsername(username).get(10, TimeUnit.SECONDS);
         PlayerReply player = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
         UUID uuid = app.getHypixel().getUUIDFromName(username);
 
