@@ -28,36 +28,83 @@ import java.util.List;
 
 public enum LeaderboardType {
 
-    OVERVIEW("Overview", Arrays.asList("guild", "overview", "view", "metrics", "metric"), null),
-    AVERAGE_SKILL("Average Skill", Arrays.asList("skills", "skill"), LeaderboardPlayer::getAverageSkill),
-    TOTAL_SLAYER("Total Slayer", Arrays.asList("slayers", "slayer"), LeaderboardPlayer::getTotalSlayer),
-    REVENANT("Revenant Slayer", Arrays.asList("revenant", "rev", "zombie"), LeaderboardPlayer::getRevenantXP),
-    TARANTULA("Tarantula Slayer", Arrays.asList("tarantula", "tara", "spider"), LeaderboardPlayer::getTarantulaXP),
-    SVEN("Sven Slayer", Arrays.asList("sven", "wolf", "dog"), LeaderboardPlayer::getSvenXP),
-    MINING("Mining", Arrays.asList("mining", "mine", "ore"), LeaderboardPlayer::getMining, LeaderboardPlayer::getMiningXP),
-    FORAGING("Foraging", Arrays.asList("foraging", "forage", "tree"), LeaderboardPlayer::getForaging, LeaderboardPlayer::getForagingXP),
-    ENCHANTING("Enchanting", Arrays.asList("enchanting", "enchant"), LeaderboardPlayer::getEnchanting, LeaderboardPlayer::getEnchantingXP),
-    FARMING("Farming", Arrays.asList("farming", "farm"), LeaderboardPlayer::getFarming, LeaderboardPlayer::getFarmingXP),
-    COMBAT("Combat", Arrays.asList("combat", "fight"), LeaderboardPlayer::getCombat, LeaderboardPlayer::getCombatXP),
-    FISHING("Fishing", Arrays.asList("fishing", "fish"), LeaderboardPlayer::getFishing, LeaderboardPlayer::getFishingXP),
-    ALCHEMY("Alchemy", Arrays.asList("alchemy", "pot"), LeaderboardPlayer::getAlchemy, LeaderboardPlayer::getAlchemyXP),
-    CARPENTRY("Carpentry", Arrays.asList("carpentry", "craft"), LeaderboardPlayer::getCarpentry, LeaderboardPlayer::getCarpentryXP),
-    RUNECRAFTING("Runecrafting", Arrays.asList("runecrafting", "rune"), LeaderboardPlayer::getRunecrafting, LeaderboardPlayer::getRunecraftingXP);
+    OVERVIEW(
+        "Overview", Arrays.asList("guild", "overview", "view", "metrics", "metric"),
+        null, null
+    ),
+    AVERAGE_SKILL(
+        "Average Skill", Arrays.asList("skills", "skill"),
+        LeaderboardPlayer::getAverageSkillProgress, LeaderboardPlayer::getAverageSkill
+    ),
+    TOTAL_SLAYER(
+        "Total Slayer", Arrays.asList("slayers", "slayer"),
+        LeaderboardPlayer::getTotalSlayer, null
+    ),
+    REVENANT(
+        "Revenant Slayer", Arrays.asList("revenant", "rev", "zombie"),
+        LeaderboardPlayer::getRevenantXP, null
+    ),
+    TARANTULA(
+        "Tarantula Slayer", Arrays.asList("tarantula", "tara", "spider"),
+        LeaderboardPlayer::getTarantulaXP, null
+    ),
+    SVEN(
+        "Sven Slayer", Arrays.asList("sven", "wolf", "dog"),
+        LeaderboardPlayer::getSvenXP, null
+    ),
+    MINING(
+        "Mining", Arrays.asList("mining", "mine", "ore"),
+        LeaderboardPlayer::getMining, LeaderboardPlayer::getMiningXP, LeaderboardPlayer::getMiningXP
+    ),
+    FORAGING(
+        "Foraging", Arrays.asList("foraging", "forage", "tree"),
+        LeaderboardPlayer::getForaging, LeaderboardPlayer::getForagingXP, LeaderboardPlayer::getForagingXP
+    ),
+    ENCHANTING(
+        "Enchanting", Arrays.asList("enchanting", "enchant"),
+        LeaderboardPlayer::getEnchanting, LeaderboardPlayer::getEnchantingXP, LeaderboardPlayer::getEnchantingXP
+    ),
+    FARMING(
+        "Farming", Arrays.asList("farming", "farm"),
+        LeaderboardPlayer::getFarming, LeaderboardPlayer::getFarmingXP, LeaderboardPlayer::getFarmingXP
+    ),
+    COMBAT(
+        "Combat", Arrays.asList("combat", "fight"),
+        LeaderboardPlayer::getCombat, LeaderboardPlayer::getCombatXP, LeaderboardPlayer::getCombatXP
+    ),
+    FISHING(
+        "Fishing", Arrays.asList("fishing", "fish"),
+        LeaderboardPlayer::getFishing, LeaderboardPlayer::getFishingXP, LeaderboardPlayer::getFishingXP
+    ),
+    ALCHEMY(
+        "Alchemy", Arrays.asList("alchemy", "pot"),
+        LeaderboardPlayer::getAlchemy, LeaderboardPlayer::getAlchemyXP, LeaderboardPlayer::getAlchemyXP
+    ),
+    CARPENTRY(
+        "Carpentry", Arrays.asList("carpentry", "craft"),
+        LeaderboardPlayer::getCarpentry, LeaderboardPlayer::getCarpentryXP, LeaderboardPlayer::getCarpentryXP
+    ),
+    RUNECRAFTING(
+        "Runecrafting", Arrays.asList("runecrafting", "rune"),
+        LeaderboardPlayer::getRunecrafting, LeaderboardPlayer::getRunecraftingXP, LeaderboardPlayer::getRunecraftingXP
+    );
 
     protected final String name;
     protected final List<String> aliases;
     protected final PlayerStatConversionFunction statFunction;
+    protected final PlayerStatConversionFunction expFunction;
     protected final PlayerStatConversionFunction orderFunction;
 
-    LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction, PlayerStatConversionFunction orderFunction) {
+    LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction, PlayerStatConversionFunction expFunction, PlayerStatConversionFunction orderFunction) {
         this.name = name;
         this.aliases = aliases;
         this.statFunction = statFunction;
+        this.expFunction = expFunction;
         this.orderFunction = orderFunction;
     }
 
-    LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction) {
-        this(name, aliases, statFunction, statFunction);
+    LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction, PlayerStatConversionFunction expFunction) {
+        this(name, aliases, statFunction, expFunction, statFunction);
     }
 
     public static LeaderboardType fromName(String name) {
@@ -84,6 +131,10 @@ public enum LeaderboardType {
 
     public PlayerStatConversionFunction getStatFunction() {
         return statFunction;
+    }
+
+    public PlayerStatConversionFunction getExpFunction() {
+        return expFunction;
     }
 
     public PlayerStatConversionFunction getOrderFunction() {

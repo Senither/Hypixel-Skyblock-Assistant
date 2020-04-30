@@ -97,6 +97,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new GuildExperienceLeaderboardCommand(this));
         commandManager.registerCommand(new LeaderboardCommand(this));
         commandManager.registerCommand(new PetsCommand(this));
+        commandManager.registerCommand(new PlayerLeaderboardCommand(this));
         commandManager.registerCommand(new PlayerOverviewCommand(this));
         commandManager.registerCommand(new TalismansCommand(this));
         commandManager.registerCommand(new PingCommand(this));

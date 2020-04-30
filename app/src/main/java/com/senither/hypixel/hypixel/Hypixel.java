@@ -462,6 +462,36 @@ public class Hypixel {
         return future;
     }
 
+    public PlayerLeaderboardResponse getPlayerLeaderboard() {
+        final String cacheKey = "skyblock-player-leaderboard";
+
+        Response cachedLeaderboard = responseCache.getIfPresent(cacheKey);
+        if (cachedLeaderboard != null && cachedLeaderboard instanceof PlayerLeaderboardResponse) {
+            log.debug("Found Player Leaderboard using the in-memory cache");
+
+            return (PlayerLeaderboardResponse) cachedLeaderboard;
+        }
+
+        log.debug("Requesting for Player Leaderboard from the API");
+
+        try {
+            PlayerLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet("http://hypixel-app-api.senither.com/leaderboard/players"), obj -> {
+                String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
+                return gson.fromJson(content, PlayerLeaderboardResponse.class);
+            });
+
+            if (leaderboardResponse == null) {
+                return null;
+            }
+
+            responseCache.put(cacheKey, leaderboardResponse);
+
+            return leaderboardResponse;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     public GuildLeaderboardResponse getGuildLeaderboard() {
         final String cacheKey = "skyblock-leaderboard";
 
