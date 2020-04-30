@@ -35,14 +35,6 @@ public abstract class Response {
 
     protected int status;
 
-    public boolean isSuccess() {
-        return getStatus() == 200;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
     protected static Carbon timestampToCarbonInstance(String timestamp) {
         try {
             Date date = Response.ISO_8601_DateFormat.parse(timestamp
@@ -54,5 +46,13 @@ public abstract class Response {
         } catch (ParseException e) {
             return null;
         }
+    }
+
+    public boolean isSuccess() {
+        return getStatus() == 200;
+    }
+
+    public int getStatus() {
+        return status;
     }
 }
