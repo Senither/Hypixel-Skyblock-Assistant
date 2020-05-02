@@ -66,6 +66,10 @@ public class SlayerChecker extends Checker<SlayerResponse> {
     }
 
     private long getTotalCoinsSpentOnSlayers(JsonObject jsonObject) {
+        if (jsonObject == null) {
+            return 0L;
+        }
+
         try {
             long totalCoins = 0;
 
