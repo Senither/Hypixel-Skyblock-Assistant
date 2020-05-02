@@ -245,7 +245,6 @@ public class LeaderboardCommand extends Command {
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkillProgress()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkill()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
-                NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
                 NumberUtil.formatNicely(guildMetrics.getMembers())
             ), false);
         }
