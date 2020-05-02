@@ -277,23 +277,9 @@ public class Hypixel {
 
                 //noinspection ConstantConditions
                 SkyBlockProfileReply skyBlockProfileReply = skyBlockProfileReplies.stream()
-                    .sorted((profileOne, profileTwo) -> {
-                        double profileOneAverage = StatisticsChecker.SKILLS.checkUser(
-                            playerReply, profileOne, profileOne.getProfile().getAsJsonObject("members").getAsJsonObject(uuid)
-                        ).getAverageSkillLevel();
-                        double profileTwoAverage = StatisticsChecker.SKILLS.checkUser(
-                            playerReply, profileTwo, profileTwo.getProfile().getAsJsonObject("members").getAsJsonObject(uuid)
-                        ).getAverageSkillLevel();
-
-                        if (profileOneAverage == profileTwoAverage) {
-                            return StatisticsChecker.SLAYER.checkUser(
-                                playerReply, profileOne, profileOne.getProfile().getAsJsonObject("members").getAsJsonObject(uuid)
-                            ).getTotalSlayerExperience() < StatisticsChecker.SLAYER.checkUser(
-                                playerReply, profileTwo, profileTwo.getProfile().getAsJsonObject("members").getAsJsonObject(uuid)
-                            ).getTotalSlayerExperience() ? 1 : -1;
-                        }
-                        return profileOneAverage < profileTwoAverage ? 1 : -1;
-                    }).findFirst().get();
+                    .sorted((profileOne, profileTwo) ->
+                        getSkyblockProfileScore(playerReply, profileOne, uuid) < getSkyblockProfileScore(playerReply, profileTwo, uuid) ? 1 : -1
+                    ).findFirst().get();
 
                 log.debug("Found selected SkyBlock profile for \"{}\" it was \"{}\" with UUID \"{}\"",
                     name, skyBlockProfileReply.getProfile().get("cute_name").getAsString(), skyBlockProfileReply.getProfile().get("profile_id").getAsString()
@@ -722,7 +708,6 @@ public class Hypixel {
         return HypixelRank.DEFAULT;
     }
 
-
     private List<SkyBlockProfileReply> prepareSkyBlockProfiles(PlayerReply playerReply) {
         JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
 
@@ -744,6 +729,20 @@ public class Hypixel {
             }
         }
         return skyBlockProfileReplies;
+    }
+
+    private double getSkyblockProfileScore(PlayerReply playerReply, SkyBlockProfileReply profileReply, String uuid) {
+        final JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(uuid);
+
+        long totalPetXP = StatisticsChecker.PETS.checkUser(playerReply, profileReply, member).getTotalPetExperience();
+        long totalSlayerXP = StatisticsChecker.SLAYER.checkUser(playerReply, profileReply, member).getTotalSlayerExperience();
+
+        double score = (totalPetXP / 50D) + totalSlayerXP;
+        if (score > 0D) {
+            return score;
+        }
+
+        return StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member).getTotalEffectiveSkillExperience() / 150D;
     }
 
     private long getLastSaveFromMember(JsonObject object) {

@@ -22,6 +22,7 @@
 package com.senither.hypixel.statistics.responses;
 
 import com.google.gson.JsonObject;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 
@@ -167,6 +168,48 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
             return 0D;
         }
         return combinedLevels / 7D;
+    }
+
+    public double getTotalSkillExperience() {
+        double combinedExperience = getMining().getExperience() +
+            getForaging().getExperience() +
+            getEnchanting().getExperience() +
+            getFarming().getExperience() +
+            getCombat().getExperience() +
+            getFishing().getExperience() +
+            getAlchemy().getExperience();
+
+        if (combinedExperience <= 0) {
+            return 0D;
+        }
+        return combinedExperience;
+    }
+
+    public double getTotalEffectiveSkillExperience() {
+        if (hasData()) {
+            return getTotalSkillExperience();
+        }
+
+        double combinedExperience = getExperienceForLevel(getMining().getLevel()) +
+            getExperienceForLevel(getForaging().getLevel()) +
+            getExperienceForLevel(getEnchanting().getLevel()) +
+            getExperienceForLevel(getFarming().getLevel()) +
+            getExperienceForLevel(getCombat().getLevel()) +
+            getExperienceForLevel(getFishing().getLevel()) +
+            getExperienceForLevel(getAlchemy().getLevel());
+
+        if (combinedExperience <= 0) {
+            return 0D;
+        }
+        return combinedExperience;
+    }
+
+    private double getExperienceForLevel(double level) {
+        double totalRequiredExperience = 0;
+        for (int i = 0; i < Math.min(level, Constants.GENERAL_SKILL_EXPERIENCE.size()); i++) {
+            totalRequiredExperience += Constants.GENERAL_SKILL_EXPERIENCE.asList().get(i);
+        }
+        return totalRequiredExperience;
     }
 
     @Override

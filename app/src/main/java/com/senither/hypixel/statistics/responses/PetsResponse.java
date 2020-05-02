@@ -56,6 +56,15 @@ public class PetsResponse extends StatisticsResponse {
         return this;
     }
 
+    public long getTotalPetExperience() {
+        long experience = 0;
+        for (Pet pet : getPets()) {
+            experience += pet.getExperience();
+        }
+        return experience;
+
+    }
+
     @Nullable
     public Pet getActivePet() {
         for (Pet pet : getPets()) {
