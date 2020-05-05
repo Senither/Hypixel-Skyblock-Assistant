@@ -138,7 +138,7 @@ public class PlayerLeaderboardCommand extends Command {
                 }
 
                 completeRows.add(String.format(rowMessage,
-                    padPosition("#" + index[0], index[0] - 1),
+                    padPosition("#" + NumberUtil.formatNicely(index[0]), index[0] - 1),
                     player.getUsername(),
                     player.getGuildName(),
                     padPosition("", index[0] - 1),
@@ -165,7 +165,7 @@ public class PlayerLeaderboardCommand extends Command {
         String note = "";
         if (finalUserUUID != null && position[0] > 0) {
             note = String.format("> You're ranked **#%s** in %s!\n\n",
-                position[0], type.getName()
+                NumberUtil.formatNicely(position[0]), type.getName()
             );
         }
 
@@ -198,7 +198,7 @@ public class PlayerLeaderboardCommand extends Command {
         for (int i = 0; i < sortedBySkills.size(); i++) {
             LeaderboardPlayer skillsPlayer = sortedBySkills.get(i);
             skillsRow.add(String.format("%s: %s\n%s> %s (%s)",
-                padPosition("#" + (i + 1), i), skillsPlayer.getUsername(),
+                padPosition("#" + NumberUtil.formatNicely(i + 1), i), skillsPlayer.getUsername(),
                 padPosition("", i),
                 NumberUtil.formatNicelyWithDecimals(skillsPlayer.getAverageSkillProgress()),
                 NumberUtil.formatNicelyWithDecimals(skillsPlayer.getAverageSkill())
@@ -206,7 +206,7 @@ public class PlayerLeaderboardCommand extends Command {
 
             LeaderboardPlayer slayerPlayer = sortedBySlayer.get(i);
             slayerRow.add(String.format("%s: %s\n%s> %s",
-                padPosition("#" + (i + 1), i),
+                padPosition("#" + NumberUtil.formatNicely(i + 1), i),
                 slayerPlayer.getUsername(),
                 padPosition("", i),
                 NumberUtil.formatNicelyWithDecimals(slayerPlayer.getTotalSlayer())
