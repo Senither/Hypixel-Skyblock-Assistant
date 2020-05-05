@@ -27,9 +27,7 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
-import com.senither.hypixel.contracts.hypixel.PlayerStatConversionFunction;
 import com.senither.hypixel.database.controller.GuildController;
-import com.senither.hypixel.hypixel.leaderboard.LeaderboardPlayer;
 import com.senither.hypixel.hypixel.leaderboard.LeaderboardType;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.hypixel.response.GuildMetricsResponse;
@@ -166,10 +164,9 @@ public class LeaderboardCommand extends Command {
             return;
         }
 
-        PlayerStatConversionFunction extraStatsFunction = type.equals(LeaderboardType.AVERAGE_SKILL)
-            ? LeaderboardPlayer::getAverageSkillProgress : null;
-
-        final String rowMessage = "#%s : %s\n   > %s" + (extraStatsFunction == null ? "" : " (%s)");
+        final String rowMessage = type.getExpFunction() == null
+            ? "%s: %s\n%s> %s " : type.equals(LeaderboardType.AVERAGE_SKILL)
+            ? "%s: %s\n%s> %s (%s)" : "%s: %s\n%s> %s [%s XP]";
 
         final int[] index = {1};
         final UUID finalUserUUID = userUUID;
@@ -181,14 +178,17 @@ public class LeaderboardCommand extends Command {
                     position[0] = index[0];
                 }
                 completeRows.add(String.format(rowMessage,
-                    index[0]++, player.getUsername(),
+                    padPosition("#" + NumberUtil.formatNicely(index[0]), index[0] - 1),
+                    player.getUsername(),
+                    padPosition("", index[0] - 1),
                     type.getStatFunction().getStat(player) == -1
                         ? "API IS DISABLED"
                         : NumberUtil.formatNicelyWithDecimals(type.getStatFunction().getStat(player)),
-                    extraStatsFunction != null
-                        ? NumberUtil.formatNicelyWithDecimals(extraStatsFunction.getStat(player))
-                        : ""
+                    type.getExpFunction() == null ? "" : type.getExpFunction().getStat(player) == -1
+                        ? "API IS DISABLED"
+                        : NumberUtil.formatNicelyWithDecimals(type.getExpFunction().getStat(player))
                 ));
+                index[0]++;
             });
 
         List<String> rows = new ArrayList<>();
@@ -271,7 +271,7 @@ public class LeaderboardCommand extends Command {
         for (int i = 0; i < sortedBySkills.size(); i++) {
             GuildLeaderboardResponse.Guild skillsGuild = sortedBySkills.get(i);
             skillsRow.add(String.format("%s: %s\n    > %s (%s) < [%s]",
-                padPosition("#" + (i + 1)), skillsGuild.getName(),
+                padPosition("#" + (i + 1), i), skillsGuild.getName(),
                 NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkillProgress()),
                 NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill()),
                 skillsGuild.getMembers()
@@ -279,7 +279,7 @@ public class LeaderboardCommand extends Command {
 
             GuildLeaderboardResponse.Guild slayerGuild = sortedBySlayer.get(i);
             slayerRow.add(String.format("%s: %s\n    > %s < [%s]",
-                padPosition("#" + (i + 1)), slayerGuild.getName(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer()), slayerGuild.getMembers()
+                padPosition("#" + (i + 1), i), slayerGuild.getName(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer()), slayerGuild.getMembers()
             ));
         }
 
@@ -318,9 +318,9 @@ public class LeaderboardCommand extends Command {
         return null;
     }
 
-    private String padPosition(String string) {
+    private String padPosition(String string, double position) {
         StringBuilder builder = new StringBuilder(string);
-        while (builder.length() <= 3) {
+        while (builder.length() < 1 + String.valueOf(position).length()) {
             builder.append(" ");
         }
         return builder.toString();
