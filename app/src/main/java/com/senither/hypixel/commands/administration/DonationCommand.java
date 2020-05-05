@@ -27,6 +27,7 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.contracts.commands.DonationAdditionFunction;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
@@ -41,8 +42,11 @@ import net.hypixel.api.reply.GuildReply;
 
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class DonationCommand extends Command {
+
+    public static final HashMap<Long, DonationAdditionFunction> confirmationQueue = new HashMap<>();
 
     public DonationCommand(SkyblockAssistant app) {
         super(app);
@@ -281,51 +285,93 @@ public class DonationCommand extends Command {
             return;
         }
 
-        PlayerDonationController.PlayerDonationEntry donationEntry = PlayerDonationController.getPlayerByUuid(app.getDatabaseManager(), event.getGuild().getIdLong(), uuid);
-        if (donationEntry == null) {
-            MessageFactory.makeError(event.getMessage(),
-                "Failed to load the players donation points entry, please try again later."
-            ).setTitle("Failed to load donation entry").queue();
+        String message = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+
+        DonationAdditionFunction function = createDonationNAdditionFunction(event, guildEntry, username, uuid, points, message);
+        if (!message.isEmpty()) {
+            function.handle();
             return;
         }
 
-        donationEntry.setPoints(donationEntry.getPoints() + points);
+        MessageFactory.makeWarning(event.getMessage(), String.join("\n", Arrays.asList(
+            "You're about to send add **:points** points to **:username** without a note!",
+            "Are you sure you want to continue?"
+        ))).setFooter("This message will automatically be deleted in 60 seconds")
+            .set("points", points)
+            .set("username", username)
+            .queue(confirmMessage -> {
+                confirmationQueue.put(confirmMessage.getIdLong(), function);
 
-        try {
-            app.getDatabaseManager().queryUpdate("UPDATE `donation_points` SET `points` = ?, `last_donated_at` = ? WHERE `discord_id` = ? AND `uuid` = ?",
-                donationEntry.getPoints(), Carbon.now(), donationEntry.getDiscordId(), donationEntry.getUuid()
-            );
+                confirmMessage.addReaction("✅").queue();
+                confirmMessage.delete().queueAfter(60, TimeUnit.SECONDS, ignored -> {
+                    confirmationQueue.remove(confirmMessage.getIdLong());
+                }, throwable -> {
+                    // Ignored
+                });
+            });
+    }
 
-            MessageFactory.makeSuccess(event.getMessage(), "**:points** donation points have been given to **:name**")
-                .set("points", points)
-                .set("name", formatPlayerUsername(args[0]))
-                .queue();
+    private DonationAdditionFunction createDonationNAdditionFunction(
+        MessageReceivedEvent event,
+        GuildController.GuildEntry guildEntry,
+        String username,
+        UUID uuid,
+        int points,
+        String message
+    ) {
+        return new DonationAdditionFunction() {
+            @Override
+            public void handle() {
+                PlayerDonationController.PlayerDonationEntry donationEntry = PlayerDonationController.getPlayerByUuid(app.getDatabaseManager(), event.getGuild().getIdLong(), uuid);
+                if (donationEntry == null) {
+                    MessageFactory.makeError(event.getMessage(),
+                        "Failed to load the players donation points entry, please try again later."
+                    ).setTitle("Failed to load donation entry").queue();
+                    return;
+                }
 
-            if (guildEntry.getDonationChannel() == null || guildEntry.getDonationChannel() == 0) {
-                return;
+                donationEntry.setPoints(donationEntry.getPoints() + points);
+
+                try {
+                    app.getDatabaseManager().queryUpdate("UPDATE `donation_points` SET `points` = ?, `last_donated_at` = ? WHERE `discord_id` = ? AND `uuid` = ?",
+                        donationEntry.getPoints(), Carbon.now(), donationEntry.getDiscordId(), donationEntry.getUuid()
+                    );
+
+                    MessageFactory.makeSuccess(event.getMessage(), "**:points** donation points have been given to **:name**")
+                        .set("points", points)
+                        .set("name", formatPlayerUsername(username))
+                        .queue();
+
+                    if (guildEntry.getDonationChannel() == null || guildEntry.getDonationChannel() == 0) {
+                        return;
+                    }
+
+                    TextChannel logChannel = event.getGuild().getTextChannelById(guildEntry.getDonationChannel());
+                    if (logChannel == null) {
+                        return;
+                    }
+
+                    MessageFactory.makeEmbeddedMessage(logChannel, MessageType.INFO.getColor(), message.isEmpty()
+                        ? "**:user** was given **:points** points by **:author**, no note were given!"
+                        : "**:user** was given **:points** points by **:author** for \":note\""
+                    ).setFooter("The points where given by " + event.getAuthor().getAsTag() + " (ID: " + event.getAuthor().getId() + ")")
+                        .set("user", formatPlayerUsername(app.getHypixel().getUsernameFromUuid(uuid)))
+                        .set("author", formatPlayerUsername(getUsernameFromUser(event.getAuthor())))
+                        .set("points", points)
+                        .set("note", message)
+                        .queue();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+
+                    MessageFactory.makeError(event.getMessage(), "Failed to store the donation points due to an error: " + e.getMessage()).queue();
+                }
             }
 
-            TextChannel logChannel = event.getGuild().getTextChannelById(guildEntry.getDonationChannel());
-            if (logChannel == null) {
-                return;
+            @Override
+            public long getAuthorId() {
+                return event.getAuthor().getIdLong();
             }
-
-            String message = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-            MessageFactory.makeEmbeddedMessage(logChannel, MessageType.INFO.getColor(), message.isEmpty()
-                ? "**:user** was given **:points** points by **:author**, no note were given!"
-                : "**:user** was given **:points** points by **:author** for \":note\""
-            ).setFooter("The points where given by " + event.getAuthor().getAsTag() + " (ID: " + event.getAuthor().getId() + ")")
-                .set("user", formatPlayerUsername(app.getHypixel().getUsernameFromUuid(uuid)))
-                .set("author", formatPlayerUsername(getUsernameFromUser(event.getAuthor())))
-                .set("points", points)
-                .set("note", message)
-                .queue();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-
-            MessageFactory.makeError(event.getMessage(), "Failed to store the donation points due to an error: " + e.getMessage()).queue();
-        }
+        };
     }
 
     private boolean hasPermissionToAddPoints(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
