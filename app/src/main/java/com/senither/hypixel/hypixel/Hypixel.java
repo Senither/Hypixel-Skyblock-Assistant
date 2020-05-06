@@ -317,7 +317,7 @@ public class Hypixel {
             Collection result = app.getDatabaseManager().query("SELECT `data`, `last_updated_at` FROM `profiles` WHERE `uuid` = ?", name);
             if (!result.isEmpty()) {
                 Carbon lastUpdatedAt = result.first().getTimestamp("last_updated_at");
-                if (lastUpdatedAt.addMinutes(30).isFuture()) {
+                if (lastUpdatedAt.addMinutes(5).isFuture()) {
                     SkyBlockProfileReply skyblockProfile = gson.fromJson(result.get(0).getString("data"), SkyBlockProfileReply.class);
                     if (skyblockProfile != null && skyblockProfile.getProfile() != null) {
                         log.debug("Found SkyBlock profile for {} using the database cache", name);
