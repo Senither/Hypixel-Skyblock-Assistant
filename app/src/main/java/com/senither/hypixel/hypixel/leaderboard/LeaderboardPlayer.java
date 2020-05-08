@@ -51,6 +51,8 @@ public abstract class LeaderboardPlayer {
     protected double fishing_xp;
     protected double alchemy;
     protected double alchemy_xp;
+    protected double taming;
+    protected double taming_xp;
     protected double carpentry;
     protected double carpentry_xp;
     protected double runecrafting;
@@ -146,6 +148,14 @@ public abstract class LeaderboardPlayer {
 
     public double getAlchemyXP() {
         return alchemy_xp <= 0 ? getExperienceForLevel(alchemy, false) : alchemy_xp;
+    }
+
+    public double getTaming() {
+        return taming;
+    }
+
+    public double getTamingXP() {
+        return taming_xp <= 0 ? getExperienceForLevel(taming, false) : taming_xp;
     }
 
     public double getCarpentry() {

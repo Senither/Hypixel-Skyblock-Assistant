@@ -80,6 +80,10 @@ public enum LeaderboardType {
         "Alchemy", Arrays.asList("alchemy", "pot"),
         LeaderboardPlayer::getAlchemy, LeaderboardPlayer::getAlchemyXP, LeaderboardPlayer::getAlchemyXP
     ),
+    TAMING(
+        "Taming", Arrays.asList("taming", "tame", "pet"),
+        LeaderboardPlayer::getTaming, LeaderboardPlayer::getTamingXP, LeaderboardPlayer::getTamingXP
+    ),
     CARPENTRY(
         "Carpentry", Arrays.asList("carpentry", "craft"),
         LeaderboardPlayer::getCarpentry, LeaderboardPlayer::getCarpentryXP, LeaderboardPlayer::getCarpentryXP
