@@ -41,10 +41,11 @@ public class SkillsChecker extends Checker<SkillsResponse> {
         double combat = getDoubleFromObject(member, "experience_skill_combat");
         double fishing = getDoubleFromObject(member, "experience_skill_fishing");
         double alchemy = getDoubleFromObject(member, "experience_skill_alchemy");
+        double taming = getDoubleFromObject(member, "experience_skill_taming");
         double carpentry = getDoubleFromObject(member, "experience_skill_carpentry");
         double runecrafting = getDoubleFromObject(member, "experience_skill_runecrafting");
 
-        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
+        if (mining + foraging + enchanting + farming + combat + fishing + alchemy + taming == 0) {
             return playerReply == null
                 ? new SkillsResponse(false, false)
                 : checkUsingAchievements(playerReply);
@@ -58,6 +59,7 @@ public class SkillsChecker extends Checker<SkillsResponse> {
             .setCombat(getSkillLevelFromExperience(combat, false), combat)
             .setFishing(getSkillLevelFromExperience(fishing, false), fishing)
             .setAlchemy(getSkillLevelFromExperience(alchemy, false), alchemy)
+            .setTaming(getSkillLevelFromExperience(taming, false), taming)
             .setCarpentry(getSkillLevelFromExperience(carpentry, false), carpentry)
             .setRunecrafting(getSkillLevelFromExperience(runecrafting, true), runecrafting);
     }

@@ -37,6 +37,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     private SkillStat combat = new SkillStat();
     private SkillStat fishing = new SkillStat();
     private SkillStat alchemy = new SkillStat();
+    private SkillStat taming = new SkillStat();
     private SkillStat carpentry = new SkillStat();
     private SkillStat runecrafting = new SkillStat();
 
@@ -120,6 +121,16 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
         return this;
     }
 
+    public SkillStat getTaming() {
+        return taming;
+    }
+
+    public SkillsResponse setTaming(double level, double experience) {
+        this.taming = new SkillStat(level, experience);
+
+        return this;
+    }
+
     public SkillStat getCarpentry() {
         return carpentry;
     }
@@ -147,12 +158,13 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
             getFarming().getLevel() +
             getCombat().getLevel() +
             getFishing().getLevel() +
-            getAlchemy().getLevel();
+            getAlchemy().getLevel() +
+            getTaming().getLevel();
 
         if (combinedLevels <= 0) {
             return 0D;
         }
-        return combinedLevels / 7D;
+        return combinedLevels / 8D;
     }
 
     public double getAverageSkillLevelWithoutPorgress() {
@@ -162,12 +174,13 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
             Math.floor(getFarming().getLevel()) +
             Math.floor(getCombat().getLevel()) +
             Math.floor(getFishing().getLevel()) +
-            Math.floor(getAlchemy().getLevel());
+            Math.floor(getAlchemy().getLevel()) +
+            Math.floor(getTaming().getLevel());
 
         if (combinedLevels <= 0) {
             return 0D;
         }
-        return combinedLevels / 7D;
+        return combinedLevels / 8D;
     }
 
     public double getTotalSkillExperience() {
@@ -177,7 +190,8 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
             getFarming().getExperience() +
             getCombat().getExperience() +
             getFishing().getExperience() +
-            getAlchemy().getExperience();
+            getAlchemy().getExperience() +
+            getTaming().getExperience();
 
         if (combinedExperience <= 0) {
             return 0D;
@@ -196,7 +210,8 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
             getExperienceForLevel(getFarming().getLevel()) +
             getExperienceForLevel(getCombat().getLevel()) +
             getExperienceForLevel(getFishing().getLevel()) +
-            getExperienceForLevel(getAlchemy().getLevel());
+            getExperienceForLevel(getAlchemy().getLevel()) +
+            getExperienceForLevel(getTaming().getLevel());
 
         if (combinedExperience <= 0) {
             return 0D;
@@ -226,6 +241,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
         skills.add("combat", getCombat().toJson());
         skills.add("fishing", getFishing().toJson());
         skills.add("alchemy", getAlchemy().toJson());
+        skills.add("taming", getTaming().toJson());
         skills.add("carpentry", getCarpentry().toJson());
         skills.add("runecrafting", getRunecrafting().toJson());
         json.add("skills", skills);

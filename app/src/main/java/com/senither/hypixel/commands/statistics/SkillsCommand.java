@@ -106,8 +106,11 @@ public class SkillsCommand extends SkillCommand {
             .addField("Combat", formatStatTextValue(skillsResponse.getCombat()), true)
             .addField("Fishing", formatStatTextValue(skillsResponse.getFishing()), true)
             .addField("Alchemy", formatStatTextValue(skillsResponse.getAlchemy()), true)
+            .addField("Taming", formatStatTextValue(skillsResponse.getTaming()), true)
+            .addBlankField(true)
             .addField("Carpentry", formatStatTextValue(skillsResponse.getCarpentry()), true)
             .addField("Runecrafting", formatStatTextValue(skillsResponse.getRunecrafting()), true)
+            .addBlankField(true)
             .setFooter(String.format(
                 "Note > Carpentry and Runecrafting are cosmetic skills, and are therefore not included in the average skill calculation. | Profile: %s",
                 profileReply.getProfile().get("cute_name").getAsString()
