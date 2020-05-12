@@ -10,8 +10,8 @@ group 'com.senither'
 version '0.1-SNAPSHOT'
 mainClassName = 'com.senither.hypixel.Main'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 ext {
     moduleName = 'Hypixel Skyblock Assistant'
