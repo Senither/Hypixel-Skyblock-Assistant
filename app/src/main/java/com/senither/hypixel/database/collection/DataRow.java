@@ -63,8 +63,7 @@ public class DataRow {
      * Gets a object from the data rows item list.
      *
      * @param name The index(name) to get.
-     * @return either (1) The value of the index given,
-     *         or (2) <code>NULL</code> if the index doesn't exists.
+     * @return either (1) The value of the index given, or (2) <code>NULL</code> if the index doesn't exists.
      */
     public Object get(String name) {
         return get(name, null);
@@ -75,8 +74,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public Object get(String name, Object def) {
         if (has(name)) {
@@ -91,7 +89,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @return either (1) The value of the index given,
-     *         or (2) <code>FALSE</code> if the index doesn't exists.
+     * or (2) <code>FALSE</code> if the index doesn't exists.
      */
     public boolean getBoolean(String name) {
         return getBoolean(name, false);
@@ -102,8 +100,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public boolean getBoolean(String name, boolean def) {
         Object value = get(name, def);
@@ -125,8 +122,7 @@ public class DataRow {
      * Gets a double object from the data rows item list.
      *
      * @param name The index(name) to get.
-     * @return either (1) The value of the index given,
-     *         or (2) <code>0.0D</code> if the index doesn't exists.
+     * @return either (1) The value of the index given, or (2) <code>0.0D</code> if the index doesn't exists.
      */
     public double getDouble(String name) {
         return getDouble(name, 0.0D);
@@ -137,8 +133,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public double getDouble(String name, double def) {
         Object value = get(name, def);
@@ -182,8 +177,7 @@ public class DataRow {
      * Gets a integer object from the data rows item list.
      *
      * @param name The index(name) to get.
-     * @return either (1) The value of the index given,
-     *         or (2) <code>0</code> if the index doesn't exists.
+     * @return either (1) The value of the index given, or (2) <code>0</code> if the index doesn't exists.
      */
     public int getInt(String name) {
         return getInt(name, 0);
@@ -194,8 +188,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public int getInt(String name, int def) {
         Object value = get(name, def);
@@ -239,8 +232,7 @@ public class DataRow {
      * Gets a long object from the data rows item list.
      *
      * @param name The index(name) to get.
-     * @return either (1) The value of the index given,
-     *         or (2) <code>0L</code> if the index doesn't exists.
+     * @return either (1) The value of the index given, or (2) <code>0L</code> if the index doesn't exists.
      */
     public long getLong(String name) {
         return getLong(name, 0L);
@@ -251,8 +243,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public long getLong(String name, long def) {
         Object value = get(name, def);
@@ -296,8 +287,7 @@ public class DataRow {
      * Gets a float object from the data rows item list.
      *
      * @param name The index(name) to get.
-     * @return either (1) The value of the index given,
-     *         or (2) <code>0F</code> if the index doesn't exists.
+     * @return either (1) The value of the index given, or (2) <code>0F</code> if the index doesn't exists.
      */
     public float getFloat(String name) {
         return getFloat(name, 0F);
@@ -308,8 +298,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public float getFloat(String name, float def) {
         Object value = get(name, def);
@@ -353,8 +342,7 @@ public class DataRow {
      * Gets a string object from the data rows item list.
      *
      * @param name The index(name) to get.
-     * @return either (1) The value of the index given,
-     *         or (2) <code>NULL</code> if the index doesn't exists.
+     * @return either (1) The value of the index given, or (2) <code>NULL</code> if the index doesn't exists.
      */
     public String getString(String name) {
         return getString(name, null);
@@ -366,8 +354,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public String getString(String name, String def) {
         Object value = get(name, def);
@@ -401,8 +388,7 @@ public class DataRow {
      * Gets a carbon timestamp object from the data rows item list.
      *
      * @param name The index(name) to get.
-     * @return either (1) The value of the index given,
-     *         or (2) <code>NULL</code> if the index doesn't exists.
+     * @return either (1) The value of the index given, or (2) <code>NULL</code> if the index doesn't exists.
      */
     public Carbon getTimestamp(String name) {
         return getTimestamp(name, null);
@@ -413,8 +399,7 @@ public class DataRow {
      *
      * @param name The index(name) to get.
      * @param def  The default vault to return if the index doesn't exists.
-     * @return either (1) The value of the index given,
-     *         or (2) the default value given.
+     * @return either (1) The value of the index given, or (2) the default value given.
      */
     public Carbon getTimestamp(String name, Carbon def) {
         try {
