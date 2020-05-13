@@ -26,10 +26,12 @@ import com.senither.hypixel.contracts.scheduler.Job;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
+import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 public class DecayDonationPointsJob extends Job {
@@ -51,13 +53,23 @@ public class DecayDonationPointsJob extends Job {
                     continue;
                 }
 
+                GuildReply guildReply = app.getHypixel().getGson().fromJson(guild.getData(), GuildReply.class);
+                if (guildReply == null) {
+                    continue;
+                }
+
+                HashSet<String> memberIds = new HashSet<>();
+                for (GuildReply.Guild.Member member : guildReply.getGuild().getMembers()) {
+                    memberIds.add(member.getUuid().toString());
+                }
+
                 log.debug("Updating donation points for {}", guild.getDiscordId());
 
                 Carbon time = Carbon.now().subHours(guild.getDonationTime());
-                app.getDatabaseManager().queryUpdate(
-                    "UPDATE `donation_points` SET `points` = `points` - ?, `last_checked_at` = ? WHERE `discord_id` = ? AND `last_checked_at` < ?",
-                    guild.getDonationPoints(), Carbon.now(), guild.getDiscordId(), time
-                );
+                app.getDatabaseManager().queryUpdate(String.format(
+                    "UPDATE `donation_points` SET `points` = `points` - ?, `last_checked_at` = ? WHERE `discord_id` = ? AND `last_checked_at` < ? AND `uuid` IN (%s)",
+                    "'" + String.join("', '", memberIds) + "'"
+                ), guild.getDonationPoints(), Carbon.now(), guild.getDiscordId(), time);
             }
         } catch (SQLException e) {
             log.error("An SQL exception where thrown while trying to update donation points: {}", e.getMessage(), e);
