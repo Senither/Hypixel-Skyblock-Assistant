@@ -162,7 +162,7 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                         .setTitle("Invalid skill type given!")
                         .setDescription(String.join("\n", Arrays.asList(
                             "Invalid skill type provided, the skill type must be one of the following:",
-                            "`mining`, `foraging`, `enchanting`, `farming`, `combat`, `fishing`, or `alchemy`"
+                            "`mining`, `foraging`, `enchanting`, `farming`, `combat`, `fishing`, `alchemy` or `taming`"
                         )))
                         .build()
                     ).queue();
