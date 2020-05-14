@@ -21,11 +21,16 @@
 
 package com.senither.hypixel.scheduler.jobs;
 
+import com.mysql.cj.ServerVersion;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.contracts.scheduler.Job;
+import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
+import net.dv8tion.jda.api.entities.User;
 import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +68,38 @@ public class DecayDonationPointsJob extends Job {
                     memberIds.add(member.getUuid().toString());
                 }
 
-                log.debug("Updating donation points for {}", guild.getDiscordId());
-
                 Carbon time = Carbon.now().subHours(guild.getDonationTime());
+                Collection updatePlayers = app.getDatabaseManager().query(String.format(
+                    "SELECT\n" +
+                        "    `donation_points`.`uuid`,\n" +
+                        "    `donation_points`.`points`,\n" +
+                        "    `donation_points`.`last_donated_at`,\n" +
+                        "    `uuids`.`discord_id`,\n" +
+                        "    `uuids`.`username`\n" +
+                        "FROM\n" +
+                        "    `donation_points`\n" +
+                        "LEFT JOIN `uuids` ON `donation_points`.`uuid` = `uuids`.`uuid`\n" +
+                        "WHERE `donation_points`.`discord_id` = ?\n" +
+                        "  AND `donation_points`.`last_checked_at` < ?\n" +
+                        "  AND `donation_points`.`uuid` IN (%s)",
+                    "'" + String.join("', '", memberIds) + "'"
+                ), guild.getDiscordId(), time);
+
+                if (updatePlayers.isEmpty()) {
+                    log.debug("Found no players that should be updated in {}, skipping!", guild.getDiscordId());
+                    continue;
+                }
+
+                memberIds.clear();
+                for (DataRow player : updatePlayers) {
+                    long points = player.getLong("points");
+                    if (points > 0 && points - guild.getDonationPoints() <= 0) {
+                        notifyPlayer(app, guild, player);
+                    }
+                    memberIds.add(player.getString("uuid"));
+                }
+                log.debug("Updating {} players donation points in {}", memberIds.size(), guild.getDiscordId());
+
                 app.getDatabaseManager().queryUpdate(String.format(
                     "UPDATE `donation_points` SET `points` = `points` - ?, `last_checked_at` = ? WHERE `discord_id` = ? AND `last_checked_at` < ? AND `uuid` IN (%s)",
                     "'" + String.join("', '", memberIds) + "'"
@@ -80,5 +114,31 @@ public class DecayDonationPointsJob extends Job {
                 log.error("An SQL exception where thrown while trying to reset donation points back to zero: {}", e.getMessage(), e);
             }
         }
+    }
+
+    private void notifyPlayer(SkyblockAssistant app, GuildController.GuildEntry guild, DataRow player) {
+        long discordId = player.getLong("discord_id");
+        if (discordId == 0L) {
+            return;
+        }
+
+        User userById = app.getShardManager().getUserById(discordId);
+        if (userById == null) {
+            return;
+        }
+
+        userById.openPrivateChannel().queue(privateChannel -> {
+            privateChannel.sendMessage(MessageFactory.createEmbeddedBuilder()
+                .setColor(MessageType.WARNING.getColor())
+                .setTitle("You're now at zero points!")
+                .setDescription(String.format(String.join("\n",
+                    "You're now at zero donation points in the **%s** guild!",
+                    "Make sure you donate soon so you don't run the risk of getting kicked!",
+                    "",
+                    "You last donated %s."
+                ), guild.getName(), player.getTimestamp("last_donated_at").diffForHumans()))
+                .build()
+            ).queue();
+        }, null);
     }
 }
