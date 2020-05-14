@@ -67,6 +67,7 @@ public class DatabaseManager {
             migrationManager.register(new AddDonationsColumnsToGuildsTableMigration());
             migrationManager.register(new AddLastDonatedAtColumnToDonationsTableMigration());
             migrationManager.register(new AddDonationsChannelColumnToGuildsTableMigration());
+            migrationManager.register(new AddDonationNotificationChannelColumnToGuildsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();

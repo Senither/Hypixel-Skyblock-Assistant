@@ -56,7 +56,9 @@ public class DonationTrackerCommand extends SettingsSubCommand {
             "the system allows staff of a guild, or any with the donation manger Discord role, to",
             "add points to members of the guild which will slowly decay over time, this settings",
             "command are used to setup the time that should elapse between points decaying, and",
-            "the amount of points that should decay each time."
+            "the amount of points that should decay each time.",
+            "For better tracking it is recommended to setup a notification channel as-well,",
+            "so you'll be notified whenever users gets to zero points."
         );
     }
 
@@ -66,6 +68,7 @@ public class DonationTrackerCommand extends SettingsSubCommand {
             "`:command <points> <time>` - Sets the donation tracker decay settings.",
             "`:command role <name>` - Setups the donation manager role.",
             "`:command channel <name>` - Setups the donation log channel.",
+            "`:command notify <name>` - Setups the notification log channel.",
             "`:command disable` - Disables the donation tracking feature."
         );
     }
@@ -75,7 +78,8 @@ public class DonationTrackerCommand extends SettingsSubCommand {
         return Arrays.asList(
             "`:command 5 24h` - Sets up the tracking system to decrease by 5 points every 24 hours.",
             "`:command role Moderator` - Sets up the donation manager role to use the `Moderator` Discord role.",
-            "`:command channel splash-contributions` - Sets up the donation log channel role to use the `splash-contributions` channel."
+            "`:command channel splash-contributions` - Sets up the donation log channel to use the `splash-contributions` channel.",
+            "`:command notify donation-log` - Sets up the donation notification channel to use the `donation-log` channel."
         );
     }
 
@@ -103,6 +107,11 @@ public class DonationTrackerCommand extends SettingsSubCommand {
 
         if (args[0].equalsIgnoreCase("channel")) {
             setupDonationChannel(event, Arrays.copyOfRange(args, 1, args.length));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("notify")) {
+            setupNotificationChannel(event, Arrays.copyOfRange(args, 1, args.length));
             return;
         }
 
@@ -272,6 +281,63 @@ public class DonationTrackerCommand extends SettingsSubCommand {
         }
     }
 
+    private void setupNotificationChannel(MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the name of the channel you wish to setup as "
+                    + "the donation notification channel, or enter `disable` to disable "
+                    + "the notification channel feature."
+            ).setTitle("Missing arguments").queue();
+            return;
+        }
+
+        String channelName = String.join(" ", args).trim();
+        if (channelName.equalsIgnoreCase("disable")) {
+            try {
+                app.getDatabaseManager().queryUpdate("UPDATE `guilds` SET `donation_notification_channel` = NULL WHERE `discord_id` = ?", event.getGuild().getIdLong());
+                GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
+                MessageFactory.makeSuccess(event.getMessage(), "The donation notification channel have been disabled successfully!").queue();
+            } catch (SQLException e) {
+                log.error("Something went wrong while trying to reset the new donation notification channel: {}", e.getMessage(), e);
+
+                MessageFactory.makeError(event.getMessage(),
+                    "Something went wrong while trying to save the new donation notification channel value: " + e.getMessage()
+                ).queue();
+            }
+            return;
+        }
+
+        List<TextChannel> channelsByName = event.getGuild().getTextChannelsByName(channelName, true);
+        if (channelsByName.isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(), "Found no Discord text channel called **:name**, please use the name of an existing text channel.")
+                .setTitle("Invalid Discord text channel given")
+                .set("name", channelName)
+                .queue();
+            return;
+        }
+
+        TextChannel channel = channelsByName.get(0);
+
+        try {
+            app.getDatabaseManager().queryUpdate(
+                "UPDATE `guilds` SET `donation_notification_channel` = ? WHERE `discord_id` = ?",
+                channel.getIdLong(), event.getGuild().getIdLong()
+            );
+            GuildController.forgetCacheFor(event.getGuild().getIdLong());
+
+            MessageFactory.makeSuccess(event.getMessage(), "The donation notification channel have been setup to use :channel successfully!")
+                .set("channel", channel.getAsMention())
+                .queue();
+        } catch (SQLException e) {
+            log.error("Something went wrong while trying to setup the new donation notification channel: {}", e.getMessage(), e);
+
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to save the new donation notification channel value: " + e.getMessage()
+            ).queue();
+        }
+    }
+
     private Integer parseFormattedNumber(String string) {
         if (string.toLowerCase().endsWith("d")) {
             return NumberUtil.parseInt(string.substring(0, string.length() - 1), 0) * 24;
@@ -287,7 +353,13 @@ public class DonationTrackerCommand extends SettingsSubCommand {
     private void handleDisablingFeature(MessageReceivedEvent event) {
         try {
             app.getDatabaseManager().queryUpdate(
-                "UPDATE `guilds` SET `donation_time` = NULL, `donation_points` = NULL WHERE `discord_id` = ?",
+                "UPDATE `guilds` SET\n" +
+                    "    `donation_time` = NULL,\n" +
+                    "    `donation_points` = NULL,\n" +
+                    "    `donation_role` = NULL,\n" +
+                    "    `donation_channel` = NULL,\n" +
+                    "    `donation_notification_channel` = NULL\n" +
+                    "WHERE `discord_id` = ?",
                 event.getGuild().getIdLong()
             );
 

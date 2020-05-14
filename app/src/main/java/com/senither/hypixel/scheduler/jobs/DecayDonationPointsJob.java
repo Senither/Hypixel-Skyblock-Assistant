@@ -30,6 +30,7 @@ import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
@@ -63,6 +64,11 @@ public class DecayDonationPointsJob extends Job {
                     continue;
                 }
 
+                TextChannel notificationChannel = null;
+                if (guild.getDonationNotificationChannel() != null) {
+                    notificationChannel = app.getShardManager().getTextChannelById(guild.getDonationNotificationChannel());
+                }
+
                 HashSet<String> memberIds = new HashSet<>();
                 for (GuildReply.Guild.Member member : guildReply.getGuild().getMembers()) {
                     memberIds.add(member.getUuid().toString());
@@ -94,7 +100,7 @@ public class DecayDonationPointsJob extends Job {
                 for (DataRow player : updatePlayers) {
                     long points = player.getLong("points");
                     if (points > 0 && points - guild.getDonationPoints() <= 0) {
-                        notifyPlayer(app, guild, player);
+                        notifyPlayer(app, guild, notificationChannel, player);
                     }
                     memberIds.add(player.getString("uuid"));
                 }
@@ -107,6 +113,8 @@ public class DecayDonationPointsJob extends Job {
             }
         } catch (SQLException e) {
             log.error("An SQL exception where thrown while trying to update donation points: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Something went wrong in the decay donation points job: {}", e.getMessage(), e);
         } finally {
             try {
                 app.getDatabaseManager().queryUpdate("UPDATE `donation_points` SET `points` = 0 WHERE `points` < 0");
@@ -116,7 +124,18 @@ public class DecayDonationPointsJob extends Job {
         }
     }
 
-    private void notifyPlayer(SkyblockAssistant app, GuildController.GuildEntry guild, DataRow player) {
+    private void notifyPlayer(SkyblockAssistant app, GuildController.GuildEntry guild, TextChannel notificationChannel, DataRow player) {
+        if (notificationChannel != null) {
+            MessageFactory.makeEmbeddedMessage(notificationChannel)
+                .setColor(MessageType.WARNING.getColor())
+                .setTitle(player.getString("username") + " has no points left!")
+                .setDescription("**:name** is now at zero donation points!\nThey last donated :time.")
+                .setTimestamp(Carbon.now().getTime().toInstant())
+                .set("name", player.getString("username"))
+                .set("time", player.getTimestamp("last_donated_at").diffForHumans())
+                .queue();
+        }
+
         long discordId = player.getLong("discord_id");
         if (discordId == 0L) {
             return;
