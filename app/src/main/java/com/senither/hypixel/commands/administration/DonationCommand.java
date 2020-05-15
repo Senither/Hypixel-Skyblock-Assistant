@@ -186,7 +186,7 @@ public class DonationCommand extends Command {
 
             int rank = 1;
             int position = -1;
-            long points = 0;
+            PlayerDonationController.PlayerDonationEntry currentPlayer = null;
 
             List<String> messageRows = new ArrayList<>();
             for (PlayerDonationController.PlayerDonationEntry player : PlayerDonationController.getPlayersById(app.getDatabaseManager(), event.getGuild().getIdLong())) {
@@ -196,7 +196,7 @@ public class DonationCommand extends Command {
 
                 if (player.getUuid().equals(userUUID)) {
                     position = rank;
-                    points = player.getPoints();
+                    currentPlayer = player;
                 }
 
                 messageRows.add(String.format("#%s: %s > %s\n-----: Last donated %s",
@@ -225,8 +225,8 @@ public class DonationCommand extends Command {
             if (isGuildMember) {
                 note = position < 0
                     ? "> You're currently unranked with **0** points as you have yet to donate anything.\n\n"
-                    : String.format("> You're ranked **#%s** in the guild with **%s** points!\n\n",
-                    position, points
+                    : String.format("> You're ranked **#%s** in the guild with **%s** points! Points will be deducted\n> from you in approximately %s.\n\n",
+                    position, currentPlayer.getPoints(), currentPlayer.getLastCheckedAt().addHours(guildEntry.getDonationTime()).diffForHumans()
                 );
             }
 
