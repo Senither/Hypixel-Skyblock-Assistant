@@ -32,11 +32,13 @@ public class CreateSplashesTableMigration implements Migration {
     public boolean up(DatabaseManager databaseManager) throws SQLException {
         return databaseManager.queryUpdate(
             "CREATE TABLE `splashes`(\n" +
+                "    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,\n" +
                 "    `discord_id` BIGINT UNSIGNED NOT NULL,\n" +
                 "    `user_id` BIGINT UNSIGNED NOT NULL,\n" +
                 "    `message_id` BIGINT UNSIGNED NULL DEFAULT NULL,\n" +
                 "    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
-                "    `splash_at` TIMESTAMP NULL\n" +
+                "    `splash_at` TIMESTAMP NULL,\n" +
+                "     PRIMARY KEY(`id`)\n" +
                 ") ENGINE = InnoDB;"
         );
     }
