@@ -61,6 +61,12 @@ public abstract class CalculatorCommand extends Command {
             case "alchemy":
                 return new SkillType("Alchemy", response.getAlchemy());
 
+            case "pet":
+            case "pets":
+            case "tame":
+            case "taming":
+                return new SkillType("Taming", response.getTaming());
+
             default:
                 return null;
         }

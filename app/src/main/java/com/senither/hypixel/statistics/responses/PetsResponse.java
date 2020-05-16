@@ -50,8 +50,8 @@ public class PetsResponse extends StatisticsResponse {
         return pets;
     }
 
-    public PetsResponse addPet(String type, String tier, long experience, boolean active) {
-        pets.add(new Pet(type, tier, experience, active));
+    public PetsResponse addPet(String type, String tier, long experience, String heldItem, boolean active) {
+        pets.add(new Pet(type, tier, experience, heldItem, active));
 
         return this;
     }
@@ -81,12 +81,14 @@ public class PetsResponse extends StatisticsResponse {
         private final ItemRarity tier;
         private final long experience;
         private final boolean active;
+        private final PetItem petItem;
 
-        Pet(String type, String tier, long experience, boolean active) {
+        Pet(String type, String tier, long experience, String heldItem, boolean active) {
             this.type = type;
             this.experience = experience;
             this.active = active;
 
+            this.petItem = PetItem.fromIdentifier(heldItem);
             this.tier = ItemRarity.fromName(tier);
         }
 
@@ -103,6 +105,9 @@ public class PetsResponse extends StatisticsResponse {
         }
 
         public ItemRarity getTier() {
+            if (petItem.equals(PetItem.TIER_BOOST)) {
+                return tier.nextRarity();
+            }
             return tier;
         }
 
@@ -137,6 +142,35 @@ public class PetsResponse extends StatisticsResponse {
                 getTier().getName(),
                 getName().replaceAll("_", " ")
             );
+        }
+    }
+
+    enum PetItem {
+
+        TIER_BOOST("PET_ITEM_TIER_BOOST"),
+        NONE("NONE");
+
+        private final String identifier;
+
+        PetItem(String identifier) {
+            this.identifier = identifier;
+        }
+
+        public static PetItem fromIdentifier(String identifier) {
+            if (identifier == null) {
+                return NONE;
+            }
+
+            for (PetItem petItem : values()) {
+                if (petItem.getIdentifier().equalsIgnoreCase(identifier)) {
+                    return petItem;
+                }
+            }
+            return NONE;
+        }
+
+        public String getIdentifier() {
+            return identifier;
         }
     }
 }

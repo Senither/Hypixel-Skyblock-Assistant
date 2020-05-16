@@ -106,6 +106,7 @@ public class GuildController {
         private final Integer donationPoints;
         private final Long donationRole;
         private final Long donationChannel;
+        private final Long donationNotificationChannel;
         private final boolean autoRename;
         private final LinkedHashMap<String, RankRequirement> rankRequirements;
 
@@ -120,6 +121,7 @@ public class GuildController {
             donationPoints = row.getInt("donation_points");
             donationRole = row.getLong("donation_role");
             donationChannel = row.getLong("donation_channel");
+            donationNotificationChannel = row.getLong("donation_notification_channel");
             autoRename = row.getBoolean("auto_rename");
 
             long defaultRole = row.getLong("default_role", 0L);
@@ -181,6 +183,10 @@ public class GuildController {
 
         public Long getDonationChannel() {
             return donationChannel;
+        }
+
+        public Long getDonationNotificationChannel() {
+            return donationNotificationChannel;
         }
 
         public boolean isDonationsTrackerEnabled() {
