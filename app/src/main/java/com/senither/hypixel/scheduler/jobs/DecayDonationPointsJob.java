@@ -45,7 +45,7 @@ public class DecayDonationPointsJob extends Job {
     private static final Logger log = LoggerFactory.getLogger(DecayDonationPointsJob.class);
 
     public DecayDonationPointsJob(SkyblockAssistant app) {
-        super(app, 1, 60, TimeUnit.MINUTES);
+        super(app, 1, 15, TimeUnit.MINUTES);
     }
 
     @Override
