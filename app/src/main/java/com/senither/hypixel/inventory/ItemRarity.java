@@ -89,4 +89,14 @@ public enum ItemRarity {
     public HashSet<String> getAliases() {
         return aliases;
     }
+
+    public ItemRarity nextRarity() {
+        for (int i = 0; i < values().length; i++) {
+            if (values()[i] != this) {
+                continue;
+            }
+            return i == 0 ? SPECIAL : values()[i - 1];
+        }
+        return UNKNOWN;
+    }
 }

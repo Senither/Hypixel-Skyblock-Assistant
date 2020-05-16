@@ -47,10 +47,14 @@ public class PetsChecker extends Checker<PetsResponse> {
         for (JsonElement element : member.getAsJsonArray("pets")) {
             JsonObject pet = element.getAsJsonObject();
 
+            JsonElement heldItem = pet.get("heldItem");
+
             response.addPet(
                 pet.get("type").getAsString(),
                 pet.get("tier").getAsString(),
                 pet.get("exp").getAsLong(),
+                heldItem == null || heldItem.isJsonNull()
+                    ? null : heldItem.getAsString(),
                 pet.get("active").getAsBoolean()
             );
         }
