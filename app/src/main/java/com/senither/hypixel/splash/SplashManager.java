@@ -3,6 +3,7 @@ package com.senither.hypixel.splash;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
+import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -26,6 +28,20 @@ public class SplashManager {
     public SplashManager(SkyblockAssistant app) {
         this.app = app;
         this.splashes = new HashSet<>();
+
+        try {
+            for (DataRow row : app.getDatabaseManager().query("SELECT * FROM `splashes` WHERE `splash_at` > ?", Carbon.now())) {
+                splashes.add(new SplashContainer(
+                    row.getLong("discord_id"),
+                    row.getLong("user_id"),
+                    row.getLong("message_id"),
+                    row.getTimestamp("splash_at"),
+                    row.getString("note")
+                ));
+            }
+        } catch (SQLException e) {
+            log.error("A SQL exception were thrown while loading splashes from the database, error: {}", e.getMessage(), e);
+        }
     }
 
     public Set<SplashContainer> getSplashes() {
@@ -58,11 +74,13 @@ public class SplashManager {
 
         channel.sendMessage(buildSplashMessage(author, time, note)).queue(message -> {
             try {
+                String encodedNote = "base64:" + new String(Base64.getEncoder().encode(note.getBytes()));
                 app.getDatabaseManager().queryInsert(
-                    "INSERT INTO `splashes` SET `discord_id` = ?, `user_id` = ?, `message_id` = ?, `splash_at` = ?",
+                    "INSERT INTO `splashes` SET `discord_id` = ?, `user_id` = ?, `message_id` = ?, `note` = ?, `splash_at` = ?",
                     channel.getGuild().getIdLong(),
                     author.getIdLong(),
                     message.getIdLong(),
+                    encodedNote,
                     time
                 );
 
