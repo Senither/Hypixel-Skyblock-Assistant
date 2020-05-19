@@ -59,7 +59,7 @@ public class SplashContainer {
         long secondsLeft = time.diffInSeconds();
 
         return secondsLeft < 30
-            || secondsLeft < 60 && secondsSinceLastUpdate > 25
+            || secondsLeft < 300 && secondsSinceLastUpdate > 25
             || secondsSinceLastUpdate > 60;
     }
 
