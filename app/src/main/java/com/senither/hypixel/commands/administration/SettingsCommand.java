@@ -25,10 +25,7 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
-import com.senither.hypixel.commands.administration.settings.AutoRenameCommand;
-import com.senither.hypixel.commands.administration.settings.DefaultRoleCommand;
-import com.senither.hypixel.commands.administration.settings.DonationTrackerCommand;
-import com.senither.hypixel.commands.administration.settings.GuildMemberRoleCommand;
+import com.senither.hypixel.commands.administration.settings.*;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.commands.SettingsSubCommand;
 import com.senither.hypixel.database.controller.GuildController;
@@ -47,6 +44,7 @@ public class SettingsCommand extends Command {
 
         commands.add(new AutoRenameCommand(app));
         commands.add(new DefaultRoleCommand(app));
+        commands.add(new SplashTrackerCommand(app));
         commands.add(new GuildMemberRoleCommand(app));
         commands.add(new DonationTrackerCommand(app));
     }

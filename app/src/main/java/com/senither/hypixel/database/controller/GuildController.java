@@ -166,7 +166,8 @@ public class GuildController {
         }
 
         public boolean isSplashTrackerEnabled() {
-            return getSplashChannel() != null;
+            return getSplashChannel() != null
+                && getSplashChannel() > 0;
         }
 
         public Integer getDonationTime() {

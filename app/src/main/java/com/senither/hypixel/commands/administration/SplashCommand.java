@@ -27,6 +27,7 @@ import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +119,7 @@ public class SplashCommand extends Command {
                 break;
 
             default:
-                createSplash(event, args);
+                createSplash(guildEntry, event, args);
         }
     }
 
@@ -134,7 +135,15 @@ public class SplashCommand extends Command {
 
     }
 
-    private void createSplash(MessageReceivedEvent event, String[] args) {
+    private void createSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        TextChannel splashChannel = app.getShardManager().getTextChannelById(guildEntry.getSplashChannel());
+        if (splashChannel == null) {
+            MessageFactory.makeError(event.getMessage(), "The splash channel does not appear to exist, have it been deleted?")
+                .queue();
+
+            return;
+        }
+
         Carbon time = parseTime(args[0]);
         if (time == null) {
             MessageFactory.makeError(event.getMessage(), "Invalid time error").queue();
@@ -151,7 +160,7 @@ public class SplashCommand extends Command {
 
         try {
             app.getSplashManager().createSplash(
-                event.getTextChannel(),
+                splashChannel,
                 event.getAuthor(),
                 time,
                 String.join(" ", Arrays.copyOfRange(args, 1, args.length))

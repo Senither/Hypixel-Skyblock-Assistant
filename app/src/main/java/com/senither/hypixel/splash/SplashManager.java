@@ -4,6 +4,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.database.collection.DataRow;
+import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -54,15 +55,17 @@ public class SplashManager {
     }
 
     public void updateSplashFor(SplashContainer splash) {
-        // TODO: This is hardcoded for now, but should be moved to the guild entry
-        long channelId = 684837094111182963L;
+        GuildController.GuildEntry guild = GuildController.getGuildById(app.getDatabaseManager(), splash.getDiscordId());
+        if (guild == null || !guild.isSplashTrackerEnabled()) {
+            return;
+        }
 
         User userById = app.getShardManager().getUserById(splash.getUserId());
         if (userById == null) {
             return;
         }
 
-        TextChannel channelById = app.getShardManager().getTextChannelById(channelId);
+        TextChannel channelById = app.getShardManager().getTextChannelById(guild.getSplashChannel());
         if (channelById == null) {
             return;
         }
