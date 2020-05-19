@@ -28,13 +28,18 @@ import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SplashCommand extends Command {
+
+    private static final Logger log = LoggerFactory.getLogger(SplashCommand.class);
 
     private final Pattern timeRegEx = Pattern.compile("([0-9]+[w|d|h|m|s])");
 
@@ -113,11 +118,7 @@ public class SplashCommand extends Command {
                 break;
 
             default:
-                Carbon time = parseTime(args[0]);
-                if (time == null) {
-                    MessageFactory.makeError(event.getMessage(), "Invalid time error").queue();
-                    break;
-                }
+                createSplash(event, args);
         }
     }
 
@@ -133,6 +134,48 @@ public class SplashCommand extends Command {
 
     }
 
+    private void createSplash(MessageReceivedEvent event, String[] args) {
+        Carbon time = parseTime(args[0]);
+        if (time == null) {
+            MessageFactory.makeError(event.getMessage(), "Invalid time error").queue();
+            return;
+        }
+
+        String note = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        if (note.isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(), "You must include a note for the splash, something like the location, or what is being splashed.")
+                .setTitle("Missing splash note")
+                .queue();
+            return;
+        }
+
+        try {
+            app.getSplashManager().createSplash(
+                event.getTextChannel(),
+                event.getAuthor(),
+                time,
+                String.join(" ", Arrays.copyOfRange(args, 1, args.length))
+            ).get();
+
+            MessageFactory.makeInfo(event.getMessage(),
+                "The splash have been registered successfully!"
+            )
+                .setTitle("Splash has been created!")
+                .setFooter("Splasher: " + event.getAuthor().getAsTag())
+                .queue();
+
+            event.getMessage().delete().queue();
+        } catch (InterruptedException | ExecutionException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to register the splash, error: " + e.getMessage()
+            ).queue();
+
+            event.getMessage().delete().queue();
+
+            log.error("Something went wrong while trying to register splash, error: {}", e.getMessage(), e);
+        }
+    }
+
     private Carbon parseTime(String string) {
         if ("now".equalsIgnoreCase(string)) {
             return Carbon.now();
@@ -143,7 +186,7 @@ public class SplashCommand extends Command {
             return null;
         }
 
-        Carbon time = Carbon.now().addSecond();
+        Carbon time = Carbon.now();
         do {
             String group = matcher.group();
 

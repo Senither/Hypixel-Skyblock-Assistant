@@ -41,14 +41,12 @@ import com.senither.hypixel.listeners.MessageEventListener;
 import com.senither.hypixel.listeners.ReactionEventListener;
 import com.senither.hypixel.reports.ReportService;
 import com.senither.hypixel.scheduler.ScheduleManager;
-import com.senither.hypixel.scheduler.jobs.DecayDonationPointsJob;
-import com.senither.hypixel.scheduler.jobs.DrainReportQueueJob;
-import com.senither.hypixel.scheduler.jobs.HypixelRankSynchronizeJob;
-import com.senither.hypixel.scheduler.jobs.RoleAssignmentJob;
+import com.senither.hypixel.scheduler.jobs.*;
 import com.senither.hypixel.servlet.WebServlet;
 import com.senither.hypixel.servlet.routes.GetGuildRoute;
 import com.senither.hypixel.servlet.routes.GetProfileRoute;
 import com.senither.hypixel.servlet.routes.GetReportRoute;
+import com.senither.hypixel.splash.SplashManager;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -66,6 +64,7 @@ public class SkyblockAssistant {
     private final Configuration configuration;
     private final DatabaseManager databaseManager;
     private final CommandManager commandManager;
+    private final SplashManager splashManager;
     private final ScheduleManager scheduleManager;
     private final WebServlet servlet;
     private final Hypixel hypixel;
@@ -87,6 +86,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new RankCheckCommand(this));
         commandManager.registerCommand(new RankRequirementCommand(this));
         commandManager.registerCommand(new SettingsCommand(this));
+        commandManager.registerCommand(new SplashCommand(this));
         commandManager.registerCommand(new PetsCalculatorCommand(this));
         commandManager.registerCommand(new SkillsCalculatorCommand(this));
         commandManager.registerCommand(new SkillsExperienceCalculatorCommand(this));
@@ -109,6 +109,7 @@ public class SkyblockAssistant {
 
         log.info("Registering jobs...");
         this.scheduleManager = new ScheduleManager(this);
+        scheduleManager.registerJob(new SplashQueueJob(this));
         scheduleManager.registerJob(new RoleAssignmentJob(this));
         scheduleManager.registerJob(new DrainReportQueueJob(this));
         scheduleManager.registerJob(new DecayDonationPointsJob(this));
@@ -120,6 +121,9 @@ public class SkyblockAssistant {
 
         log.info("Creating Hypixel API factory");
         this.hypixel = new Hypixel(this);
+
+        log.info("Creating splash manager & resuming splash tracking");
+        this.splashManager = new SplashManager(this);
 
         log.info("Resuming unfinished reports");
         ReportService.resumeUnfinishedReports(this);
@@ -147,6 +151,10 @@ public class SkyblockAssistant {
 
     public CommandManager getCommandManager() {
         return commandManager;
+    }
+
+    public SplashManager getSplashManager() {
+        return splashManager;
     }
 
     public Hypixel getHypixel() {
