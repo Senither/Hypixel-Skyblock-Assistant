@@ -22,12 +22,15 @@
 package com.senither.hypixel.commands.statistics;
 
 import com.google.gson.JsonObject;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.statistics.StatisticsChecker;
 import com.senither.hypixel.statistics.responses.PetsResponse;
 import com.senither.hypixel.time.Carbon;
+import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.hypixel.api.reply.PlayerReply;
@@ -67,7 +70,7 @@ public class PetsCommand extends SkillCommand {
     }
 
     @Override
-    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
         PetsResponse response = StatisticsChecker.PETS.checkUser(playerReply, profileReply, member);
 
@@ -107,12 +110,27 @@ public class PetsCommand extends SkillCommand {
                 otherPets.add(pet.toFormattedString());
             });
 
+
         if (!otherPets.isEmpty()) {
+            int page = 1;
+            if (args.length > 0) {
+                page = NumberUtil.parseInt(args[0], 1);
+            }
+
+            SimplePaginator<String> paginator = new SimplePaginator<>(otherPets, 25, page);
+
+            List<String> pagePets = new ArrayList<>();
+            paginator.forEach((index, key, val) -> pagePets.add(val));
+
             builder.addField(String.format("Other Pets (%s in total)",
                 otherPets.size() + (response.getActivePet() == null ? 0 : 1)
             ), String.format("```php\n%s```", String.join(
-                "\n", otherPets
+                "\n", pagePets
             )), false);
+
+            builder.addField("", paginator.generateFooter(
+                Constants.COMMAND_PREFIX + getTriggers().get(0) + " " + playerReply.getPlayer().get("displayname").getAsString()
+            ), false);
         }
 
         message.editMessage(builder.build()).queue();

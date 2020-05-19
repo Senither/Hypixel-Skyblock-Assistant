@@ -29,6 +29,7 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.IMentionable;
 import net.dv8tion.jda.api.entities.Message;
@@ -82,9 +83,12 @@ public abstract class SkillCommand extends Command {
             .setColor(MessageType.INFO.getColor());
 
         event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
-            if (args.length < 2) {
+            if (args.length < 2 || NumberUtil.isNumeric(args[1])) {
                 app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).whenCompleteAsync((profileReply, throwable) -> {
-                    handleProfileResponse(profileReply, throwable, message, embedBuilder, username);
+                    handleProfileResponse(profileReply, throwable, message, embedBuilder, username,
+                        args.length == 0 || args.length == 1 && NumberUtil.isNumeric(args[0])
+                            ? args : Arrays.copyOfRange(args, 1, args.length)
+                    );
                 });
                 return;
             }
@@ -116,7 +120,7 @@ public abstract class SkillCommand extends Command {
                     SkyBlockProfileReply profileReply = app.getHypixel().getSkyBlockProfile(profileEntry.getKey()).get(10, TimeUnit.SECONDS);
                     profileReply.getProfile().add("cute_name", profileEntry.getValue().getAsJsonObject().get("cute_name"));
 
-                    handleProfileResponse(profileReply, null, message, embedBuilder, username);
+                    handleProfileResponse(profileReply, null, message, embedBuilder, username, Arrays.copyOfRange(args, 2, args.length));
                     return;
                 }
 
@@ -146,7 +150,7 @@ public abstract class SkillCommand extends Command {
         });
     }
 
-    private void handleProfileResponse(SkyBlockProfileReply profileReply, Throwable throwable, Message message, EmbedBuilder embedBuilder, String username) {
+    private void handleProfileResponse(SkyBlockProfileReply profileReply, Throwable throwable, Message message, EmbedBuilder embedBuilder, String username, String[] args) {
         if (throwable == null) {
             try {
                 PlayerReply playerReply = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
@@ -161,7 +165,7 @@ public abstract class SkillCommand extends Command {
                     }
                 }
 
-                handleSkyblockProfile(message, profileReply, playerReply);
+                handleSkyblockProfile(message, profileReply, playerReply, args);
                 return;
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throwable = e;
@@ -188,7 +192,7 @@ public abstract class SkillCommand extends Command {
     }
 
     private String getUsernameFromMessage(MessageReceivedEvent event, String[] args) {
-        if (args.length == 0) {
+        if (args.length == 0 || NumberUtil.isNumeric(args[0]) && NumberUtil.parseInt(args[0], 0) < 10) {
             String username = getUsernameFromUser(event.getAuthor());
             if (username != null) {
                 return username;
@@ -260,5 +264,5 @@ public abstract class SkillCommand extends Command {
         return true;
     }
 
-    protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply);
+    protected abstract void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args);
 }

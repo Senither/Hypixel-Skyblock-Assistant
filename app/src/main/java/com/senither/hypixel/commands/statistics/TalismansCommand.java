@@ -73,7 +73,7 @@ public class TalismansCommand extends SkillCommand {
     }
 
     @Override
-    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
         if (!isInventoryApiEnabled(member)) {

@@ -67,7 +67,7 @@ public class BankBalanceCommand extends SkillCommand {
     }
 
     @Override
-    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
         double coinsInPurse = member.get("coin_purse").getAsDouble();
