@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 public class SplashManager {
 
     private static final Logger log = LoggerFactory.getLogger(SplashManager.class);
+    private static final int endingSoonTimer = 300;
 
     private final SkyblockAssistant app;
     private final Set<SplashContainer> splashes;
@@ -44,6 +45,10 @@ public class SplashManager {
         }
     }
 
+    public static int getEndingSoonTimer() {
+        return endingSoonTimer;
+    }
+
     public Set<SplashContainer> getSplashes() {
         return splashes;
     }
@@ -62,9 +67,27 @@ public class SplashManager {
             return;
         }
 
-        channelById.editMessageById(splash.getMessageId(), buildSplashMessage(
-            userById, splash.getTime(), splash.getNote()
-        )).queue();
+        if (splash.isEndingSoon() && splash.getTime().getTimestamp() - splash.getLastUpdatedAt() > endingSoonTimer) {
+            channelById.deleteMessageById(splash.getMessageId()).queue();
+
+            channelById.sendMessage(buildSplashMessage(
+                userById, splash.getTime(), splash.getNote()
+            )).queue(message -> {
+                try {
+                    splash.setMessageId(message.getIdLong());
+
+                    app.getDatabaseManager().queryUpdate("UPDATE `splashes` SET `message_id` = ? WHERE `discord_id` = ? and `message_id` = ?",
+                        message.getIdLong(), splash.getDiscordId(), splash.getMessageId()
+                    );
+                } catch (SQLException e) {
+                    log.error("Something went wrong while trying to send \"ending soon\" splash message, error: {}", e.getMessage(), e);
+                }
+            });
+        } else {
+            channelById.editMessageById(splash.getMessageId(), buildSplashMessage(
+                userById, splash.getTime(), splash.getNote()
+            )).queue();
+        }
     }
 
     public CompletableFuture<Void> createSplash(TextChannel channel, User author, Carbon time, String note) {
@@ -121,7 +144,7 @@ public class SplashManager {
         MessageBuilder builder = new MessageBuilder()
             .setEmbed(embedMessage.buildEmbed());
 
-        if (time.diffInSeconds(Carbon.now()) <= 300) {
+        if (time.diffInSeconds(Carbon.now()) <= endingSoonTimer) {
             builder.setContent("@everyone");
         }
 

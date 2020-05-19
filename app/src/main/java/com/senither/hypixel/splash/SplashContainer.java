@@ -6,10 +6,10 @@ public class SplashContainer {
 
     private final long discordId;
     private final long userId;
-    private final long messageId;
     private final Carbon time;
     private final String note;
 
+    private long messageId;
     private long lastUpdatedAt;
 
     public SplashContainer(long discordId, long userId, long messageId, Carbon time, String note) {
@@ -34,6 +34,10 @@ public class SplashContainer {
         return messageId;
     }
 
+    public void setMessageId(long messageId) {
+        this.messageId = messageId;
+    }
+
     public Carbon getTime() {
         return time;
     }
@@ -51,10 +55,8 @@ public class SplashContainer {
     }
 
     public boolean shouldUpdate() {
-        Carbon now = Carbon.now();
-
-        long secondsSinceLastUpdate = now.getTimestamp() - getLastUpdatedAt();
-        long secondsLeft = time.diffInSeconds(now);
+        long secondsSinceLastUpdate = Carbon.now().getTimestamp() - getLastUpdatedAt();
+        long secondsLeft = time.diffInSeconds();
 
         return secondsLeft < 30
             || secondsLeft < 60 && secondsSinceLastUpdate > 25
@@ -63,5 +65,9 @@ public class SplashContainer {
 
     public boolean isFinished() {
         return time.isPast();
+    }
+
+    public boolean isEndingSoon() {
+        return time.diffInSeconds() <= SplashManager.getEndingSoonTimer();
     }
 }
