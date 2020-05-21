@@ -128,15 +128,19 @@ public class SplashManager {
                     time
                 );
 
+                Long splashEntryId = ids.iterator().next();
+
                 if (!isNow) {
                     splashes.add(new SplashContainer(
-                        ids.iterator().next(),
+                        splashEntryId,
                         channel.getGuild().getIdLong(),
                         author.getIdLong(),
                         message.getIdLong(),
                         time, note
                     ));
                 }
+
+                message.editMessage(buildSplashMessage(author, time, note, splashEntryId)).queue();
 
                 future.complete(null);
             } catch (SQLException throwable) {
