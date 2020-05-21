@@ -4,6 +4,7 @@ import com.senither.hypixel.time.Carbon;
 
 public class SplashContainer {
 
+    private final long id;
     private final long discordId;
     private final long userId;
     private final Carbon time;
@@ -12,7 +13,8 @@ public class SplashContainer {
     private long messageId;
     private long lastUpdatedAt;
 
-    public SplashContainer(long discordId, long userId, long messageId, Carbon time, String note) {
+    public SplashContainer(long id, long discordId, long userId, long messageId, Carbon time, String note) {
+        this.id = id;
         this.discordId = discordId;
         this.userId = userId;
         this.messageId = messageId;
@@ -20,6 +22,10 @@ public class SplashContainer {
         this.note = note;
 
         lastUpdatedAt = Carbon.now().getTimestamp();
+    }
+
+    public long getId() {
+        return id;
     }
 
     public long getDiscordId() {

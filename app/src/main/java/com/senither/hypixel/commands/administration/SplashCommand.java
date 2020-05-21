@@ -110,6 +110,10 @@ public class SplashCommand extends Command {
                 removeSplash(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
+            case "edit":
+                editSplash(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
+                break;
+
             case "show":
             case "look":
             case "view":
@@ -129,6 +133,14 @@ public class SplashCommand extends Command {
 
     private void removeSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
 
+    }
+
+    private void editSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            log.info("Splash (No Args): {}", app.getSplashManager().getEarliestSplashFromUser(event.getMember().getIdLong()).getNote());
+        } else {
+            log.info("Splash (With Args): {}", app.getSplashManager().getPendingSplashById(Long.parseLong(args[0])).getNote());
+        }
     }
 
     private void lookupSplashForPlayer(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {

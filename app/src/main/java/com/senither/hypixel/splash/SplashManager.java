@@ -34,6 +34,7 @@ public class SplashManager {
         try {
             for (DataRow row : app.getDatabaseManager().query("SELECT * FROM `splashes` WHERE `splash_at` > ?", Carbon.now())) {
                 splashes.add(new SplashContainer(
+                    row.getLong("id"),
                     row.getLong("discord_id"),
                     row.getLong("user_id"),
                     row.getLong("message_id"),
@@ -54,6 +55,23 @@ public class SplashManager {
         return splashes;
     }
 
+    public SplashContainer getPendingSplashById(long id) {
+        for (SplashContainer splash : getSplashes()) {
+            if (splash.getId() == id) {
+                return splash;
+            }
+        }
+        return null;
+    }
+
+    public SplashContainer getEarliestSplashFromUser(long userId) {
+        return getSplashes().stream().filter(splashContainer -> {
+            return splashContainer.getUserId() == userId;
+        }).min((o1, o2) -> {
+            return Math.toIntExact(o1.getTime().getTimestamp() - o2.getTime().getTimestamp());
+        }).orElse(null);
+    }
+
     public void updateSplashFor(SplashContainer splash) {
         GuildController.GuildEntry guild = GuildController.getGuildById(app.getDatabaseManager(), splash.getDiscordId());
         if (guild == null || !guild.isSplashTrackerEnabled()) {
@@ -71,10 +89,10 @@ public class SplashManager {
         }
 
         if (splash.isEndingSoon() && splash.getTime().getTimestamp() - splash.getLastUpdatedAt() > endingSoonTimer) {
-            channelById.deleteMessageById(splash.getMessageId()).queue();
+            channelById.deleteMessageById(splash.getMessageId()).queue(null, null);
 
             channelById.sendMessage(buildSplashMessage(
-                userById, splash.getTime(), splash.getNote()
+                userById, splash.getTime(), splash.getNote(), splash.getId()
             )).queue(message -> {
                 try {
                     splash.setMessageId(message.getIdLong());
@@ -88,8 +106,8 @@ public class SplashManager {
             });
         } else {
             channelById.editMessageById(splash.getMessageId(), buildSplashMessage(
-                userById, splash.getTime(), splash.getNote()
-            )).queue();
+                userById, splash.getTime(), splash.getNote(), splash.getId()
+            )).queue(null, null);
         }
     }
 
@@ -98,10 +116,10 @@ public class SplashManager {
 
         final boolean isNow = time.diffInSeconds(Carbon.now()) <= 5;
 
-        channel.sendMessage(buildSplashMessage(author, time, note)).queue(message -> {
+        channel.sendMessage(buildSplashMessage(author, time, note, null)).queue(message -> {
             try {
                 String encodedNote = "base64:" + new String(Base64.getEncoder().encode(note.getBytes()));
-                app.getDatabaseManager().queryInsert(
+                Set<Long> ids = app.getDatabaseManager().queryInsert(
                     "INSERT INTO `splashes` SET `discord_id` = ?, `user_id` = ?, `message_id` = ?, `note` = ?, `splash_at` = ?",
                     channel.getGuild().getIdLong(),
                     author.getIdLong(),
@@ -112,6 +130,7 @@ public class SplashManager {
 
                 if (!isNow) {
                     splashes.add(new SplashContainer(
+                        ids.iterator().next(),
                         channel.getGuild().getIdLong(),
                         author.getIdLong(),
                         message.getIdLong(),
@@ -128,7 +147,7 @@ public class SplashManager {
         return future;
     }
 
-    private Message buildSplashMessage(User author, Carbon time, String note) {
+    private Message buildSplashMessage(User author, Carbon time, String note, Long id) {
         String description = ":user is splashing :time!";
         if (note != null && note.trim().length() > 0) {
             description += "\n\n> :note";
@@ -143,6 +162,10 @@ public class SplashManager {
                 ? "in " + time.diffForHumans()
                 : "now"
             );
+
+        if (id != null) {
+            embedMessage.setFooter("Splash ID: " + id);
+        }
 
         MessageBuilder builder = new MessageBuilder()
             .setEmbed(embedMessage.buildEmbed());

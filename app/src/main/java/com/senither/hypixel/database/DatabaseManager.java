@@ -91,17 +91,17 @@ public class DatabaseManager {
         }
     }
 
-    public Set<Integer> queryInsert(String sql, Object... binds) throws SQLException {
+    public Set<Long> queryInsert(String sql, Object... binds) throws SQLException {
         Metrics.increment(MetricType.DB_QUERIES_RAN);
         log.debug("Running insert query: {}", sql, binds);
 
         try (PreparedStatement statement = preparedStatement(sql, binds)) {
             statement.executeUpdate();
 
-            Set<Integer> ids = new HashSet<>();
+            Set<Long> ids = new HashSet<>();
             ResultSet keys = statement.getGeneratedKeys();
             while (keys.next()) {
-                ids.add(keys.getInt(1));
+                ids.add(keys.getLong(1));
             }
 
             return ids;
