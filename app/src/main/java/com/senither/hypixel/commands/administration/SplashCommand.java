@@ -37,10 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -135,7 +132,85 @@ public class SplashCommand extends Command {
     }
 
     private void showLeaderboard(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        final String leaderboardQuery = "SELECT `id`, `uuid`, COUNT(`id`) AS 'total' FROM `splashes`\n" +
+            "\tWHERE `discord_id` = ? AND `splash_at` > ?\n" +
+            "\tGROUP BY `uuid`\n" +
+            "\tORDER BY `total` DESC;";
 
+        try {
+            Collection weekStats = app.getDatabaseManager().query(leaderboardQuery, event.getGuild().getIdLong(), Carbon.now().subDays(7));
+            Collection monthStats = app.getDatabaseManager().query(leaderboardQuery, event.getGuild().getIdLong(), Carbon.now().subDays(28));
+
+            HashSet<String> uuids = new HashSet<>();
+            for (DataRow weekStat : weekStats) {
+                uuids.add(weekStat.getString("uuid"));
+            }
+            for (DataRow monthStat : monthStats) {
+                uuids.add(monthStat.getString("uuid"));
+            }
+
+            StringBuilder stringifiedParams = new StringBuilder();
+            for (String ignored : uuids) {
+                stringifiedParams.append("?, ");
+            }
+
+            Collection usernameQueryResult = app.getDatabaseManager().query(String.format(
+                "SELECT `uuid`, `username` FROM `uuids` WHERE `uuid` IN (%s);",
+                stringifiedParams.toString().substring(0, stringifiedParams.length() - 2)
+            ), uuids.toArray());
+
+            HashMap<String, String> usernameMap = new HashMap<>();
+            for (DataRow row : usernameQueryResult) {
+                usernameMap.put(row.getString("uuid"), row.getString("username"));
+            }
+
+            int position = 1;
+            List<String> weekLeaderboardEntries = new ArrayList<>();
+            for (DataRow weekStat : weekStats) {
+                int splashes = weekStat.getInt("total");
+
+                weekLeaderboardEntries.add(String.format("%s: %s\n%s> %s (%s/daily)",
+                    padPosition("#" + NumberUtil.formatNicely(position), position - 1),
+                    usernameMap.getOrDefault(weekStat.getString("uuid"), "Unknown"),
+                    padPosition("", position - 1),
+                    NumberUtil.formatNicely(splashes),
+                    NumberUtil.formatNicelyWithDecimals(splashes / 7D)
+                ));
+
+                position++;
+            }
+
+            position = 1;
+            List<String> monthLeaderboardEntries = new ArrayList<>();
+            for (DataRow monthStat : monthStats) {
+                int splashes = monthStat.getInt("total");
+
+                monthLeaderboardEntries.add(String.format("%s: %s\n%s> %s (%s/daily)",
+                    padPosition("#" + NumberUtil.formatNicely(position), position - 1),
+                    usernameMap.getOrDefault(monthStat.getString("uuid"), "Unknown"),
+                    padPosition("", position - 1),
+                    NumberUtil.formatNicely(splashes),
+                    NumberUtil.formatNicelyWithDecimals(splashes / 28D)
+                ));
+
+                position++;
+            }
+
+            MessageFactory.makeInfo(event.getMessage(), "")
+                .setTitle(guildEntry.getName() + " Splash Leaderboard")
+                .addField("Weekly Leaderboard", String.format(
+                    "```ada\n%s```",
+                    String.join("\n", weekLeaderboardEntries)
+                ), true)
+                .addField("Monthly Leaderboard", String.format(
+                    "```ada\n%s```",
+                    String.join("\n", monthLeaderboardEntries)
+                ), true)
+                .setTimestamp(Carbon.now().getTime().toInstant())
+                .queue();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
     private void removeSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
@@ -348,5 +423,13 @@ public class SplashCommand extends Command {
         } while (matcher.find());
 
         return time;
+    }
+
+    private String padPosition(String string, double position) {
+        StringBuilder builder = new StringBuilder(string);
+        while (builder.length() < 1 + String.valueOf(position).length()) {
+            builder.append(" ");
+        }
+        return builder.toString();
     }
 }
