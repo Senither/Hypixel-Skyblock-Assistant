@@ -25,6 +25,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.splash.SplashContainer;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -32,7 +33,9 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -137,9 +140,59 @@ public class SplashCommand extends Command {
 
     private void editSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
-            log.info("Splash (No Args): {}", app.getSplashManager().getEarliestSplashFromUser(event.getMember().getIdLong()).getNote());
-        } else {
-            log.info("Splash (With Args): {}", app.getSplashManager().getPendingSplashById(Long.parseLong(args[0])).getNote());
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the message that should be set for your last splash, or the splash with the given ID."
+            ).queue();
+            return;
+        }
+
+        int splashId = Math.max(NumberUtil.parseInt(args[0], 0), 0);
+
+        //noinspection ConstantConditions
+        SplashContainer splashContainer = splashId == 0
+            ? app.getSplashManager().getEarliestSplashFromUser(event.getMember().getIdLong())
+            : app.getSplashManager().getPendingSplashById(splashId);
+
+        if (splashContainer == null) {
+            MessageFactory.makeError(event.getMessage(),
+                splashId == 0
+                    ? "You don't have any splashes queued to change the message of right now!"
+                    : "Found no splash that is queued with an ID of **:id** that was created by you."
+            ).set("id", splashId).queue();
+            return;
+        }
+
+        String message = String.join(" ", Arrays.copyOfRange(
+            args, splashId == 0 ? 0 : 1, args.length
+        ));
+
+        if (message.trim().isEmpty()) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the message you want to set for the queued splash with an ID of **:id**!"
+            ).set("id", splashContainer.getId()).queue();
+            return;
+        }
+
+        try {
+            app.getDatabaseManager().queryUpdate("UPDATE `splashes` SET `note` = ? WHERE `discord_id` = ? AND `id` = ?",
+                "base64:" + new String(Base64.getEncoder().encode(message.getBytes())),
+                splashContainer.getDiscordId(), splashContainer.getId()
+            );
+
+            splashContainer.setNote(message);
+            app.getSplashManager().updateSplashFor(splashContainer);
+
+            MessageFactory.makeSuccess(event.getMessage(),
+                "The splash message have been successfully change to:\n\n> :message"
+            ).set("message", message).queue();
+        } catch (SQLException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to save the new message note, error: :message"
+            ).set("message", e.getMessage()).queue();
+
+            log.error("An SQL Exception were thrown while trying to update the splash container with an ID of {}, error: {}",
+                splashContainer.getId(), e.getMessage(), e
+            );
         }
     }
 
@@ -150,23 +203,25 @@ public class SplashCommand extends Command {
     private void createSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
         TextChannel splashChannel = app.getShardManager().getTextChannelById(guildEntry.getSplashChannel());
         if (splashChannel == null) {
-            MessageFactory.makeError(event.getMessage(), "The splash channel does not appear to exist, have it been deleted?")
-                .queue();
-
+            MessageFactory.makeError(event.getMessage(),
+                "The splash channel does not appear to exist, have it been deleted?"
+            ).queue();
             return;
         }
 
         Carbon time = parseTime(args[0]);
         if (time == null) {
-            MessageFactory.makeError(event.getMessage(), "Invalid time error").queue();
+            MessageFactory.makeError(event.getMessage(),
+                "The given time is not valid, please provide a valid time for when the splash should happen."
+            ).queue();
             return;
         }
 
         String note = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
         if (note.isEmpty()) {
-            MessageFactory.makeWarning(event.getMessage(), "You must include a note for the splash, something like the location, or what is being splashed.")
-                .setTitle("Missing splash note")
-                .queue();
+            MessageFactory.makeWarning(event.getMessage(),
+                "You must include a note for the splash, something like the location, or what is being splashed."
+            ).setTitle("Missing splash note").queue();
             return;
         }
 

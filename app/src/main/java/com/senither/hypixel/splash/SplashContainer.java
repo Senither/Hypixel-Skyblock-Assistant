@@ -8,8 +8,8 @@ public class SplashContainer {
     private final long discordId;
     private final long userId;
     private final Carbon time;
-    private final String note;
 
+    private String note;
     private long messageId;
     private long lastUpdatedAt;
 
@@ -50,6 +50,10 @@ public class SplashContainer {
 
     public String getNote() {
         return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 
     public long getLastUpdatedAt() {
