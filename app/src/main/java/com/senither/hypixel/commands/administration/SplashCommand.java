@@ -37,6 +37,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -149,9 +150,18 @@ public class SplashCommand extends Command {
         int splashId = Math.max(NumberUtil.parseInt(args[0], 0), 0);
 
         //noinspection ConstantConditions
-        SplashContainer splashContainer = splashId == 0
-            ? app.getSplashManager().getEarliestSplashFromUser(event.getMember().getIdLong())
-            : app.getSplashManager().getPendingSplashById(splashId);
+        SplashContainer splashContainer = null;
+        try {
+            splashContainer = splashId == 0
+                ? app.getSplashManager().getEarliestSplashFromUser(
+                app.getHypixel().getUUIDFromUser(event.getAuthor())
+            ) : app.getSplashManager().getPendingSplashById(splashId);
+        } catch (SQLException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to load your UUID from the database, error: " + e.getMessage()
+            ).queue();
+            return;
+        }
 
         if (splashContainer == null) {
             MessageFactory.makeError(event.getMessage(),

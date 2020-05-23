@@ -2,21 +2,23 @@ package com.senither.hypixel.splash;
 
 import com.senither.hypixel.time.Carbon;
 
+import java.util.UUID;
+
 public class SplashContainer {
 
     private final long id;
     private final long discordId;
-    private final long userId;
+    private final UUID userUuid;
     private final Carbon time;
 
     private String note;
     private long messageId;
     private long lastUpdatedAt;
 
-    public SplashContainer(long id, long discordId, long userId, long messageId, Carbon time, String note) {
+    public SplashContainer(long id, long discordId, UUID userUuid, long messageId, Carbon time, String note) {
         this.id = id;
         this.discordId = discordId;
-        this.userId = userId;
+        this.userUuid = userUuid;
         this.messageId = messageId;
         this.time = time;
         this.note = note;
@@ -32,8 +34,8 @@ public class SplashContainer {
         return discordId;
     }
 
-    public long getUserId() {
-        return userId;
+    public UUID getUserUuid() {
+        return userUuid;
     }
 
     public long getMessageId() {

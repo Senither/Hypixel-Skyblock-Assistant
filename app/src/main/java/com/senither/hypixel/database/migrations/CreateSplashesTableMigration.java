@@ -34,12 +34,13 @@ public class CreateSplashesTableMigration implements Migration {
             "CREATE TABLE `splashes`(\n" +
                 "    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,\n" +
                 "    `discord_id` BIGINT UNSIGNED NOT NULL,\n" +
-                "    `user_id` BIGINT UNSIGNED NOT NULL,\n" +
+                "    `uuid` VARCHAR(64) NOT NULL ,\n" +
                 "    `message_id` BIGINT UNSIGNED NULL DEFAULT NULL,\n" +
                 "    `note` TEXT NULL DEFAULT NULL,\n" +
                 "    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,\n" +
                 "    `splash_at` TIMESTAMP NULL,\n" +
-                "     PRIMARY KEY(`id`)\n" +
+                "     PRIMARY KEY(`id`),\n" +
+                "     INDEX (`uuid`)\n" +
                 ") ENGINE = InnoDB;"
         );
     }

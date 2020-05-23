@@ -72,6 +72,10 @@ public class Hypixel {
         .expireAfterAccess(30, TimeUnit.MINUTES)
         .build();
 
+    private static final Cache<UUID, Long> discordIdCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(30, TimeUnit.MINUTES)
+        .build();
+
     private static final Cache<UUID, String> usernameCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
         .build();
@@ -566,6 +570,32 @@ public class Hypixel {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    public Long getDiscordIdFromUUID(UUID uuid) {
+        Long discordId = discordIdCache.getIfPresent(uuid);
+        if (discordId != null) {
+            log.debug("Found Discord ID for {} using the in-memory cache (ID: {})", uuid, discordId);
+            return discordId;
+        }
+
+        try {
+            Collection result = app.getDatabaseManager().query("SELECT `discord_id` FROM `uuids` WHERE `uuid` = ?", uuid);
+            if (!result.isEmpty()) {
+                discordId = result.get(0).getLong("discord_id");
+                if (discordId <= 0) {
+                    return null;
+                }
+
+                discordIdCache.put(uuid, discordId);
+                log.debug("Found Discord ID for {} using the database cache (ID: {})", uuid, discordId);
+
+                return discordId;
+            }
+        } catch (SQLException e) {
+            log.error("An SQL Exception were thrown while trying to get the Discord ID for ");
+        }
+        return null;
     }
 
     public UUID getUUIDFromUser(User user) throws SQLException {

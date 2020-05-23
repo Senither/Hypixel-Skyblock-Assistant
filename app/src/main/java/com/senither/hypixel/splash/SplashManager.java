@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class SplashManager {
@@ -37,7 +38,7 @@ public class SplashManager {
                 splashes.add(new SplashContainer(
                     row.getLong("id"),
                     row.getLong("discord_id"),
-                    row.getLong("user_id"),
+                    UUID.fromString(row.getString("uuid")),
                     row.getLong("message_id"),
                     row.getTimestamp("splash_at"),
                     row.getString("note")
@@ -65,9 +66,9 @@ public class SplashManager {
         return null;
     }
 
-    public SplashContainer getEarliestSplashFromUser(long userId) {
+    public SplashContainer getEarliestSplashFromUser(UUID userUuid) {
         return getSplashes().stream().filter(splashContainer -> {
-            return splashContainer.getUserId() == userId;
+            return splashContainer.getUserUuid().equals(userUuid);
         }).min((o1, o2) -> {
             return Math.toIntExact(o1.getTime().getTimestamp() - o2.getTime().getTimestamp());
         }).orElse(null);
@@ -79,7 +80,12 @@ public class SplashManager {
             return;
         }
 
-        User userById = app.getShardManager().getUserById(splash.getUserId());
+        Long userDiscordId = app.getHypixel().getDiscordIdFromUUID(splash.getUserUuid());
+        if (userDiscordId == null) {
+            return;
+        }
+
+        User userById = app.getShardManager().getUserById(userDiscordId);
         if (userById == null) {
             return;
         }
@@ -121,9 +127,9 @@ public class SplashManager {
             try {
                 String encodedNote = "base64:" + new String(Base64.getEncoder().encode(note.getBytes()));
                 Set<Long> ids = app.getDatabaseManager().queryInsert(
-                    "INSERT INTO `splashes` SET `discord_id` = ?, `user_id` = ?, `message_id` = ?, `note` = ?, `splash_at` = ?",
+                    "INSERT INTO `splashes` SET `discord_id` = ?, `uuid` = ?, `message_id` = ?, `note` = ?, `splash_at` = ?",
                     channel.getGuild().getIdLong(),
-                    author.getIdLong(),
+                    app.getHypixel().getUUIDFromUser(author),
                     message.getIdLong(),
                     encodedNote,
                     time
@@ -135,7 +141,7 @@ public class SplashManager {
                     splashes.add(new SplashContainer(
                         splashEntryId,
                         channel.getGuild().getIdLong(),
-                        author.getIdLong(),
+                        app.getHypixel().getUUIDFromUser(author),
                         message.getIdLong(),
                         time, note
                     ));
