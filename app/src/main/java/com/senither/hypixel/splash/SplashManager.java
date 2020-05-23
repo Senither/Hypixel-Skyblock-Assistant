@@ -6,6 +6,7 @@ import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
+import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -168,7 +169,7 @@ public class SplashManager {
             );
 
         if (id != null) {
-            embedMessage.setFooter("Splash ID: " + id);
+            embedMessage.setFooter("Splash ID: " + NumberUtil.formatNicely(id));
         }
 
         MessageBuilder builder = new MessageBuilder()

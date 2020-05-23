@@ -158,7 +158,7 @@ public class SplashCommand extends Command {
                 splashId == 0
                     ? "You don't have any splashes queued to change the message of right now!"
                     : "Found no splash that is queued with an ID of **:id** that was created by you."
-            ).set("id", splashId).queue();
+            ).set("id", NumberUtil.formatNicely(splashId)).queue();
             return;
         }
 
@@ -169,7 +169,7 @@ public class SplashCommand extends Command {
         if (message.trim().isEmpty()) {
             MessageFactory.makeError(event.getMessage(),
                 "You must include the message you want to set for the queued splash with an ID of **:id**!"
-            ).set("id", splashContainer.getId()).queue();
+            ).set("id", NumberUtil.formatNicely(splashContainer.getId())).queue();
             return;
         }
 
@@ -183,8 +183,8 @@ public class SplashCommand extends Command {
             app.getSplashManager().updateSplashFor(splashContainer);
 
             MessageFactory.makeSuccess(event.getMessage(),
-                "The splash message have been successfully change to:\n\n> :message"
-            ).set("message", message).queue();
+                "The splash message with an ID of **:id** have been successfully change to:\n\n> :message"
+            ).set("id", NumberUtil.formatNicely(splashContainer.getId())).set("message", message).queue();
         } catch (SQLException e) {
             MessageFactory.makeError(event.getMessage(),
                 "Something went wrong while trying to save the new message note, error: :message"
