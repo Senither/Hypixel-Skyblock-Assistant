@@ -24,7 +24,10 @@ package com.senither.hypixel.commands.administration;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.database.collection.Collection;
+import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.splash.SplashContainer;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
@@ -207,7 +210,49 @@ public class SplashCommand extends Command {
     }
 
     private void lookupSplashForPlayer(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        UUID uuid = null;
+        try {
+            uuid = app.getHypixel().getUUIDFromName(args[0]);
+        } catch (SQLException ignored) {
+            throw new FriendlyException("Failed to find a UUID matching the given username!");
+        }
 
+        try {
+            Collection query = app.getDatabaseManager().query(
+                "SELECT\n" +
+                    "    COUNT(`id`) AS 'total',\n" +
+                    "    (SELECT COUNT(`id`) FROM `splashes` WHERE `splash_at` > ? AND `discord_id` = ? AND `uuid` = ?) AS 'hour',\n" +
+                    "    (SELECT COUNT(`id`) FROM `splashes` WHERE `splash_at` > ? AND `discord_id` = ? AND `uuid` = ?) AS 'week',\n" +
+                    "    (SELECT COUNT(`id`) FROM `splashes` WHERE `splash_at` > ? AND `discord_id` = ? AND `uuid` = ?) AS 'month'\n" +
+                    "    FROM `splashes` WHERE `discord_id` = ? AND `uuid` = ?;",
+                Carbon.now().subHours(24), event.getGuild().getIdLong(), uuid,
+                Carbon.now().subDays(7), event.getGuild().getIdLong(), uuid,
+                Carbon.now().subDays(28), event.getGuild().getIdLong(), uuid,
+                event.getGuild().getIdLong(), uuid
+            );
+
+            if (query.isEmpty()) {
+                MessageFactory.makeWarning(event.getMessage(), "Found no splash history records for :user!")
+                    .set("user", app.getHypixel().getUsernameFromUuid(uuid))
+                    .queue();
+                return;
+            }
+
+            DataRow metrics = query.first();
+
+            MessageFactory.makeSuccess(event.getMessage(),
+                "Splash history for :user"
+            )
+                .setTitle("Splash History for " + app.getHypixel().getUsernameFromUuid(uuid))
+                .addField("Last 24 Hours", NumberUtil.formatNicely(metrics.getLong("hour")), true)
+                .addField("Last Week", NumberUtil.formatNicely(metrics.getLong("week")), true)
+                .addField("Last Month", NumberUtil.formatNicely(metrics.getLong("month")), true)
+                .setFooter("Total splashes: " + NumberUtil.formatNicely(metrics.getLong("total")))
+                .set("user", event.getAuthor().getAsMention())
+                .queue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void createSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
