@@ -2,9 +2,11 @@ package com.senither.hypixel.splash;
 
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -20,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class SplashManager {
 
@@ -116,6 +119,46 @@ public class SplashManager {
                 userById, splash.getTime(), splash.getNote(), splash.getId()
             )).queue(null, null);
         }
+    }
+
+    public CompletableFuture<Boolean> cancelSplash(SplashContainer splash) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        GuildController.GuildEntry guild = GuildController.getGuildById(app.getDatabaseManager(), splash.getDiscordId());
+        if (guild == null || !guild.isSplashTrackerEnabled()) {
+            future.completeExceptionally(new FriendlyException("Failed to load guild entry for the server."));
+            return future;
+        }
+
+        TextChannel channelById = app.getShardManager().getTextChannelById(guild.getSplashChannel());
+        if (channelById == null) {
+            future.completeExceptionally(new FriendlyException("Failed to find splash channel, has the feature been enabled?"));
+            return future;
+        }
+
+        channelById.editMessageById(splash.getMessageId(), MessageFactory.makeEmbeddedMessage(null)
+            .setColor(MessageType.WARNING.getColor())
+            .setTimestamp(Carbon.now().getTime().toInstant())
+            .setDescription("This splash has been canceled.")
+            .buildEmbed()
+        ).queue(message -> {
+            try {
+                getSplashes().removeIf(next -> next.getId() == splash.getId());
+                app.getDatabaseManager().queryUpdate("DELETE FROM `splashes` WHERE `id` = ?",
+                    splash.getId()
+                );
+
+                future.complete(true);
+
+                message.delete().queueAfter(30, TimeUnit.SECONDS);
+            } catch (SQLException e) {
+                log.error("Something went wrong while trying to send \"ending soon\" splash message, error: {}", e.getMessage(), e);
+
+                future.completeExceptionally(e);
+            }
+        }, future::completeExceptionally);
+
+        return future;
     }
 
     public CompletableFuture<Void> createSplash(TextChannel channel, User author, Carbon time, String note) {

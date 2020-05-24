@@ -109,6 +109,11 @@ public class SplashCommand extends Command {
                 showLeaderboard(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
+            case "stop":
+            case "cancel":
+                cancelSplash(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
+                break;
+
             case "remove":
             case "revoke":
                 removeSplash(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
@@ -210,6 +215,54 @@ public class SplashCommand extends Command {
                 .queue();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+        }
+    }
+
+    private void cancelSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        int splashId = args.length == 0 ? 0 : Math.max(NumberUtil.parseInt(args[0], 0), 0);
+
+        //noinspection ConstantConditions
+        SplashContainer splashContainer = null;
+        try {
+            splashContainer = splashId == 0
+                ? app.getSplashManager().getEarliestSplashFromUser(
+                app.getHypixel().getUUIDFromUser(event.getAuthor())
+            ) : app.getSplashManager().getPendingSplashById(splashId);
+        } catch (SQLException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to load your UUID from the database, error: " + e.getMessage()
+            ).queue();
+            return;
+        }
+
+        if (splashContainer == null) {
+            MessageFactory.makeError(event.getMessage(),
+                splashId == 0
+                    ? "You don't have any splashes queued to cancel right now!"
+                    : "Found no splash that is queued with an ID of **:id** that was created by you."
+            ).set("id", NumberUtil.formatNicely(splashId)).queue();
+            return;
+        }
+
+        try {
+            app.getSplashManager().cancelSplash(splashContainer).get();
+
+            MessageFactory.makeInfo(event.getMessage(),
+                "The splash with an ID of **:id** have been canceled successfully!"
+            )
+                .setTitle("Splash has been canceled!")
+                .set("id", splashContainer.getId())
+                .queue();
+        } catch (InterruptedException | ExecutionException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to cancel splash with an ID of **:id**, error: :message"
+            ).set("id", splashContainer.getId()).set("message", e.getMessage()).queue();
+
+            event.getMessage().delete().queue();
+
+            log.error("Something went wrong while trying to cancel splash with an ID of {}, error: {}",
+                splashContainer.getId(), e.getMessage(), e
+            );
         }
     }
 
