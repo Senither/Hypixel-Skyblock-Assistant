@@ -58,7 +58,7 @@ public class HypixelRankSynchronizeJob extends Job {
 
         try {
             Collection query = app.getDatabaseManager().query(
-                "SELECT * FROM `uuids` WHERE `discord_id` AND `last_checked_at` < ? IS NOT NULL ORDER BY `last_checked_at` ASC LIMIT 1;",
+                "SELECT * FROM `uuids` WHERE `discord_id` IS NOT NULL AND `last_checked_at` < ? ORDER BY `last_checked_at` ASC LIMIT 1;",
                 time
             );
 
@@ -90,6 +90,7 @@ public class HypixelRankSynchronizeJob extends Job {
     private void handleCheckForUser(DataRow row) throws InterruptedException, ExecutionException, TimeoutException {
         User user = app.getShardManager().getUserById(row.getLong("discord_id"));
         if (user == null) {
+            log.debug("Found no Discord users with an ID of {}, skipping!", row.getLong("discord_id"));
             return;
         }
 
