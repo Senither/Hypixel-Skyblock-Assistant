@@ -4,6 +4,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
+import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
@@ -69,6 +70,29 @@ public class SplashManager {
         return null;
     }
 
+    public SplashContainer getSplashById(int splashId) throws SQLException {
+        SplashContainer pendingSplashById = getPendingSplashById(splashId);
+        if (pendingSplashById != null) {
+            return pendingSplashById;
+        }
+
+        Collection result = app.getDatabaseManager().query("SELECT * FROM `splashes` WHERE `id` = ?", splashId);
+        if (result.isEmpty()) {
+            return null;
+        }
+
+        DataRow row = result.first();
+
+        return new SplashContainer(
+            row.getLong("id"),
+            row.getLong("discord_id"),
+            UUID.fromString(row.getString("uuid")),
+            row.getLong("message_id"),
+            row.getTimestamp("splash_at"),
+            row.getString("note")
+        );
+    }
+
     public SplashContainer getEarliestSplashFromUser(UUID userUuid) {
         return getSplashes().stream().filter(splashContainer -> {
             return splashContainer.getUserUuid().equals(userUuid);
@@ -119,6 +143,43 @@ public class SplashManager {
                 userById, splash.getTime(), splash.getNote(), splash.getId()
             )).queue(null, null);
         }
+    }
+
+    public CompletableFuture<Boolean> removeSplashById(SplashContainer splash) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        try {
+            getSplashes().removeIf(next -> next.getId() == splash.getId());
+            app.getDatabaseManager().queryUpdate("DELETE FROM `splashes` WHERE `id` = ?",
+                splash.getId()
+            );
+
+            GuildController.GuildEntry guild = GuildController.getGuildById(app.getDatabaseManager(), splash.getDiscordId());
+            if (guild == null || !guild.isSplashTrackerEnabled()) {
+                future.complete(false);
+                return future;
+            }
+
+            TextChannel channelById = app.getShardManager().getTextChannelById(guild.getSplashChannel());
+            if (channelById == null) {
+                future.complete(false);
+                return future;
+            }
+
+            channelById.editMessageById(splash.getMessageId(), MessageFactory.makeEmbeddedMessage(null)
+                .setColor(MessageType.WARNING.getColor())
+                .setTimestamp(Carbon.now().getTime().toInstant())
+                .setDescription("This splash has been canceled.")
+                .buildEmbed()
+            ).queue(message -> {
+                future.complete(true);
+                message.delete().queueAfter(30, TimeUnit.SECONDS);
+            }, error -> future.complete(false));
+        } catch (SQLException e) {
+            future.completeExceptionally(e);
+        }
+
+        return future;
     }
 
     public CompletableFuture<Boolean> cancelSplash(SplashContainer splash) {

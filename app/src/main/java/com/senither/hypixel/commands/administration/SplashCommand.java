@@ -39,6 +39,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -267,7 +269,42 @@ public class SplashCommand extends Command {
     }
 
     private void removeSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the `id` of the splash to wish to remove from the splash history, you can see the splash ID at the bottom of each splash message."
+            ).queue();
+            return;
+        }
+        int splashId = Math.max(NumberUtil.parseInt(args[0], 0), 0);
 
+        //noinspection ConstantConditions
+        SplashContainer splashContainer = null;
+        try {
+            splashContainer = app.getSplashManager().getSplashById(splashId);
+        } catch (SQLException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to load your UUID from the database, error: " + e.getMessage()
+            ).queue();
+            return;
+        }
+
+        if (splashContainer == null || splashContainer.getDiscordId() != event.getGuild().getIdLong()) {
+            MessageFactory.makeError(event.getMessage(),
+                "Found no splash from this guild with an ID of **:id**."
+            ).set("id", NumberUtil.formatNicely(splashId)).queue();
+            return;
+        }
+
+        try {
+            boolean result = app.getSplashManager().removeSplashById(splashContainer).get(5, TimeUnit.SECONDS);
+
+            MessageFactory.makeSuccess(event.getMessage(),
+                "The splash has successfully been deleted from the splash tracker!" + (result
+                    ? "\nThe splash message has also been deleted !" : ""
+                )).queue();
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     private void editSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
