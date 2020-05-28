@@ -303,6 +303,14 @@ public class SplashCommand extends Command {
             return;
         }
 
+        Long discordUserId = app.getHypixel().getDiscordIdFromUUID(splashContainer.getUserUuid());
+        if (event.getAuthor().getIdLong() != discordUserId) {
+            MessageFactory.makeError(event.getMessage(),
+                "You're not the author of the queued splash with an ID of **:id**!\nYou can't the splash message of splashes you didn't create."
+            ).set("id", splashContainer.getId()).queue();
+            return;
+        }
+
         String message = String.join(" ", Arrays.copyOfRange(
             args, splashId == 0 ? 0 : 1, args.length
         ));
