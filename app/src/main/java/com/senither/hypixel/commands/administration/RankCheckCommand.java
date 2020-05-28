@@ -119,7 +119,7 @@ public class RankCheckCommand extends SkillCommand {
 
     @Override
     @SuppressWarnings("ConstantConditions")
-    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {
         GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), message.getGuild().getIdLong());
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);

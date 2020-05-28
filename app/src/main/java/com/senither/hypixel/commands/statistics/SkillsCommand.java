@@ -71,7 +71,7 @@ public class SkillsCommand extends SkillCommand {
     }
 
     @Override
-    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply) {
+    protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
         String displayName = getUsernameFromPlayer(playerReply);
 
