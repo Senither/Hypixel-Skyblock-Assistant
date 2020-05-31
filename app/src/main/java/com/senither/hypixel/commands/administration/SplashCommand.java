@@ -417,15 +417,26 @@ public class SplashCommand extends Command {
                 "Splash history for :user"
             )
                 .setTitle("Splash History for " + app.getHypixel().getUsernameFromUuid(uuid))
-                .addField("Last 24 Hours", NumberUtil.formatNicely(metrics.getLong("hour")), true)
-                .addField("Last Week", NumberUtil.formatNicely(metrics.getLong("week")), true)
-                .addField("Last Month", NumberUtil.formatNicely(metrics.getLong("month")), true)
+                .addField("Last 24 Hours", formatSplashes(metrics.getLong("hour"), TimeUnit.HOURS, 24), true)
+                .addField("Last Week", formatSplashes(metrics.getLong("week"), TimeUnit.DAYS, 7), true)
+                .addField("Last Month", formatSplashes(metrics.getLong("month"), TimeUnit.DAYS, 28), true)
                 .setFooter("Total splashes: " + NumberUtil.formatNicely(metrics.getLong("total")))
                 .set("user", event.getAuthor().getAsMention())
                 .queue();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private String formatSplashes(long splashes, TimeUnit unit, double time) {
+        final String name = unit.name().toLowerCase();
+
+        return String.format("%s\n%s per %s",
+            NumberUtil.formatNicely(splashes),
+            NumberUtil.formatNicelyWithDecimals(
+                splashes == 0 ? 0 : splashes / time
+            ), name.substring(0, name.length() - 1)
+        );
     }
 
     private void createSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
