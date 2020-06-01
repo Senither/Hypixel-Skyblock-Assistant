@@ -21,9 +21,11 @@
 
 package com.senither.hypixel.commands.administration;
 
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
+import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
@@ -145,16 +147,15 @@ public class SplashCommand extends Command {
             "\tGROUP BY `uuid`\n" +
             "\tORDER BY `total` DESC;";
 
+        final int page = args.length == 0
+            ? 0 : Math.max(NumberUtil.parseInt(args[0], 1), 1);
+
         try {
-            Collection weekStats = app.getDatabaseManager().query(leaderboardQuery, event.getGuild().getIdLong(), Carbon.now().subDays(7));
-            Collection monthStats = app.getDatabaseManager().query(leaderboardQuery, event.getGuild().getIdLong(), Carbon.now().subDays(28));
+            Collection stats = app.getDatabaseManager().query(leaderboardQuery, event.getGuild().getIdLong(), Carbon.now().subDays(28));
 
             HashSet<String> uuids = new HashSet<>();
-            for (DataRow weekStat : weekStats) {
-                uuids.add(weekStat.getString("uuid"));
-            }
-            for (DataRow monthStat : monthStats) {
-                uuids.add(monthStat.getString("uuid"));
+            for (DataRow stat : stats) {
+                uuids.add(stat.getString("uuid"));
             }
 
             StringBuilder stringifiedParams = new StringBuilder();
@@ -173,29 +174,13 @@ public class SplashCommand extends Command {
             }
 
             int position = 1;
-            List<String> weekLeaderboardEntries = new ArrayList<>();
-            for (DataRow weekStat : weekStats) {
-                int splashes = weekStat.getInt("total");
+            List<String> leaderboardEntries = new ArrayList<>();
+            for (DataRow stat : stats) {
+                int splashes = stat.getInt("total");
 
-                weekLeaderboardEntries.add(String.format("%s: %s\n%s> %s (%s/daily)",
+                leaderboardEntries.add(String.format("%s: %s\n%s> %s (%s/daily)",
                     padPosition("#" + NumberUtil.formatNicely(position), position - 1),
-                    usernameMap.getOrDefault(weekStat.getString("uuid"), "Unknown"),
-                    padPosition("", position - 1),
-                    NumberUtil.formatNicely(splashes),
-                    NumberUtil.formatNicelyWithDecimals(splashes / 7D)
-                ));
-
-                position++;
-            }
-
-            position = 1;
-            List<String> monthLeaderboardEntries = new ArrayList<>();
-            for (DataRow monthStat : monthStats) {
-                int splashes = monthStat.getInt("total");
-
-                monthLeaderboardEntries.add(String.format("%s: %s\n%s> %s (%s/daily)",
-                    padPosition("#" + NumberUtil.formatNicely(position), position - 1),
-                    usernameMap.getOrDefault(monthStat.getString("uuid"), "Unknown"),
+                    usernameMap.getOrDefault(stat.getString("uuid"), "Unknown"),
                     padPosition("", position - 1),
                     NumberUtil.formatNicely(splashes),
                     NumberUtil.formatNicelyWithDecimals(splashes / 28D)
@@ -204,16 +189,18 @@ public class SplashCommand extends Command {
                 position++;
             }
 
-            MessageFactory.makeInfo(event.getMessage(), "")
+            SimplePaginator<String> paginator = new SimplePaginator<>(leaderboardEntries, 10, page);
+            leaderboardEntries.clear();
+            paginator.forEach((index, key, val) -> leaderboardEntries.add(val));
+
+            MessageFactory.makeInfo(event.getMessage(), String.format(
+                "The splash leaderboard are a list players who has splashed in the last month. %s\n%s",
+                String.format(
+                    "```ada\n%s```",
+                    String.join("\n", leaderboardEntries)
+                ), paginator.generateFooter(Constants.COMMAND_PREFIX + getTriggers().get(0) + " list"))
+            )
                 .setTitle(guildEntry.getName() + " Splash Leaderboard")
-                .addField("Weekly Leaderboard", String.format(
-                    "```ada\n%s```",
-                    String.join("\n", weekLeaderboardEntries)
-                ), true)
-                .addField("Monthly Leaderboard", String.format(
-                    "```ada\n%s```",
-                    String.join("\n", monthLeaderboardEntries)
-                ), true)
                 .setTimestamp(Carbon.now().getTime().toInstant())
                 .queue();
         } catch (SQLException throwables) {
