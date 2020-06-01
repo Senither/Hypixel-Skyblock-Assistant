@@ -34,8 +34,10 @@ import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.splash.SplashContainer;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +70,9 @@ public class SplashCommand extends Command {
             "This command can be used to track splashes in a guild, allowing the officers",
             "to easily see who splashes the most, when the last splash was, queue up",
             "splashes for the future, and see statistics for everyone who",
-            "splashes pots in the guild."
+            "splashes pots in the guild.",
+            "\nPeople with the splash role are able to edit splash messages, cancel splashes,",
+            "and completely remove splashes from the tracking system from people."
         );
     }
 
@@ -111,6 +115,17 @@ public class SplashCommand extends Command {
                     + "the server with a guild before you can use this command!"
             ).setTitle("Server is not setup").queue();
             return;
+        }
+
+        try {
+            if (!isMemberOfGuild(guildEntry, app.getHypixel().getUUIDFromUser(event.getAuthor()))) {
+                MessageFactory.makeWarning(event.getMessage(),
+                    "You're not a member of the **:name** guild!\nYou can't use this command if you're not a member of the guild."
+                ).set("name", guildEntry.getName()).queue();
+                return;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         if (!guildEntry.isSplashTrackerEnabled()) {
@@ -256,6 +271,14 @@ public class SplashCommand extends Command {
             return;
         }
 
+        UUID uuid = getUUIDFromUser(event.getAuthor());
+        if (!splashContainer.getUserUuid().equals(uuid) && !isOfficerInGuildOrHasSplashRole(event, guildEntry, uuid)) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "You cannot cancel a splash created by other users without having the <@&:id> role, or being an officer of the guild."
+            ).set("id", guildEntry.getSplashRole()).queue();
+            return;
+        }
+
         try {
             app.getSplashManager().cancelSplash(splashContainer).get();
 
@@ -279,6 +302,13 @@ public class SplashCommand extends Command {
     }
 
     private void removeSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        if (!isOfficerInGuildOrHasSplashRole(event, guildEntry, getUUIDFromUser(event.getAuthor()))) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "You must have the <@&:id> role, or be an officer of the **:name** guild to remove splashes from the splash tracker."
+            ).set("id", guildEntry.getSplashRole()).queue();
+            return;
+        }
+
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
                 "You must include the `id` of the splash to wish to remove from the splash history, you can see the splash ID at the bottom of each splash message."
@@ -350,8 +380,18 @@ public class SplashCommand extends Command {
             return;
         }
 
+
+        UUID uuid = getUUIDFromUser(event.getAuthor());
+        boolean officerInGuildOrHasSplashRole = isOfficerInGuildOrHasSplashRole(event, guildEntry, uuid);
+        if (!splashContainer.getUserUuid().equals(uuid) && !officerInGuildOrHasSplashRole) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "You cannot edit a splash message created by other users without having the <@&:id> role, or being an officer of the guild."
+            ).set("id", guildEntry.getSplashRole()).queue();
+            return;
+        }
+
         Long discordUserId = app.getHypixel().getDiscordIdFromUUID(splashContainer.getUserUuid());
-        if (event.getAuthor().getIdLong() != discordUserId) {
+        if (event.getAuthor().getIdLong() != discordUserId && !officerInGuildOrHasSplashRole) {
             MessageFactory.makeError(event.getMessage(),
                 "You're not the author of the queued splash with an ID of **:id**!\nYou can't the splash message of splashes you didn't create."
             ).set("id", splashContainer.getId()).queue();
@@ -575,5 +615,30 @@ public class SplashCommand extends Command {
             builder.append(" ");
         }
         return builder.toString();
+    }
+
+    private boolean isMemberOfGuild(GuildController.GuildEntry guildEntry, UUID uuid) {
+        GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
+        if (guildReply == null || guildReply.getGuild() == null) {
+            throw new FriendlyException("The request to the API returned null for a guild with the given name, try again later.");
+        }
+
+        for (GuildReply.Guild.Member member : guildReply.getGuild().getMembers()) {
+            if (member.getUuid().equals(uuid)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isOfficerInGuildOrHasSplashRole(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, UUID uuid) {
+        if (event.getMember() != null) {
+            for (Role role : event.getMember().getRoles()) {
+                if (role.getIdLong() == guildEntry.getSplashRole()) {
+                    return true;
+                }
+            }
+        }
+        return isGuildMasterOrOfficerOfServerGuild(event, guildEntry);
     }
 }
