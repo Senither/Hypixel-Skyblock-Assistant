@@ -23,6 +23,7 @@ package com.senither.hypixel.commands.administration;
 
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
@@ -411,18 +412,43 @@ public class SplashCommand extends Command {
                 return;
             }
 
+            Collection latestSplashesResults = app.getDatabaseManager().query(
+                "SELECT * FROM `splashes` WHERE `discord_id` = ? AND `uuid` = ? ORDER BY `splash_at` DESC LIMIT 5",
+                event.getGuild().getIdLong(), uuid
+            );
+
+            int index = 1;
+            List<String> splashHistory = new ArrayList<>();
+            for (DataRow row : latestSplashesResults) {
+                splashHistory.add(String.format(
+                    "#%s : %s\n---- %s",
+                    index++,
+                    row.getTimestamp("splash_at").diffForHumans(),
+                    row.getString("note")
+                ));
+            }
+
             DataRow metrics = query.first();
 
-            MessageFactory.makeSuccess(event.getMessage(),
-                "Splash history for :user"
-            )
+            PlaceholderMessage message = MessageFactory.makeSuccess(event.getMessage(), "")
                 .setTitle("Splash History for " + app.getHypixel().getUsernameFromUuid(uuid))
                 .addField("Last 24 Hours", formatSplashes(metrics.getLong("hour"), TimeUnit.HOURS, 24), true)
                 .addField("Last Week", formatSplashes(metrics.getLong("week"), TimeUnit.DAYS, 7), true)
                 .addField("Last Month", formatSplashes(metrics.getLong("month"), TimeUnit.DAYS, 28), true)
                 .setFooter("Total splashes: " + NumberUtil.formatNicely(metrics.getLong("total")))
-                .set("user", event.getAuthor().getAsMention())
-                .queue();
+                .set("user", event.getAuthor().getAsMention());
+
+            if (!splashHistory.isEmpty()) {
+                message.addField(String.format(
+                    "Latest Splash History (%s)",
+                    splashHistory.size()
+                ), String.format(
+                    "```elm\n%s```",
+                    String.join("\n", splashHistory)
+                ), true);
+            }
+
+            message.queue();
         } catch (SQLException e) {
             e.printStackTrace();
         }
