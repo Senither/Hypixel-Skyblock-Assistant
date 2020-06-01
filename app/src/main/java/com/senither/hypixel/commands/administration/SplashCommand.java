@@ -64,17 +64,37 @@ public class SplashCommand extends Command {
 
     @Override
     public List<String> getDescription() {
-        return Arrays.asList("");
+        return Arrays.asList(
+            "This command can be used to track splashes in a guild, allowing the officers",
+            "to easily see who splashes the most, when the last splash was, queue up",
+            "splashes for the future, and see statistics for everyone who",
+            "splashes pots in the guild."
+        );
     }
 
     @Override
     public List<String> getUsageInstructions() {
-        return Arrays.asList("");
+        return Arrays.asList(
+            "`:command <now|time> <message>` - Queues up a new splash",
+            "`:command list [page]` - Shows the splash leaderboard",
+            "`:command cancel [id]` - Cancels the splash with the given ID, or the last splash created by the player",
+            "`:command edit [id]` - Edits the message of the splash with the given ID, or the last splash created by the player",
+            "`:command remove <id>` - Removes the splash with the given ID from the splash tracker",
+            "`:command show <username>` - Lookup splash stats for the given player"
+        );
     }
 
     @Override
     public List<String> getExampleUsage() {
-        return Arrays.asList("");
+        return Arrays.asList(
+            "`:command now Splashing at pond` - Creates a splash now",
+            "`:command 1h9m pond g party` - Queues a splash that ends in 1 hour and 9 minutes",
+            "`:command list 3` - Shows the 3rd page of the splash leaderboard",
+            "`:command cancel 42` - Cancels the queued splash with an ID of 42",
+            "`:command edit 75 Some new message` - Sets a new message for the splash with an ID of 75",
+            "`:command remove 39` - Removes the splash with an ID of 39 from the splash tracker",
+            "`:command show Senither` - Show splash stats for Senither"
+        );
     }
 
     @Override
@@ -110,7 +130,9 @@ public class SplashCommand extends Command {
         }
 
         switch (args[0].toLowerCase()) {
+            case "ls":
             case "list":
+            case "leaderboard":
                 showLeaderboard(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
