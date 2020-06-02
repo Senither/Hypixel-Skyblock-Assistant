@@ -125,7 +125,14 @@ public class SplashCommand extends Command {
                 return;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("An SQL Exception were thrown while trying to check if {} is a member of {}, error: {}",
+                event.getAuthor().getId(), guildEntry.getId(), e.getMessage(), e
+            );
+
+            MessageFactory.makeError(event.getMessage(),
+                "An error occurred while trying to check if you're a member of the **:name** guild!\nError: :message"
+            ).set("name", guildEntry.getName()).set("message", e.getMessage()).queue();
+            return;
         }
 
         if (!guildEntry.isSplashTrackerEnabled()) {
@@ -139,8 +146,10 @@ public class SplashCommand extends Command {
         }
 
         if (args.length == 0) {
-            MessageFactory.makeError(event.getMessage(), "Some error")
-                .queue();
+            MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
+                "You must include the action you wish to take, or a valid time format to queue up a splash.",
+                "An example of a valid time format would be `1h29m` to start a splash in 1 hour and 29 minutes, or `now` which will start the splash right away."
+            ))).setTitle("Missing option").queue();
             return;
         }
 
@@ -240,8 +249,14 @@ public class SplashCommand extends Command {
                 .setTitle(guildEntry.getName() + " Splash Leaderboard")
                 .setTimestamp(Carbon.now().getTime().toInstant())
                 .queue();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            log.error("An SQL Exception where thrown while trying to load the leaderboard stats for {}, error: {}",
+                guildEntry.getId(), e.getMessage(), e
+            );
+
+            MessageFactory.makeError(event.getMessage(),
+                "An error occurred while trying to load the leaderboard stats for **:name**!\nError: :message"
+            ).set("name", guildEntry.getName()).set("message", e.getMessage()).queue();
         }
     }
 
@@ -311,10 +326,11 @@ public class SplashCommand extends Command {
 
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
-                "You must include the `id` of the splash to wish to remove from the splash history, you can see the splash ID at the bottom of each splash message."
+                "You must include the `id` of the splash you wish to remove from the splash history, you can see the splash ID at the bottom of each splash message."
             ).queue();
             return;
         }
+
         int splashId = Math.max(NumberUtil.parseInt(args[0], 0), 0);
 
         //noinspection ConstantConditions
@@ -499,7 +515,13 @@ public class SplashCommand extends Command {
 
             message.queue();
         } catch (SQLException e) {
-            e.printStackTrace();
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to lookup the stats for the given player, error: :message"
+            ).set("message", e.getMessage()).queue();
+
+            log.error("An SQL Exception were thrown while trying to lookup splash stats for {} , error: {}",
+                uuid, e.getMessage(), e
+            );
         }
     }
 
