@@ -33,12 +33,11 @@ import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
-public class AuctionHouseCommand extends SkillCommand {
+public class AuctionHouseStatisticsCommand extends SkillCommand {
 
-    public AuctionHouseCommand(SkyblockAssistant app) {
+    public AuctionHouseStatisticsCommand(SkyblockAssistant app) {
         super(app, "Auction House Statistic");
     }
 
@@ -66,13 +65,12 @@ public class AuctionHouseCommand extends SkillCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Collections.singletonList("ah");
+        return Arrays.asList("ahstats", "ahstat");
     }
 
     @Override
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
-
         JsonObject stats = member.getAsJsonObject("stats");
 
         message.editMessage(new EmbedBuilder()
