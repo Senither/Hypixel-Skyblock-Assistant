@@ -326,7 +326,7 @@ public class SplashCommand extends Command {
         if (!isOfficerInGuildOrHasSplashRole(event, guildEntry, getUUIDFromUser(event.getAuthor()))) {
             MessageFactory.makeWarning(event.getMessage(),
                 "You must have the <@&:id> role, or be an officer of the **:name** guild to remove splashes from the splash tracker."
-            ).set("id", guildEntry.getSplashRole()).queue();
+            ).set("id", guildEntry.getSplashRole()).set("name", guildEntry.getName()).queue();
             return;
         }
 
