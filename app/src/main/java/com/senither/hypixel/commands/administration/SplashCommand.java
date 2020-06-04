@@ -559,6 +559,14 @@ public class SplashCommand extends Command {
             return;
         }
 
+        // Makes sure the difference isn't larger than 3 days in seconds.
+        if (time.diffInSeconds() > 259200L) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "The given time is too large, the time given must be less than 3 days."
+            ).queue();
+            return;
+        }
+
         String note = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
         if (note.isEmpty()) {
             MessageFactory.makeWarning(event.getMessage(),
