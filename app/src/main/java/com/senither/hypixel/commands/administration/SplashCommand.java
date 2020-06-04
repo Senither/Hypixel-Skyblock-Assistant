@@ -198,6 +198,12 @@ public class SplashCommand extends Command {
 
         try {
             Collection stats = app.getDatabaseManager().query(leaderboardQuery, event.getGuild().getIdLong(), Carbon.now().subDays(28));
+            if (stats.isEmpty()) {
+                MessageFactory.makeWarning(event.getMessage(),
+                    "There have been no splashes in the past month yet so far, maybe queue up a splash to help the guild out?"
+                ).queue();
+                return;
+            }
 
             HashSet<String> uuids = new HashSet<>();
             for (DataRow stat : stats) {
