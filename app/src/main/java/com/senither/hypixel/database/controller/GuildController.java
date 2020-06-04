@@ -100,6 +100,8 @@ public class GuildController {
         private final String data;
         private final Long defaultRole;
         private final Long guildMemberRole;
+        private final Long splashRole;
+        private final Long splashChannel;
         private final Integer donationTime;
         private final Integer donationPoints;
         private final Long donationRole;
@@ -113,6 +115,8 @@ public class GuildController {
             discordId = row.getLong("discord_id");
             name = row.getString("name");
             data = row.getString("data");
+            splashRole = row.getLong("splash_role");
+            splashChannel = row.getLong("splash_channel");
             donationTime = row.getInt("donation_time");
             donationPoints = row.getInt("donation_points");
             donationRole = row.getLong("donation_role");
@@ -151,6 +155,19 @@ public class GuildController {
 
         public String getData() {
             return data;
+        }
+
+        public Long getSplashRole() {
+            return splashRole;
+        }
+
+        public Long getSplashChannel() {
+            return splashChannel;
+        }
+
+        public boolean isSplashTrackerEnabled() {
+            return getSplashChannel() != null
+                && getSplashChannel() > 0;
         }
 
         public Integer getDonationTime() {

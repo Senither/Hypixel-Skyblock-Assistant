@@ -50,6 +50,10 @@ public abstract class Command {
         .expireAfterAccess(5, TimeUnit.MINUTES)
         .build();
 
+    private static final Cache<Long, UUID> uuidCache = CacheBuilder.newBuilder()
+        .expireAfterAccess(5, TimeUnit.MINUTES)
+        .build();
+
     protected final SkyblockAssistant app;
     private final boolean verificationRequired;
 
@@ -98,7 +102,7 @@ public abstract class Command {
 
         try {
             Collection result = app.getDatabaseManager().query(
-                "SELECT `username` FROM `uuids` WHERE `discord_id` = ?",
+                "SELECT `username`, `uuid` FROM `uuids` WHERE `discord_id` = ?",
                 user.getIdLong()
             );
 
@@ -108,8 +112,35 @@ public abstract class Command {
 
             username = result.first().getString("username");
             usernameCache.put(user.getIdLong(), username);
+            uuidCache.put(user.getIdLong(), UUID.fromString(result.first().getString("uuid")));
 
             return username;
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    protected final UUID getUUIDFromUser(IMentionable user) {
+        UUID uuid = uuidCache.getIfPresent(user.getIdLong());
+        if (uuid != null) {
+            return uuid;
+        }
+
+        try {
+            Collection result = app.getDatabaseManager().query(
+                "SELECT `username`, `uuid` FROM `uuids` WHERE `discord_id` = ?",
+                user.getIdLong()
+            );
+
+            if (result.isEmpty()) {
+                return null;
+            }
+
+            uuid = UUID.fromString(result.first().getString("uuid"));
+            uuidCache.put(user.getIdLong(), uuid);
+            usernameCache.put(user.getIdLong(), result.first().getString("username"));
+
+            return uuid;
         } catch (SQLException e) {
             return null;
         }

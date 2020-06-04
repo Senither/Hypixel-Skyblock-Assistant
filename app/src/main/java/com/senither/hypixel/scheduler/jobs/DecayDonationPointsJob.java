@@ -21,7 +21,6 @@
 
 package com.senither.hypixel.scheduler.jobs;
 
-import com.mysql.cj.ServerVersion;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;

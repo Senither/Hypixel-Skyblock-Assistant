@@ -188,6 +188,22 @@ public class DonationCommand extends Command {
             int position = -1;
             PlayerDonationController.PlayerDonationEntry currentPlayer = null;
 
+            Map<UUID, Integer> splashes = new HashMap<>();
+            if (guildEntry.isSplashTrackerEnabled()) {
+                Collection splashResults = app.getDatabaseManager().query(
+                    "SELECT `uuid`, COUNT(`id`) as 'total' FROM `splashes` WHERE `discord_id` = ? AND `splash_at` > ? GROUP BY `uuid`",
+                    event.getGuild().getIdLong(),
+                    Carbon.now().subHours(guildEntry.getDonationTime())
+                );
+
+                for (DataRow splashResult : splashResults) {
+                    splashes.put(
+                        UUID.fromString(splashResult.getString("uuid")),
+                        splashResult.getInt("total")
+                    );
+                }
+            }
+
             List<String> messageRows = new ArrayList<>();
             for (PlayerDonationController.PlayerDonationEntry player : PlayerDonationController.getPlayersById(app.getDatabaseManager(), event.getGuild().getIdLong())) {
                 if (!memberUsernameMap.containsKey(player.getUuid())) {
@@ -199,19 +215,37 @@ public class DonationCommand extends Command {
                     currentPlayer = player;
                 }
 
-                messageRows.add(String.format("#%s: %s > %s\n-----: Last donated %s",
+                String splashMessage = "";
+                if (splashes.containsKey(player.getUuid())) {
+                    Integer splashCounter = splashes.get(player.getUuid());
+                    splashMessage = String.format(" < %s %s",
+                        splashCounter, splashCounter == 1 ? "Splash" : "Splashes"
+                    );
+                }
+
+                messageRows.add(String.format("#%s: %s > %s%s\n-----: Last donated %s",
                     padString(String.valueOf(rank++), 4),
                     padString(memberUsernameMap.get(player.getUuid()), 16),
                     player.getPoints(),
+                    splashMessage,
                     player.lastDonatedAt().diffForHumans()
                 ));
                 memberUsernameMap.remove(player.getUuid());
             }
 
-            for (String username : memberUsernameMap.values()) {
-                messageRows.add(String.format("#%s: %s > 0\n-----: Has never donated",
+            for (Map.Entry<UUID, String> memberMapEntry : memberUsernameMap.entrySet()) {
+                String splashMessage = "";
+                if (splashes.containsKey(memberMapEntry.getKey())) {
+                    Integer splashCounter = splashes.get(memberMapEntry.getKey());
+                    splashMessage = String.format(" < %s %s",
+                        splashCounter, splashCounter == 1 ? "Splash" : "Splashes"
+                    );
+                }
+
+                messageRows.add(String.format("#%s: %s > 0%s\n-----: Has never donated",
                     padString(String.valueOf(rank++), 4),
-                    padString(username, 16)
+                    padString(memberMapEntry.getValue(), 16),
+                    splashMessage
                 ));
             }
 
@@ -231,7 +265,9 @@ public class DonationCommand extends Command {
             }
 
             MessageFactory.makeInfo(event.getMessage(), String.format(
-                "Donation points currently decrease by **:points** points every **:time** hours!```ada\n%s```\n%s%s",
+                "Donation points currently decrease by **:points** points every **:time** hours!%s```ada\n%s```\n%s%s",
+                guildEntry.isSplashTrackerEnabled()
+                    ? "\nSplash tracking is enabled, so people who have splashed in the last **:time** hours will also be displayed on the leaderboard." : "",
                 String.join("\n", message), note, paginator.generateFooter(Constants.COMMAND_PREFIX + getTriggers().get(0))
             ))
                 .setTitle("Donation Points Leaderboard")
