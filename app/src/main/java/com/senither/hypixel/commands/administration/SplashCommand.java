@@ -578,7 +578,7 @@ public class SplashCommand extends Command {
         }
 
         try {
-            app.getSplashManager().createSplash(
+            long splashId = app.getSplashManager().createSplash(
                 splashChannel,
                 event.getAuthor(),
                 time,
@@ -586,10 +586,11 @@ public class SplashCommand extends Command {
             ).get();
 
             MessageFactory.makeInfo(event.getMessage(),
-                "The splash have been registered successfully!"
+                "The splash have been registered successfully with an ID of **:id**!"
             )
                 .setTitle("Splash has been created!")
                 .setFooter("Splasher: " + event.getAuthor().getAsTag())
+                .set("id", NumberUtil.formatNicely(splashId))
                 .queue();
 
             event.getMessage().delete().queue();

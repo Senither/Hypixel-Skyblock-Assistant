@@ -222,8 +222,8 @@ public class SplashManager {
         return future;
     }
 
-    public CompletableFuture<Void> createSplash(TextChannel channel, User author, Carbon time, String note) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
+    public CompletableFuture<Long> createSplash(TextChannel channel, User author, Carbon time, String note) {
+        CompletableFuture<Long> future = new CompletableFuture<>();
 
         final boolean isNow = time.diffInSeconds(Carbon.now()) <= 5;
 
@@ -253,7 +253,7 @@ public class SplashManager {
 
                 message.editMessage(buildSplashMessage(author, time, note, splashEntryId)).queue();
 
-                future.complete(null);
+                future.complete(splashEntryId);
             } catch (SQLException throwable) {
                 future.completeExceptionally(throwable);
             }
