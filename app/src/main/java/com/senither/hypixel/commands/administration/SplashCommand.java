@@ -457,7 +457,9 @@ public class SplashCommand extends Command {
     private void lookupSplashForPlayer(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
         UUID uuid = null;
         try {
-            uuid = app.getHypixel().getUUIDFromName(args[0]);
+            uuid = (args.length == 0)
+                ? getUUIDFromUser(event.getAuthor())
+                : app.getHypixel().getUUIDFromName(args[0]);
         } catch (SQLException ignored) {
             throw new FriendlyException("Failed to find a UUID matching the given username!");
         }
