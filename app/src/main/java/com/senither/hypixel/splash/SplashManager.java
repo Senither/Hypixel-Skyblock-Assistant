@@ -263,7 +263,7 @@ public class SplashManager {
     }
 
     private Message buildSplashMessage(User author, Carbon time, String note, Long id) {
-        String description = ":user is splashing :time!";
+        String description = ":user (IGN: :name) is splashing :time!";
         if (note != null && note.trim().length() > 0) {
             description += "\n\n> :note";
         }
@@ -277,6 +277,16 @@ public class SplashManager {
                 ? "in " + time.diffForHumans()
                 : "now"
             );
+
+        try {
+            final String username = app.getHypixel().getUsernameFromUuid(
+                app.getHypixel().getUUIDFromUser(author)
+            );
+
+            embedMessage.set("name", username.startsWith("_") ? "\\" + username : username);
+        } catch (SQLException e) {
+            embedMessage.set("name", "_Unable to load_");
+        }
 
         if (id != null) {
             embedMessage.setFooter("Splash ID: " + NumberUtil.formatNicely(id));
