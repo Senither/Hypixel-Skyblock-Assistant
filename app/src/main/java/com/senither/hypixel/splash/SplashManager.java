@@ -18,12 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class SplashManager {
 
@@ -59,6 +57,23 @@ public class SplashManager {
 
     public Set<SplashContainer> getSplashes() {
         return splashes;
+    }
+
+    public List<SplashContainer> getSplashesForGuildById(long guildId) {
+        if (getSplashes().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<SplashContainer> splashes = new ArrayList<>();
+        for (SplashContainer splash : getSplashes()) {
+            if (splash.getDiscordId() == guildId) {
+                splashes.add(splash);
+            }
+        }
+
+        return splashes.stream()
+            .sorted(Comparator.comparingLong(o -> o.getTime().getTimestamp()))
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     public SplashContainer getPendingSplashById(long id) {

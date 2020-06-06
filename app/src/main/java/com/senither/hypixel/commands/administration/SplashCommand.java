@@ -81,6 +81,7 @@ public class SplashCommand extends Command {
         return Arrays.asList(
             "`:command <now|time> <message>` - Queues up a new splash",
             "`:command list [page]` - Shows the splash leaderboard",
+            "`:command queue [page]` - Shows the upcoming splashes",
             "`:command cancel [id]` - Cancels the splash with the given ID, or the last splash created by the player",
             "`:command edit [id]` - Edits the message of the splash with the given ID, or the last splash created by the player",
             "`:command remove <id>` - Removes the splash with the given ID from the splash tracker",
@@ -94,6 +95,7 @@ public class SplashCommand extends Command {
             "`:command now Splashing at pond` - Creates a splash now",
             "`:command 1h9m pond g party` - Queues a splash that ends in 1 hour and 9 minutes",
             "`:command list 3` - Shows the 3rd page of the splash leaderboard",
+            "`:command queue 2` - Shows the 2nd page of the upcoming splashes",
             "`:command cancel 42` - Cancels the queued splash with an ID of 42",
             "`:command edit 75 Some new message` - Sets a new message for the splash with an ID of 75",
             "`:command remove 39` - Removes the splash with an ID of 39 from the splash tracker",
@@ -158,6 +160,14 @@ public class SplashCommand extends Command {
             case "list":
             case "leaderboard":
                 showLeaderboard(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
+                break;
+
+            case "soon":
+            case "queue":
+            case "queues":
+            case "queued":
+            case "upcoming":
+                showSplashQueue(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
             case "stop":
@@ -263,6 +273,59 @@ public class SplashCommand extends Command {
             MessageFactory.makeError(event.getMessage(),
                 "An error occurred while trying to load the leaderboard stats for **:name**!\nError: :message"
             ).set("name", guildEntry.getName()).set("message", e.getMessage()).queue();
+        }
+    }
+
+    private void showSplashQueue(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        List<SplashContainer> queuedSplashes = app.getSplashManager().getSplashesForGuildById(event.getGuild().getIdLong());
+        if (queuedSplashes.isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "There are currently no splashes queued for the server."
+            ).queue();
+            return;
+        }
+
+        int page = args.length == 0 ? 1 : NumberUtil.parseInt(args[0], 1);
+        SimplePaginator<SplashContainer> paginator = new SimplePaginator<>(queuedSplashes, 5, page);
+
+        try {
+            HashSet<String> uuids = new HashSet<>();
+            for (SplashContainer splash : queuedSplashes) {
+                uuids.add(splash.getUserUuid().toString());
+            }
+
+            StringBuilder stringifiedParams = new StringBuilder();
+            for (String ignored : uuids) {
+                stringifiedParams.append("?, ");
+            }
+
+            Collection usernameQueryResult = app.getDatabaseManager().query(String.format(
+                "SELECT `uuid`, `username` FROM `uuids` WHERE `uuid` IN (%s);",
+                stringifiedParams.toString().substring(0, stringifiedParams.length() - 2)
+            ), uuids.toArray());
+
+            HashMap<String, String> usernameMap = new HashMap<>();
+            for (DataRow row : usernameQueryResult) {
+                usernameMap.put(row.getString("uuid"), row.getString("username"));
+            }
+
+            PlaceholderMessage placeholderMessage = MessageFactory.makeInfo(event.getMessage(), "")
+                .setTitle("Queued splashes for " + guildEntry.getName());
+
+            paginator.forEach((index, key, val) -> {
+                placeholderMessage.addField(String.format("%s (%s)",
+                    usernameMap.getOrDefault(val.getUserUuid().toString(), "Unknown"),
+                    val.getTime().diffForHumans()
+                ), "> " + val.getNote(), false);
+            });
+
+            placeholderMessage.addField("", "\n" + paginator.generateFooter(
+                Constants.COMMAND_PREFIX + "splash queue"
+            ), false);
+
+            placeholderMessage.queue();
+        } catch (SQLException e) {
+            //
         }
     }
 
