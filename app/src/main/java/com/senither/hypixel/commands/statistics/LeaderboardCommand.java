@@ -152,7 +152,7 @@ public class LeaderboardCommand extends Command {
         }
 
         if (type.equals(LeaderboardType.OVERVIEW)) {
-            showGuildOverview(event, guild);
+            showGuildOverview(event, guild, args);
             return;
         }
 
@@ -218,7 +218,7 @@ public class LeaderboardCommand extends Command {
             .queue();
     }
 
-    private void showGuildOverview(MessageReceivedEvent event, GuildLeaderboardResponse.Guild guild) {
+    private void showGuildOverview(MessageReceivedEvent event, GuildLeaderboardResponse.Guild guild, String[] args) {
         GuildMetricsResponse metrics = app.getHypixel().getGuildLeaderboardMetrics(guild.getId());
         if (metrics.getData().isEmpty()) {
             MessageFactory.makeWarning(event.getMessage(), "There are no metrics for this guild yet!\nTry again later.")
@@ -226,6 +226,9 @@ public class LeaderboardCommand extends Command {
                 .queue();
             return;
         }
+
+        int page = NumberUtil.isNumeric(args[args.length - 1]) ? NumberUtil.parseInt(args[args.length - 1], 1) : 1;
+        SimplePaginator<GuildMetricsResponse.GuildMetrics> paginator = new SimplePaginator<>(metrics.getData(), 7, page);
 
         GuildMetricsResponse.GuildMetrics weekOldMetrics = metrics.getData().get(Math.min(7, metrics.getData().size()) - 1);
 
@@ -237,9 +240,7 @@ public class LeaderboardCommand extends Command {
             .set("skills", NumberUtil.formatNicelyWithDecimals(guild.getAverageSkill() - weekOldMetrics.getAverageSkill()))
             .set("slayers", NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer() - weekOldMetrics.getAverageSlayer()));
 
-        for (int i = 0; i < Math.min(7, metrics.getData().size()); i++) {
-            GuildMetricsResponse.GuildMetrics guildMetrics = metrics.getData().get(i);
-
+        paginator.forEach((index, key, guildMetrics) -> {
             message.addField("Stats from " + guildMetrics.getCreatedAt().diffForHumans(), String.format(
                 "```elm\nAverage Skills  > %s (%s)\nAverage Slayers > %s\nMembers         > %s```",
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkillProgress()),
@@ -247,7 +248,11 @@ public class LeaderboardCommand extends Command {
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
                 NumberUtil.formatNicely(guildMetrics.getMembers())
             ), false);
-        }
+        });
+
+        message.addField("", "\n" + paginator.generateFooter(String.format("%sleaderboard overview %s",
+            Constants.COMMAND_PREFIX, guild.getName()
+        )), false);
 
         message.queue();
     }
