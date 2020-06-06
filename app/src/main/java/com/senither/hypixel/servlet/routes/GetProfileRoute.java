@@ -32,6 +32,7 @@ import spark.Request;
 import spark.Response;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class GetProfileRoute extends SparkRoute {
@@ -61,23 +62,31 @@ public class GetProfileRoute extends SparkRoute {
             }
         }
 
-        SkyBlockProfileReply profile = app.getHypixel().getMostProgressedSkyBlockProfileFromUsername(username).get(10, TimeUnit.SECONDS);
-        PlayerReply player = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
-        UUID uuid = app.getHypixel().getUUIDFromName(username);
+        try {
+            SkyBlockProfileReply profile = app.getHypixel().getMostProgressedSkyBlockProfileFromUsername(username).get(10, TimeUnit.SECONDS);
+            PlayerReply player = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
+            UUID uuid = app.getHypixel().getUUIDFromName(username);
 
-        JsonObject member = profile.getProfile().getAsJsonObject("members").getAsJsonObject(uuid.toString().replace("-", ""));
+            JsonObject member = profile.getProfile().getAsJsonObject("members").getAsJsonObject(uuid.toString().replace("-", ""));
 
-        JsonObject data = new JsonObject();
-        data.addProperty("uuid", formatUUID(player.getPlayer().get("uuid").getAsString()));
-        data.addProperty("username", player.getPlayer().get("displayname").getAsString());
-        data.add("profile", profile.getProfile());
+            JsonObject data = new JsonObject();
+            data.addProperty("uuid", formatUUID(player.getPlayer().get("uuid").getAsString()));
+            data.addProperty("username", player.getPlayer().get("displayname").getAsString());
+            data.add("profile", profile.getProfile());
 
-        JsonObject stats = new JsonObject();
-        stats.add("skills", StatisticsChecker.SKILLS.checkUser(player, profile, member).toJson());
-        stats.add("slayer", StatisticsChecker.SLAYER.checkUser(player, profile, member).toJson());
-        data.add("stats", stats);
+            JsonObject stats = new JsonObject();
+            stats.add("skills", StatisticsChecker.SKILLS.checkUser(player, profile, member).toJson());
+            stats.add("slayer", StatisticsChecker.SLAYER.checkUser(player, profile, member).toJson());
+            data.add("stats", stats);
 
-        return buildDataResponse(response, 200, data);
+            return buildDataResponse(response, 200, data);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof FriendlyException && e.getLocalizedMessage().contains("Failed to find any valid SkyBlock profiles")) {
+                return buildResponse(response, 410, "The requested user doesn't have any SkyBlock profiles!");
+            }
+
+            throw e;
+        }
     }
 
     private String formatUUID(String uuid) {

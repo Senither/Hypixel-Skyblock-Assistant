@@ -31,6 +31,7 @@ import spark.Response;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.concurrent.ExecutionException;
 
 public class SparkExceptionHandler implements ExceptionHandler<Exception> {
 
@@ -38,11 +39,13 @@ public class SparkExceptionHandler implements ExceptionHandler<Exception> {
     public void handle(Exception exception, Request request, Response response) {
         response.status(500);
 
-        if (exception instanceof FriendlyException) {
+        if (exception instanceof FriendlyException || (exception instanceof ExecutionException && exception.getCause() instanceof FriendlyException)) {
             JsonObject root = new JsonObject();
 
             root.addProperty("status", 400);
-            root.addProperty("reason", exception.getMessage());
+            root.addProperty("reason", exception instanceof ExecutionException
+                ? exception.getCause().getMessage() : exception.getMessage()
+            );
 
             response.header("Access-Control-Allow-Origin", "*");
             response.type("application/json");

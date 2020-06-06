@@ -291,7 +291,7 @@ public class Hypixel {
 
                 future.complete(skyBlockProfileReply);
             } catch (NullPointerException e) {
-                future.completeExceptionally(new FriendlyException("Found no SkyBlock profiles for " + name));
+                future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
             } catch (Exception e) {
                 future.completeExceptionally(e);
             }
