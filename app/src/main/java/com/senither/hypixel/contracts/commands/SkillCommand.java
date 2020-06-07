@@ -21,6 +21,7 @@
 
 package com.senither.hypixel.contracts.commands;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
@@ -41,13 +42,16 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public abstract class SkillCommand extends Command {
 
     private static final Logger log = LoggerFactory.getLogger(SkillsCommand.class);
+    private final ScheduledExecutorService schedulerService = Executors.newScheduledThreadPool(3, new ThreadFactoryBuilder()
+        .setPriority(Thread.MAX_PRIORITY)
+        .setNameFormat("skill-command-%d")
+        .build()
+    );
 
     private final String type;
 
@@ -151,7 +155,12 @@ public abstract class SkillCommand extends Command {
     }
 
     private void handleProfileResponse(SkyBlockProfileReply profileReply, Throwable throwable, Message message, EmbedBuilder embedBuilder, String username, String[] args) {
-        if (throwable == null) {
+        if (throwable != null) {
+            sendExceptionMessage(message, embedBuilder, throwable);
+            return;
+        }
+
+        schedulerService.submit(() -> {
             try {
                 PlayerReply playerReply = app.getHypixel().getPlayerByName(username).get(10, TimeUnit.SECONDS);
                 if (playerReply != null && playerReply.getPlayer() != null) {
@@ -166,17 +175,14 @@ public abstract class SkillCommand extends Command {
                 }
 
                 handleSkyblockProfile(message, profileReply, playerReply, args);
-                return;
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                throwable = e;
+                sendExceptionMessage(message, embedBuilder, e);
             } catch (Exception e) {
                 log.error("An exception where thrown during the {} command, message: {}",
                     getClass().getSimpleName(), e.getMessage(), e
                 );
             }
-        }
-
-        sendExceptionMessage(message, embedBuilder, throwable);
+        });
     }
 
     protected JsonObject getProfileMemberFromPlayer(SkyBlockProfileReply profileReply, PlayerReply playerReply) {
