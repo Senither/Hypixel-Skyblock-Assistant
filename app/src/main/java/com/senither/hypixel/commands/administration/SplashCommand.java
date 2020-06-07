@@ -640,6 +640,15 @@ public class SplashCommand extends Command {
             return;
         }
 
+        String username = "~ Unknown ~";
+        try {
+            username = app.getHypixel().getUsernameFromUuid(
+                app.getHypixel().getUUIDFromUser(event.getAuthor())
+            );
+        } catch (SQLException e) {
+            //
+        }
+
         try {
             long splashId = app.getSplashManager().createSplash(
                 splashChannel,
@@ -652,7 +661,10 @@ public class SplashCommand extends Command {
                 "The splash has been registered successfully with an ID of **:id**!"
             )
                 .setTitle("Splash has been created!")
-                .setFooter("Splasher: " + event.getAuthor().getAsTag())
+                .setFooter(String.format("Splasher: %s (IGN: %s)",
+                    event.getAuthor().getAsTag(),
+                    username
+                ))
                 .set("id", NumberUtil.formatNicely(splashId))
                 .queue();
 
