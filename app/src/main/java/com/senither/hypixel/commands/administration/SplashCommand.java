@@ -649,7 +649,7 @@ public class SplashCommand extends Command {
             ).get();
 
             MessageFactory.makeInfo(event.getMessage(),
-                "The splash have been registered successfully with an ID of **:id**!"
+                "The splash has been registered successfully with an ID of **:id**!"
             )
                 .setTitle("Splash has been created!")
                 .setFooter("Splasher: " + event.getAuthor().getAsTag())
