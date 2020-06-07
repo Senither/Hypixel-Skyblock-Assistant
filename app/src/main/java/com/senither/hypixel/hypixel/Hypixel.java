@@ -134,7 +134,7 @@ public class Hypixel {
             }
 
             AbstractReply cachedPlayerProfile = replyCache.getIfPresent(cacheKey);
-            if (cachedPlayerProfile != null && cachedPlayerProfile instanceof PlayerReply) {
+            if (cachedPlayerProfile instanceof PlayerReply) {
                 log.debug("Found player profile for {} using the in-memory cache (ID: {})", name, uuid.toString());
 
                 future.complete((PlayerReply) cachedPlayerProfile);

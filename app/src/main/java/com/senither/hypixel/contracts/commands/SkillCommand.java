@@ -28,6 +28,7 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.commands.statistics.SkillsCommand;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.utils.NumberUtil;
@@ -112,6 +113,11 @@ public abstract class SkillCommand extends Command {
                     return;
                 }
 
+                if (playerReply.getPlayer() == null) {
+                    sendMissingSkyBlockProfilesMessage(message, username, profileName, new ArrayList<>());
+                    return;
+                }
+
                 List<String> profileNames = new ArrayList<>();
                 JsonObject profiles = playerReply.getPlayer().getAsJsonObject("stats").getAsJsonObject("SkyBlock").getAsJsonObject("profiles");
                 for (Map.Entry<String, JsonElement> profileEntry : profiles.entrySet()) {
@@ -128,13 +134,7 @@ public abstract class SkillCommand extends Command {
                     return;
                 }
 
-                message.editMessage(MessageFactory.makeWarning(message, "Failed to find any valid profile for **:name** called **:profile**")
-                    .setTitle("Failed to find profile for " + username)
-                    .set("name", username)
-                    .set("profile", profileName)
-                    .addField("Valid Profiles", "`" + String.join("`, `", profileNames) + "`", false)
-                    .buildEmbed()
-                ).queue();
+                sendMissingSkyBlockProfilesMessage(message, username, profileName, profileNames);
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 if (e.getCause() instanceof FriendlyException) {
                     message.editMessage(embedBuilder
@@ -195,6 +195,19 @@ public abstract class SkillCommand extends Command {
             return displayName;
         }
         return "\\" + displayName;
+    }
+
+    private void sendMissingSkyBlockProfilesMessage(Message message, String username, String profileName, List<String> profileNames) {
+        PlaceholderMessage placeholderMessage = MessageFactory.makeWarning(message, "Failed to find any valid profile for **:name** called **:profile**")
+            .setTitle("Failed to find profile for " + username)
+            .set("name", username)
+            .set("profile", profileName);
+
+        if (!profileNames.isEmpty()) {
+            placeholderMessage.addField("Valid Profiles", "`" + String.join("`, `", profileNames) + "`", false);
+        }
+
+        message.editMessage(placeholderMessage.buildEmbed()).queue();
     }
 
     private String getUsernameFromMessage(MessageReceivedEvent event, String[] args) {

@@ -139,10 +139,10 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
         event.getChannel().sendMessage(embedBuilder.build()).queue(message -> {
             try {
                 PlayerReply playerReply = app.getHypixel().getPlayerByName(username).get(5, TimeUnit.SECONDS);
-                if (playerReply == null) {
+                if (playerReply == null || playerReply.getPlayer() == null) {
                     message.editMessage(new EmbedBuilder()
                         .setColor(MessageType.ERROR.getColor())
-                        .setDescription(String.format("Failed to load player data for **%s**, found no valid player data.",
+                        .setDescription(String.format("Failed to load player data for **%s**, found no valid player data, does the user exists?",
                             username
                         ))
                         .build()
