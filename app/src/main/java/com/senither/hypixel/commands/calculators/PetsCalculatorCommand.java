@@ -104,8 +104,8 @@ public class PetsCalculatorCommand extends Command {
             return;
         }
 
-        int min = NumberUtil.getBetween(NumberUtil.parseInt(args[1], 0), 0, 100);
-        int max = NumberUtil.getBetween(NumberUtil.parseInt(args[2], 50), 0, 100);
+        int min = NumberUtil.getBetween(NumberUtil.parseInt(args[1], 0), 1, 100);
+        int max = NumberUtil.getBetween(NumberUtil.parseInt(args[2], 50), 1, 100);
 
         if (min > max) {
             int temp = min;
@@ -115,7 +115,7 @@ public class PetsCalculatorCommand extends Command {
 
         int xp = 0;
         Integer offset = Constants.PET_OFFSET.get(rarity);
-        for (int i = offset + min; i < offset + max - 1; i++) {
+        for (int i = offset + min - 1; i < offset + max - 1; i++) {
             xp += Constants.PET_EXPERIENCE.asList().get(i);
         }
 
