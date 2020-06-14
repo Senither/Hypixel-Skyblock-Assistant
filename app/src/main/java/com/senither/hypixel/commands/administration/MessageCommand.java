@@ -7,10 +7,13 @@ import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 public class MessageCommand extends Command {
@@ -154,7 +157,55 @@ public class MessageCommand extends Command {
     }
 
     private void createNewMessage(MessageReceivedEvent event, String[] args) {
-        MessageFactory.makeInfo(event.getMessage(), "createNewMessage(MessageReceivedEvent event, String[] args)").queue();
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the channel you wish to send the message in!"
+            ).queue();
+            return;
+        }
+
+        TextChannel channel = getChannelFromMessage(event.getMessage(), args);
+        if (channel == null) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must provide a valid name, or mention an existing text channel you wish to send the message in."
+            ).queue();
+            return;
+        }
+
+        if (!channel.canTalk()) {
+            MessageFactory.makeError(event.getMessage(),
+                "The bot does not have permissions to send messages in the :name channel!"
+            ).set("name", channel.getAsMention()).queue();
+            return;
+        }
+
+        String[] rawParts = event.getMessage().getContentRaw().split(" ");
+        String rawContent = String.join(" ", Arrays.copyOfRange(rawParts, 3, rawParts.length));
+
+        channel.sendMessage(rawContent).queue(message -> {
+            String encodedContent = "base64:" + new String(Base64.getEncoder().encode(rawContent.getBytes()));
+
+            try {
+                app.getDatabaseManager().queryInsert("INSERT `messages` SET `discord_id` = ?, `channel_id` = ?, `message_id` = ?, `content` = ?",
+                    event.getGuild().getIdLong(),
+                    channel.getIdLong(),
+                    message.getIdLong(),
+                    encodedContent
+                );
+
+                MessageFactory.makeSuccess(event.getMessage(),
+                    "The message have been send and registered successfully! The message is not being tracked by the bot."
+                ).queue();
+            } catch (SQLException e) {
+                MessageFactory.makeError(event.getMessage(),
+                    "Failed to register the message, error: " + e.getMessage()
+                ).queue();
+            }
+        }, error -> {
+            MessageFactory.makeError(event.getMessage(),
+                "Failed to send the message to the :name channel, error: " + error.getMessage()
+            ).set("name", channel.getAsMention()).queue();
+        });
     }
 
     private void listMessages(MessageReceivedEvent event, String[] args) {
@@ -171,5 +222,24 @@ public class MessageCommand extends Command {
 
     private void removeMessageVariable(MessageReceivedEvent event, DataRow message, String[] args) {
         MessageFactory.makeInfo(event.getMessage(), "removeMessageVariable(MessageReceivedEvent event, DataRow message, String[] args)").queue();
+    }
+
+    private TextChannel getChannelFromMessage(Message message, String[] args) {
+        if (!message.getMentionedChannels().isEmpty()) {
+            return message.getMentionedChannels().get(0);
+        }
+
+        if (args.length == 0) {
+            return null;
+        }
+
+        String part = args[0].trim();
+
+        if (NumberUtil.isNumeric(part)) {
+            return message.getGuild().getTextChannelById(part);
+        }
+
+        List<TextChannel> channelsByName = message.getGuild().getTextChannelsByName(part, true);
+        return channelsByName.isEmpty() ? null : channelsByName.get(0);
     }
 }
