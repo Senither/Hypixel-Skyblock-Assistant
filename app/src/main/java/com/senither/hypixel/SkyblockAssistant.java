@@ -83,6 +83,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new DonationCommand(this));
         commandManager.registerCommand(new GuildRankScanCommand(this));
         commandManager.registerCommand(new GuildSetupCommand(this));
+        commandManager.registerCommand(new MessageCommand(this));
         commandManager.registerCommand(new RankCheckCommand(this));
         commandManager.registerCommand(new RankRequirementCommand(this));
         commandManager.registerCommand(new SettingsCommand(this));
