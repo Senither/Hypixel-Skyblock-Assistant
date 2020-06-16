@@ -153,6 +153,12 @@ public class MessageCommand extends Command {
                         removeMessageVariable(event, message, Arrays.copyOfRange(args, 3, args.length));
                         break;
 
+                    case "ls":
+                    case "list":
+                    case "show":
+                        listMessageVariables(event, message);
+                        break;
+
                     default:
                         MessageFactory.makeWarning(event.getMessage(),
                             "Invalid message variable action given, the action must either be `set` or `remove`"
@@ -333,6 +339,28 @@ public class MessageCommand extends Command {
         } else {
             MessageFactory.makeWarning(event.getMessage(), "Failed to update the message, does the message still exist?").queue();
         }
+    }
+
+    private void listMessageVariables(MessageReceivedEvent event, MessageContainer message) {
+        if (message.getVariables().isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "The message current has no variables, you can create one using `:command var :id <name> <value>`"
+            ).set("command", Constants.COMMAND_PREFIX + "message").set("id", message.getMessageId()).queue();
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder().append("```\n");
+        for (Map.Entry<String, String> entry : message.getVariables().entrySet()) {
+            builder
+                .append(entry.getKey())
+                .append(" -> ")
+                .append(entry.getValue())
+                .append("\n");
+        }
+
+        MessageFactory.makeInfo(event.getMessage(), builder.append("```").toString())
+            .setTitle("Message variables for " + message.getMessageId())
+            .queue();
     }
 
     private TextChannel getChannelFromMessage(Message message, String[] args) {
