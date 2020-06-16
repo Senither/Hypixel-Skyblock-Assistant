@@ -131,7 +131,11 @@ public class DatabaseManager {
 
         int index = 1;
         for (Object bind : binds) {
-            statement.setString(index++, bind.toString());
+            if (bind == null) {
+                statement.setNull(index++, 0);
+            } else {
+                statement.setString(index++, bind.toString());
+            }
         }
 
         return statement;

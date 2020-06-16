@@ -254,7 +254,29 @@ public class MessageCommand extends Command {
     }
 
     private void removeMessageVariable(MessageReceivedEvent event, MessageContainer message, String[] args) {
-        MessageFactory.makeInfo(event.getMessage(), "removeMessageVariable(MessageReceivedEvent event, MessageContainer message, String[] args)").queue();
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the name of the variable you wish to remove from the message!"
+            ).queue();
+            return;
+        }
+
+        String name = args[0];
+
+        if (!message.getVariables().containsKey(name)) {
+            MessageFactory.makeError(event.getMessage(),
+                "Found no variables in the current message called `:name`, please make sure the variable you're trying to remove exists."
+            ).set("name", name).queue();
+            return;
+        }
+
+        message.getVariables().remove(name);
+
+        if (message.updateMessage(event.getGuild())) {
+            MessageFactory.makeSuccess(event.getMessage(), "The variable have been successfully removed from the message!").queue();
+        } else {
+            MessageFactory.makeWarning(event.getMessage(), "Failed to update the message, does the message still exist?").queue();
+        }
     }
 
     private TextChannel getChannelFromMessage(Message message, String[] args) {
