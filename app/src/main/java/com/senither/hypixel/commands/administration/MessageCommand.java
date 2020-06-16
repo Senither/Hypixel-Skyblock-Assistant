@@ -1,9 +1,11 @@
 package com.senither.hypixel.commands.administration;
 
 import com.google.gson.reflect.TypeToken;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
+import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
@@ -77,7 +79,7 @@ public class MessageCommand extends Command {
         }
 
         if (args.length == 0 || NumberUtil.isNumeric(args[0])) {
-            listMessages(event, args);
+            listMessages(event, guildEntry, args);
             return;
         } else if ("create".equalsIgnoreCase(args[0]) || "new".equalsIgnoreCase(args[0])) {
             createNewMessage(event, Arrays.copyOfRange(args, 1, args.length));
@@ -209,8 +211,53 @@ public class MessageCommand extends Command {
         });
     }
 
-    private void listMessages(MessageReceivedEvent event, String[] args) {
-        MessageFactory.makeInfo(event.getMessage(), "listMessages(MessageReceivedEvent event,String[] args)").queue();
+    private void listMessages(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, String[] args) {
+        try {
+            Collection result = app.getDatabaseManager().query("SELECT * FROM `messages` WHERE `discord_id` = ? ORDER BY `created_at` DESC", event.getGuild().getIdLong());
+            if (result.isEmpty()) {
+                MessageFactory.makeWarning(event.getMessage(),
+                    "Found no messages for this server, you can create a new bot managed message using `:command`"
+                ).set("command", Constants.COMMAND_PREFIX + "message create <channel> <message>").queue();
+                return;
+            }
+
+            List<String> messages = new ArrayList<>();
+            for (DataRow row : result) {
+                MessageContainer container = new MessageContainer(row);
+
+                TextChannel textChannelById = event.getGuild().getTextChannelById(container.getChannelId());
+                if (textChannelById == null) {
+                    continue;
+                }
+
+                String message = container.getFormattedMessage();
+                messages.add(String.format("**[%s in %s](%s)**\n%s",
+                    container.getMessageId(),
+                    textChannelById.getAsMention(),
+                    container.getMessageUrl(),
+                    String.format("```%s...```", message.substring(0, Math.min(message.length(), 38)).trim())
+                ));
+            }
+
+            int page = 1;
+            if (args.length > 0) {
+                page = NumberUtil.parseInt(args[0], 1);
+            }
+
+            SimplePaginator<String> paginator = new SimplePaginator<>(messages, 5, page);
+            messages.clear();
+            paginator.forEach((index, key, val) -> messages.add(val));
+
+            MessageFactory.makeInfo(event.getMessage(), "")
+                .setTitle("Tracked Messages in " + guildEntry.getName())
+                .setDescription(String.format("%s\n%s",
+                    String.join("\n", messages),
+                    paginator.generateFooter(Constants.COMMAND_PREFIX + "message"))
+                )
+                .queue();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void editMessage(MessageReceivedEvent event, MessageContainer message, String[] args) {
@@ -367,7 +414,7 @@ public class MessageCommand extends Command {
                     encodedMessage, encodedVariables, discordId, messageId
                 );
 
-                textChannelById.editMessageById(messageId, formatMessage()).queue();
+                textChannelById.editMessageById(messageId, getFormattedMessage()).queue();
             } catch (SQLException e) {
                 e.printStackTrace();
 
@@ -377,7 +424,7 @@ public class MessageCommand extends Command {
             return true;
         }
 
-        private String formatMessage() {
+        public String getFormattedMessage() {
             if (variables.isEmpty()) {
                 return message;
             }
@@ -389,6 +436,12 @@ public class MessageCommand extends Command {
             }
 
             return message.toString();
+        }
+
+        public String getMessageUrl() {
+            return String.format("https://discord.com/channels/%d/%d/%d",
+                discordId, channelId, messageId
+            );
         }
     }
 }
