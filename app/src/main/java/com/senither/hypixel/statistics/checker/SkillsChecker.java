@@ -74,8 +74,9 @@ public class SkillsChecker extends Checker<SkillsResponse> {
         double combat = getDoubleFromObject(achievements, "skyblock_combat");
         double fishing = getDoubleFromObject(achievements, "skyblock_angler");
         double alchemy = getDoubleFromObject(achievements, "skyblock_concoctor");
+        double taming = getDoubleFromObject(achievements, "skyblock_domesticator");
 
-        if (mining + foraging + enchanting + farming + combat + fishing + alchemy == 0) {
+        if (mining + foraging + enchanting + farming + combat + fishing + alchemy + taming == 0) {
             return new SkillsResponse(false, false);
         }
 
@@ -86,7 +87,8 @@ public class SkillsChecker extends Checker<SkillsResponse> {
             .setFarming(farming, -1)
             .setCombat(combat, -1)
             .setFishing(fishing, -1)
-            .setAlchemy(alchemy, -1);
+            .setAlchemy(alchemy, -1)
+            .setTaming(taming, -1);
     }
 
     private double getSkillLevelFromExperience(double experience, boolean isRunecrafting) {
