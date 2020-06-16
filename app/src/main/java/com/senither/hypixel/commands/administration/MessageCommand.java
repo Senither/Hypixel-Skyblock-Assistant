@@ -1,20 +1,21 @@
 package com.senither.hypixel.commands.administration;
 
+import com.google.gson.reflect.TypeToken;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 public class MessageCommand extends Command {
 
@@ -90,7 +91,7 @@ public class MessageCommand extends Command {
             return;
         }
 
-        DataRow message = null;
+        MessageContainer message;
 
         try {
             Collection query = app.getDatabaseManager().query("SELECT * FROM `messages` WHERE `discord_id` = ? AND `message_id` = ?",
@@ -104,7 +105,7 @@ public class MessageCommand extends Command {
                 return;
             }
 
-            message = query.first();
+            message = new MessageContainer(query.first());
         } catch (SQLException e) {
             MessageFactory.makeError(event.getMessage(),
                 "Something went wrong while trying to load the message data from the database, error: " + e.getMessage()
@@ -212,16 +213,25 @@ public class MessageCommand extends Command {
         MessageFactory.makeInfo(event.getMessage(), "listMessages(MessageReceivedEvent event,String[] args)").queue();
     }
 
-    private void editMessage(MessageReceivedEvent event, DataRow message, String[] args) {
-        MessageFactory.makeInfo(event.getMessage(), "editMessage(MessageReceivedEvent event, DataRow message, String[] args)").queue();
+    private void editMessage(MessageReceivedEvent event, MessageContainer message, String[] args) {
+        String[] rawParts = event.getMessage().getContentRaw().split(" ");
+        String rawContent = String.join(" ", Arrays.copyOfRange(rawParts, 3, rawParts.length));
+
+        message.setMessage(String.join(" ", rawContent));
+
+        if (message.updateMessage(event.getGuild())) {
+            MessageFactory.makeSuccess(event.getMessage(), "The message have been updated successfully!").queue();
+        } else {
+            MessageFactory.makeWarning(event.getMessage(), "Failed to update the message, does the message still exist?").queue();
+        }
     }
 
-    private void setMessageVariableValue(MessageReceivedEvent event, DataRow message, String[] args) {
-        MessageFactory.makeInfo(event.getMessage(), "setMessageVariableValue(MessageReceivedEvent event, DataRow message, String[] args)").queue();
+    private void setMessageVariableValue(MessageReceivedEvent event, MessageContainer message, String[] args) {
+        MessageFactory.makeInfo(event.getMessage(), "setMessageVariableValue(MessageReceivedEvent event, MessageContainer message, String[] args)").queue();
     }
 
-    private void removeMessageVariable(MessageReceivedEvent event, DataRow message, String[] args) {
-        MessageFactory.makeInfo(event.getMessage(), "removeMessageVariable(MessageReceivedEvent event, DataRow message, String[] args)").queue();
+    private void removeMessageVariable(MessageReceivedEvent event, MessageContainer message, String[] args) {
+        MessageFactory.makeInfo(event.getMessage(), "removeMessageVariable(MessageReceivedEvent event, MessageContainer message, String[] args)").queue();
     }
 
     private TextChannel getChannelFromMessage(Message message, String[] args) {
@@ -241,5 +251,85 @@ public class MessageCommand extends Command {
 
         List<TextChannel> channelsByName = message.getGuild().getTextChannelsByName(part, true);
         return channelsByName.isEmpty() ? null : channelsByName.get(0);
+    }
+
+    class MessageContainer {
+
+        private final long discordId;
+        private final long channelId;
+        private final long messageId;
+        private String message;
+
+        private final HashMap<String, String> variables = new HashMap<>();
+
+        public MessageContainer(DataRow row) {
+            this.discordId = row.getLong("discord_id");
+            this.channelId = row.getLong("channel_id");
+            this.messageId = row.getLong("message_id");
+            this.message = row.getString("content");
+
+            if (row.getString("variables") != null) {
+                HashMap<String, String> variables = app.getHypixel().getGson().fromJson(
+                    row.getString("variables"),
+                    new TypeToken<HashMap<String, String>>() {
+                    }.getType()
+                );
+
+                if (variables != null) {
+                    for (Map.Entry<String, String> varEntry : variables.entrySet()) {
+                        this.variables.put(varEntry.getKey(), varEntry.getValue());
+                    }
+                }
+            }
+        }
+
+        public long getDiscordId() {
+            return discordId;
+        }
+
+        public long getChannelId() {
+            return channelId;
+        }
+
+        public long getMessageId() {
+            return messageId;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public HashMap<String, String> getVariables() {
+            return variables;
+        }
+
+        public boolean updateMessage(Guild guild) {
+            TextChannel textChannelById = guild.getTextChannelById(channelId);
+            if (textChannelById == null) {
+                return false;
+            }
+
+            textChannelById.editMessageById(messageId, formatMessage()).queue();
+
+            return true;
+        }
+
+        private String formatMessage() {
+            if (variables.isEmpty()) {
+                return message;
+            }
+
+            PlaceholderMessage message = new PlaceholderMessage(null, this.message);
+
+            for (Map.Entry<String, String> varEntry : variables.entrySet()) {
+                message.set(varEntry.getKey(), varEntry.getValue());
+            }
+
+            return message.toString();
+        }
     }
 }
