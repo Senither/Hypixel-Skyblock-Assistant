@@ -33,7 +33,9 @@ public class MessageCommand extends Command {
     @Override
     public List<String> getDescription() {
         return Arrays.asList(
-            "TODO"
+            "This command can be used to create tracked messages through the bot, which",
+            "can then be edited at a later point, the system also support variables",
+            "that can be added to messages for easier edits in the future."
         );
     }
 
@@ -43,15 +45,22 @@ public class MessageCommand extends Command {
             "`:command [page]` - List messages that is managed by the bot",
             "`:command create <channel> <message>` - Edits the message with the given ID",
             "`:command edit <id> <message>` - Edits the message with the given ID",
+            "`:command delete <id>` - Deletes the given tracked message ID",
             "`:command var <id> set <name> <value>` - Sets the value of a variable for the given message ID",
-            "`:command var <id> remove <name>` - Deletes the given variable for the given message ID"
+            "`:command var <id> remove <name>` - Deletes the given variable for the given message ID",
+            "`:command var <id> list` - Lists all the variables for the given message"
         );
     }
 
     @Override
     public List<String> getExampleUsage() {
         return Arrays.asList(
-            "TODO"
+            "`:command create #general Hello, World!` - Creates a message in the #general channel",
+            "`:command edit 722561333509357689 Hello, :name!` - Edits the message with the given ID",
+            "`:command var 722561333509357689 set name World` - Sets the `name` variable to the value \"World\"",
+            "`:command var 722561333509357689 remove name` - Removes the `name` variable",
+            "`:command var 722561333509357689 list` - List variables for the given message",
+            "`:command delete 722561333509357689` - Deletes the given message ID"
         );
     }
 
