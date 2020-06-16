@@ -132,14 +132,14 @@ public class MessageCommand extends Command {
                     case "set":
                     case "edit":
                     case "modify":
-                        setMessageVariableValue(event, message, Arrays.copyOfRange(args, 2, args.length));
+                        setMessageVariableValue(event, message, Arrays.copyOfRange(args, 3, args.length));
                         break;
 
                     case "del":
                     case "rem":
                     case "delete":
                     case "remove":
-                        removeMessageVariable(event, message, Arrays.copyOfRange(args, 2, args.length));
+                        removeMessageVariable(event, message, Arrays.copyOfRange(args, 3, args.length));
                         break;
 
                     default:
@@ -227,7 +227,30 @@ public class MessageCommand extends Command {
     }
 
     private void setMessageVariableValue(MessageReceivedEvent event, MessageContainer message, String[] args) {
-        MessageFactory.makeInfo(event.getMessage(), "setMessageVariableValue(MessageReceivedEvent event, MessageContainer message, String[] args)").queue();
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the name of the variable you wish to setup on the message!"
+            ).queue();
+            return;
+        }
+
+        if (args.length == 1) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the value of the variable you wish to setup on the message!"
+            ).queue();
+            return;
+        }
+
+        String name = args[0];
+        String value = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+
+        message.getVariables().put(name, value);
+
+        if (message.updateMessage(event.getGuild())) {
+            MessageFactory.makeSuccess(event.getMessage(), "The message have been updated successfully!").queue();
+        } else {
+            MessageFactory.makeWarning(event.getMessage(), "Failed to update the message, does the message still exist?").queue();
+        }
     }
 
     private void removeMessageVariable(MessageReceivedEvent event, MessageContainer message, String[] args) {
@@ -313,7 +336,21 @@ public class MessageCommand extends Command {
                 return false;
             }
 
-            textChannelById.editMessageById(messageId, formatMessage()).queue();
+            try {
+                String encodedMessage = "base64:" + new String(Base64.getEncoder().encode(message.getBytes()));
+                String encodedVariables = variables.isEmpty() ? null
+                    : "base64:" + new String(Base64.getEncoder().encode(app.getHypixel().getGson().toJson(variables).getBytes()));
+
+                app.getDatabaseManager().queryUpdate("UPDATE `messages` SET `content` = ?, `variables` = ? WHERE `discord_id` = ? AND `message_id` = ?",
+                    encodedMessage, encodedVariables, discordId, messageId
+                );
+
+                textChannelById.editMessageById(messageId, formatMessage()).queue();
+            } catch (SQLException e) {
+                e.printStackTrace();
+
+                return false;
+            }
 
             return true;
         }
