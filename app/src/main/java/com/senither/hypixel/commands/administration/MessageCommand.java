@@ -35,7 +35,10 @@ public class MessageCommand extends Command {
         return Arrays.asList(
             "This command can be used to create tracked messages through the bot, which",
             "can then be edited at a later point, the system also support variables",
-            "that can be added to messages for easier edits in the future."
+            "that can be added to messages for easier edits in the future.",
+            "Variables are defined using a semicolon, followed by a word, when setting up a",
+            "variable the word can be defined as a variable for the message, and any value",
+            "the variable has will be inserted into the message in the variables place."
         );
     }
 
@@ -219,8 +222,8 @@ public class MessageCommand extends Command {
                 );
 
                 MessageFactory.makeSuccess(event.getMessage(),
-                    "The message have been send and registered successfully! The message is not being tracked by the bot."
-                ).queue();
+                    "The message have been send and registered successfully! The message is now being tracked by the bot."
+                ).setFooter("Message ID: " + message.getIdLong()).queue();
             } catch (SQLException e) {
                 MessageFactory.makeError(event.getMessage(),
                     "Failed to register the message, error: " + e.getMessage()
@@ -278,7 +281,9 @@ public class MessageCommand extends Command {
                 )
                 .queue();
         } catch (SQLException e) {
-            e.printStackTrace();
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to load the messages from the database! Error: " + e.getMessage()
+            ).queue();
         }
     }
 
@@ -337,7 +342,9 @@ public class MessageCommand extends Command {
         message.getVariables().put(name, value);
 
         if (message.updateMessage(event.getGuild())) {
-            MessageFactory.makeSuccess(event.getMessage(), "The message have been updated successfully!").queue();
+            MessageFactory.makeSuccess(event.getMessage(),
+                "The `:name` variable value have been saved and the message have been updated successfully!"
+            ).set("name", name).queue();
         } else {
             MessageFactory.makeWarning(event.getMessage(), "Failed to update the message, does the message still exist?").queue();
         }
