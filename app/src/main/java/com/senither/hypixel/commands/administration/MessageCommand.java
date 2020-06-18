@@ -130,6 +130,13 @@ public class MessageCommand extends Command {
                 editMessage(event, message, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
+            case "rem":
+            case "del":
+            case "remove":
+            case "delete":
+                deleteMessage(event, message);
+                break;
+
             case "var":
             case "variable":
                 if (args.length == 2) {
@@ -285,6 +292,27 @@ public class MessageCommand extends Command {
             MessageFactory.makeSuccess(event.getMessage(), "The message have been updated successfully!").queue();
         } else {
             MessageFactory.makeWarning(event.getMessage(), "Failed to update the message, does the message still exist?").queue();
+        }
+    }
+
+    private void deleteMessage(MessageReceivedEvent event, MessageContainer message) {
+        try {
+            app.getDatabaseManager().queryUpdate("DELETE FROM `messages` WHERE `discord_id` = ? AND `message_id` = ?",
+                message.getDiscordId(), message.getMessageId()
+            );
+
+            MessageFactory.makeSuccess(event.getMessage(),
+                "The message have been removed from the message tracker successfully!"
+            ).queue();
+
+            TextChannel textChannelById = event.getGuild().getTextChannelById(message.getChannelId());
+            if (textChannelById != null) {
+                textChannelById.deleteMessageById(message.getMessageId()).queue(null, null);
+            }
+        } catch (SQLException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Something went wrong while trying to delete the message from the database, error: " + e.getMessage()
+            ).queue();
         }
     }
 
