@@ -11,6 +11,7 @@ import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -49,6 +50,7 @@ public class MessageCommand extends Command {
             "`:command create <channel> <message>` - Edits the message with the given ID",
             "`:command edit <id> <message>` - Edits the message with the given ID",
             "`:command delete <id>` - Deletes the given tracked message ID",
+            "`:command raw <id>` - Returns the raw content of the message",
             "`:command var <id> set <name> <value>` - Sets the value of a variable for the given message ID",
             "`:command var <id> remove <name>` - Deletes the given variable for the given message ID",
             "`:command var <id> list` - Lists all the variables for the given message"
@@ -138,6 +140,10 @@ public class MessageCommand extends Command {
             case "remove":
             case "delete":
                 deleteMessage(event, message);
+                break;
+
+            case "raw":
+                rawMessage(event, message);
                 break;
 
             case "var":
@@ -374,6 +380,31 @@ public class MessageCommand extends Command {
         } else {
             MessageFactory.makeWarning(event.getMessage(), "Failed to update the message, does the message still exist?").queue();
         }
+    }
+
+    private void rawMessage(MessageReceivedEvent event, MessageContainer message) {
+        PlaceholderMessage placeholderMessage = MessageFactory.makeInfo(event.getMessage(), "Raw message content for [:id](:url) in <#:channel>")
+            .set("id", message.getMessageId())
+            .set("url", message.getMessageUrl())
+            .set("channel", message.getChannelId());
+
+        if (!message.getVariables().isEmpty()) {
+            List<String> strings = new ArrayList<>();
+            for (Map.Entry<String, String> entry : message.getVariables().entrySet()) {
+                strings.add(String.format("%s => %s", entry.getKey(), entry.getValue()));
+            }
+
+            placeholderMessage.addField("Variables", String.format(
+                "```\n%s```", String.join("\n", strings)
+            ), false);
+        }
+
+        event.getChannel().sendMessage(
+            new MessageBuilder()
+                .setEmbed(placeholderMessage.buildEmbed())
+                .setContent(String.format("```\n%s```", message.getMessage()))
+                .build()
+        ).queue();
     }
 
     private void listMessageVariables(MessageReceivedEvent event, MessageContainer message) {
