@@ -122,6 +122,10 @@ public class SkyblockAssistant {
 
         log.info("Creating Hypixel API factory");
         this.hypixel = new Hypixel(this);
+        if (!this.hypixel.isLeaderboardApiValid()) {
+            log.warn("Invalid leaderboard URI provided, falling back to the public leaderboard URI");
+            configuration.setLeaderboardUri(null);
+        }
 
         log.info("Creating splash manager & resuming splash tracking");
         this.splashManager = new SplashManager(this);

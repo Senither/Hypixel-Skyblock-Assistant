@@ -30,6 +30,7 @@ public class Constants {
 
     public static final String COMMAND_PREFIX = "h!";
     public static final String VERIFY_ROLE = "Verified";
+    public static final String DEFAULT_LEADERBOARD_URI = "http://hypixel-app-api.senither.com/leaderboard/";
     public static final Carbon STARTED_BOT_AT = Carbon.now();
 
     public static final ImmutableMultiset<Integer> GENERAL_SKILL_EXPERIENCE = ImmutableMultiset.of(

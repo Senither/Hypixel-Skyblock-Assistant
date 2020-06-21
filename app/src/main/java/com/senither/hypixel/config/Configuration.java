@@ -21,12 +21,15 @@
 
 package com.senither.hypixel.config;
 
+import com.senither.hypixel.Constants;
+
 import java.util.UUID;
 
 public class Configuration {
 
     private String discord_token;
     private String hypixel_token;
+    private String leaderboard_uri;
     private String[] hypixel_tokens;
     private Database database;
     private Servlet servlet;
@@ -41,6 +44,20 @@ public class Configuration {
 
     public String[] getHypixelTokens() {
         return hypixel_tokens;
+    }
+
+    public String getLeaderboardUri() {
+        if (leaderboard_uri == null) {
+            return Constants.DEFAULT_LEADERBOARD_URI;
+        }
+
+        return leaderboard_uri.endsWith("/")
+            ? leaderboard_uri.substring(0, leaderboard_uri.length() - 1)
+            : leaderboard_uri;
+    }
+
+    public void setLeaderboardUri(String leaderboardUri) {
+        this.leaderboard_uri = leaderboardUri;
     }
 
     public Database getDatabase() {

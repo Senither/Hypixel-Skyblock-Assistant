@@ -33,6 +33,7 @@ import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.hypixel.response.GuildMetricsResponse;
+import com.senither.hypixel.hypixel.response.LeaderboardStatsResponse;
 import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
 import com.senither.hypixel.statistics.StatisticsChecker;
 import com.senither.hypixel.time.Carbon;
@@ -306,7 +307,7 @@ public class Hypixel {
         final String cacheKey = "skyblock-profile-" + name;
 
         AbstractReply cachedSkyBlockProfile = replyCache.getIfPresent(cacheKey);
-        if (cachedSkyBlockProfile != null && cachedSkyBlockProfile instanceof SkyBlockProfileReply) {
+        if (cachedSkyBlockProfile instanceof SkyBlockProfileReply) {
             log.debug("Found SkyBlock profile {} using the in-memory cache", name);
 
             ((SkyBlockProfileReply) cachedSkyBlockProfile).getProfile().addProperty("isFromCache", true);
@@ -381,7 +382,7 @@ public class Hypixel {
         final String cacheKey = "skyblock-guild-player-" + uuid;
 
         AbstractReply cachedSkyBlockGuild = replyCache.getIfPresent(cacheKey);
-        if (cachedSkyBlockGuild != null && cachedSkyBlockGuild instanceof GuildReply) {
+        if (cachedSkyBlockGuild instanceof GuildReply) {
             log.debug("Found SkyBlock Guild from player {} using the in-memory cache", uuid);
 
             future.complete((GuildReply) cachedSkyBlockGuild);
@@ -410,7 +411,7 @@ public class Hypixel {
         final String cacheKey = "skyblock-guild-" + name.trim().toLowerCase();
 
         AbstractReply cachedSkyBlockGuild = replyCache.getIfPresent(cacheKey);
-        if (cachedSkyBlockGuild != null && cachedSkyBlockGuild instanceof GuildReply) {
+        if (cachedSkyBlockGuild instanceof GuildReply) {
             log.debug("Found SkyBlock Guild {} using the in-memory cache", name);
 
             future.complete((GuildReply) cachedSkyBlockGuild);
@@ -456,7 +457,7 @@ public class Hypixel {
         final String cacheKey = "skyblock-player-leaderboard";
 
         Response cachedLeaderboard = responseCache.getIfPresent(cacheKey);
-        if (cachedLeaderboard != null && cachedLeaderboard instanceof PlayerLeaderboardResponse) {
+        if (cachedLeaderboard instanceof PlayerLeaderboardResponse) {
             log.debug("Found Player Leaderboard using the in-memory cache");
 
             return (PlayerLeaderboardResponse) cachedLeaderboard;
@@ -465,7 +466,7 @@ public class Hypixel {
         log.debug("Requesting for Player Leaderboard from the API");
 
         try {
-            PlayerLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet("http://hypixel-app-api.senither.com/leaderboard/players"), obj -> {
+            PlayerLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet(app.getConfiguration().getLeaderboardUri() + "/players"), obj -> {
                 String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
                 return gson.fromJson(content, PlayerLeaderboardResponse.class);
             });
@@ -486,7 +487,7 @@ public class Hypixel {
         final String cacheKey = "skyblock-leaderboard";
 
         Response cachedLeaderboard = responseCache.getIfPresent(cacheKey);
-        if (cachedLeaderboard != null && cachedLeaderboard instanceof GuildLeaderboardResponse) {
+        if (cachedLeaderboard instanceof GuildLeaderboardResponse) {
             log.debug("Found Guild Leaderboard using the in-memory cache");
 
             return (GuildLeaderboardResponse) cachedLeaderboard;
@@ -495,7 +496,7 @@ public class Hypixel {
         log.debug("Requesting for Guild Leaderboard from the API");
 
         try {
-            GuildLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet("http://hypixel-app-api.senither.com/leaderboard"), obj -> {
+            GuildLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet(app.getConfiguration().getLeaderboardUri()), obj -> {
                 String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
                 return gson.fromJson(content, GuildLeaderboardResponse.class);
             });
@@ -516,7 +517,7 @@ public class Hypixel {
         final String cacheKey = "skyblock-metrics-leaderboard-" + guildId;
 
         Response cachedLeaderboard = responseCache.getIfPresent(cacheKey);
-        if (cachedLeaderboard != null && cachedLeaderboard instanceof GuildMetricsResponse) {
+        if (cachedLeaderboard instanceof GuildMetricsResponse) {
             log.debug("Found metrics for {} using the in-memory cache", guildId);
 
             return (GuildMetricsResponse) cachedLeaderboard;
@@ -525,7 +526,7 @@ public class Hypixel {
         log.debug("Requesting for Guild metrics for {} from the API", guildId);
 
         try {
-            GuildMetricsResponse leaderboardResponse = httpClient.execute(new HttpGet("http://hypixel-app-api.senither.com/leaderboard/metrics/" + guildId), obj -> {
+            GuildMetricsResponse leaderboardResponse = httpClient.execute(new HttpGet(app.getConfiguration().getLeaderboardUri() + "/metrics/" + guildId), obj -> {
                 String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
                 return gson.fromJson(content, GuildMetricsResponse.class);
             });
@@ -546,7 +547,7 @@ public class Hypixel {
         final String cacheKey = "skyblock-player-leaderboard-" + guildId;
 
         Response cachedLeaderboard = responseCache.getIfPresent(cacheKey);
-        if (cachedLeaderboard != null && cachedLeaderboard instanceof PlayerLeaderboardResponse) {
+        if (cachedLeaderboard instanceof PlayerLeaderboardResponse) {
             log.debug("Found Player Leaderboard for {} using the in-memory cache", guildId);
 
             return (PlayerLeaderboardResponse) cachedLeaderboard;
@@ -555,7 +556,7 @@ public class Hypixel {
         log.debug("Requesting for Player Leaderboard for {} from the API", guildId);
 
         try {
-            PlayerLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet("http://hypixel-app-api.senither.com/leaderboard/players/" + guildId), obj -> {
+            PlayerLeaderboardResponse leaderboardResponse = httpClient.execute(new HttpGet(app.getConfiguration().getLeaderboardUri() + "/players/" + guildId), obj -> {
                 String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
                 return gson.fromJson(content, PlayerLeaderboardResponse.class);
             });
@@ -569,6 +570,23 @@ public class Hypixel {
             return leaderboardResponse;
         } catch (IOException e) {
             return null;
+        }
+    }
+
+    public boolean isLeaderboardApiValid() {
+        try {
+            LeaderboardStatsResponse response = httpClient.execute(new HttpGet(app.getConfiguration().getLeaderboardUri() + "/stats"), obj -> {
+                String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
+                return gson.fromJson(content, LeaderboardStatsResponse.class);
+            });
+
+            if (response == null || !response.isSuccess() || response.getData() == null) {
+                return false;
+            }
+
+            return response.getData().getGuilds() > 0 && response.getData().getPlayers() > 0;
+        } catch (IOException e) {
+            return false;
         }
     }
 

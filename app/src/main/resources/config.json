@@ -1,6 +1,7 @@
 {
     "discord_token": null,
     "hypixel_token": null,
+    "leaderboard_uri": null,
     "database": {
         "hostname": "localhost:3306",
         "username": "username",

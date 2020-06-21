@@ -28,6 +28,7 @@ Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](ht
  - [Prerequisites](#prerequisites)
  - [Installing Hypixel Skyblock Assistant](#installing-hypixel-skyblock-assistant)
  - [Installing Guild Report Web UI](#installing-guild-report-web-ui)
+ - [Using a custom Guild Leaderboard](#using-a-custom-guild-leaderboard)
  - [Configuration](#configuration)
  
 ### Prerequisites
@@ -35,6 +36,7 @@ Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](ht
 ##### App (Bot)
  * Java >= 8
  * Gradle >= 4
+ * MySQL/MariaDB Server
  * Git
 
 #### Web UI
@@ -74,6 +76,12 @@ While the dependencies are being installed go to the config file to setup the ap
 
 Running the app with `prod` will build all the assets for a production environment, you can also use `dev` for a development environment, or `watch` for setting up a watcher that will re-build the project anytime it sees changes being made to the files.
 
+### Using a custom Guild Leaderboard
+
+The guild and player leaderboards are created by the [Hypixel Skyblock Leaderboard](https://github.com/Senither/Hypixel-Skyblock-Leaderboard) project, which provides an API for the bot to pull the leaderboard data from, and a way to create and manage the leaderboards while not really affecting the bot itself.
+
+If you're interested in creating your own leaderboards instead of using the [public leaderboard API](http://hypixel-app-api.senither.com/leaderboard), you can follow the instructions on the [Hypixel Skyblock Leaderboard](https://github.com/Senither/Hypixel-Skyblock-Leaderboard) repository to setup the API with a custom list of guilds to track.
+
 ### Configuration
 
 #### Discord Token
@@ -83,6 +91,10 @@ The Discord token is used to login into Discords web services, allowing the bot 
 #### Hypixel Token
 
 The Hypixel token is used to communicate with Hypixels API, allowing to bot to get player, profile, and guild information for the Skyblock gamemode. If you don't already have a Hypixel API token you can get one by logging into the server using `mc.hypixel.net` and running `/api`.
+
+#### Leaderboard URI
+
+The leaderboard URI is the URI that the [leaderboard tracker](https://github.com/Senither/Hypixel-Skyblock-Leaderboard) is hosted at, when a custom URI is provided the bot will instead use that API for all guild and player leaderboards, however if the value is left at `null`, the bot will default back to using the public leaderboard API.
 
 #### Database
 
