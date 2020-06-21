@@ -43,6 +43,7 @@ public class SplashTrackerCommand extends SettingsSubCommand {
     public List<String> getUsageInstructions() {
         return Arrays.asList(
             "`:command <channel> <role>` - Enables the splash tracker.",
+            "`:command points <status>` - Toggles splash points on or off.",
             "`:command disable` - Disables the splash tracker."
         );
     }
@@ -51,6 +52,7 @@ public class SplashTrackerCommand extends SettingsSubCommand {
     public List<String> getExampleUsage() {
         return Arrays.asList(
             "`:command #guild-splashes @Splash Manager` - Enables the splash tracker with the given settings.",
+            "`:command points on` - Enables giving donation points to splashes when they splash.",
             "`:command disable` - Disables the splash tracker."
         );
     }
@@ -73,6 +75,11 @@ public class SplashTrackerCommand extends SettingsSubCommand {
 
         if (args[0].equalsIgnoreCase("disable")) {
             handleDisablingFeature(event);
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("points") || args[0].equalsIgnoreCase("point")) {
+            handlePoints(event, Arrays.copyOfRange(args, 1, args.length));
             return;
         }
 
@@ -121,6 +128,42 @@ public class SplashTrackerCommand extends SettingsSubCommand {
 
             MessageFactory.makeError(event.getMessage(),
                 "Something went wrong while trying to save the new splash settings: " + e.getMessage()
+            ).queue();
+        }
+    }
+
+    private void handlePoints(MessageReceivedEvent event, String[] args) {
+        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
+        if (guildEntry == null) {
+            MessageFactory.makeError(event.getMessage(),
+                "Failed to load the guild splash settings from the database, please try again later!"
+            ).queue();
+            return;
+        }
+
+        if (args.length == 0) {
+            MessageFactory.makeInfo(event.getMessage(),
+                "The splash points system is currently **:status**!"
+            ).set("status", guildEntry.getSplashPoints() ? "enabled" : "disabled").queue();
+            return;
+        }
+
+        boolean status = Arrays.asList("on", "enable", "enabled", "yes", "y").contains(args[0].toLowerCase());
+
+        try {
+            app.getDatabaseManager().queryUpdate(
+                "UPDATE `guilds` SET `splash_points` = ? WHERE `discord_id` = ?",
+                status, event.getGuild().getIdLong()
+            );
+
+            MessageFactory.makeSuccess(event.getMessage(),
+                "The splash points feature have now been **:status**!"
+            ).set("status", status ? "enabled" : "disabled").queue();
+
+            GuildController.forgetCacheFor(event.getGuild().getIdLong());
+        } catch (SQLException e) {
+            MessageFactory.makeError(event.getMessage(),
+                "Failed to save the guild settings, error: " + e.getMessage()
             ).queue();
         }
     }

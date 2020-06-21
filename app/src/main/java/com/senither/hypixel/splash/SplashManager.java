@@ -240,8 +240,6 @@ public class SplashManager {
     public CompletableFuture<Long> createSplash(TextChannel channel, User author, Carbon time, String note) {
         CompletableFuture<Long> future = new CompletableFuture<>();
 
-        final boolean isNow = time.diffInSeconds(Carbon.now()) <= 5;
-
         channel.sendMessage(buildSplashMessage(author, time, note, null)).queue(message -> {
             try {
                 String encodedNote = "base64:" + new String(Base64.getEncoder().encode(note.getBytes()));
@@ -256,15 +254,13 @@ public class SplashManager {
 
                 Long splashEntryId = ids.iterator().next();
 
-                if (!isNow) {
-                    splashes.add(new SplashContainer(
-                        splashEntryId,
-                        channel.getGuild().getIdLong(),
-                        app.getHypixel().getUUIDFromUser(author),
-                        message.getIdLong(),
-                        time, note
-                    ));
-                }
+                splashes.add(new SplashContainer(
+                    splashEntryId,
+                    channel.getGuild().getIdLong(),
+                    app.getHypixel().getUUIDFromUser(author),
+                    message.getIdLong(),
+                    time, note
+                ));
 
                 message.editMessage(buildSplashMessage(author, time, note, splashEntryId)).queue();
 

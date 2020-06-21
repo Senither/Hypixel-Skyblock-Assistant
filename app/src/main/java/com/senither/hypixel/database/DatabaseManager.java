@@ -71,6 +71,7 @@ public class DatabaseManager {
             migrationManager.register(new CreateSplashesTableMigration());
             migrationManager.register(new AddSplashesColumnsToGuildsTableMigration());
             migrationManager.register(new CreateMessagesTableMigration());
+            migrationManager.register(new AddSplashPointsColumnToGuildsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();
@@ -133,6 +134,8 @@ public class DatabaseManager {
         for (Object bind : binds) {
             if (bind == null) {
                 statement.setNull(index++, 0);
+            } else if (bind instanceof Boolean) {
+                statement.setBoolean(index++, (Boolean) bind);
             } else {
                 statement.setString(index++, bind.toString());
             }
