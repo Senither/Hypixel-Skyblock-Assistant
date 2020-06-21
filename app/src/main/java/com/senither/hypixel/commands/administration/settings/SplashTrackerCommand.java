@@ -29,17 +29,30 @@ public class SplashTrackerCommand extends SettingsSubCommand {
 
     @Override
     public List<String> getDescription() {
-        return Arrays.asList("TODO");
+        return Arrays.asList(
+            "This command can be used to setup or disable the splash tracking system, when enabled,",
+            "the system allows anyone in the guild to queue splashes that will then notify everyone",
+            "in the guild 5 minutes before they're suppose to happen, there are also splash",
+            "leaderboards, and ways to see how many splashes people have done in the guild",
+            "in their lifetime, as-well-as average splashes per day.",
+            "People with the splash manager role will be able to edit, cancel, and remove other peoples splashes."
+        );
     }
 
     @Override
     public List<String> getUsageInstructions() {
-        return Arrays.asList("TODO");
+        return Arrays.asList(
+            "`:command <channel> <role>` - Enables the splash tracker.",
+            "`:command disable` - Disables the splash tracker."
+        );
     }
 
     @Override
     public List<String> getExampleUsage() {
-        return Arrays.asList("TODO");
+        return Arrays.asList(
+            "`:command #guild-splashes @Splash Manager` - Enables the splash tracker with the given settings.",
+            "`:command disable` - Disables the splash tracker."
+        );
     }
 
     @Override
@@ -65,20 +78,24 @@ public class SplashTrackerCommand extends SettingsSubCommand {
 
         List<TextChannel> channelsByName = event.getGuild().getTextChannelsByName(args[0], true);
         if (channelsByName.isEmpty()) {
-            MessageFactory.makeError(event.getMessage(), "Invalid channel name given, TODO:").queue();
+            MessageFactory.makeError(event.getMessage(),
+                "Invalid channel name given, the channel must be an existing text channel that the bot has permissions to send messages in!"
+            ).queue();
             return;
         }
 
         if (args.length == 1) {
             MessageFactory.makeError(event.getMessage(),
-                "Missing splash role, TODO"
+                "Missing splash role, the splash manager role is required!"
             ).queue();
             return;
         }
 
         List<Role> rolesByName = event.getGuild().getRolesByName(args[1], true);
         if (rolesByName.isEmpty()) {
-            MessageFactory.makeError(event.getMessage(), "Invalid role name given, TODO:").queue();
+            MessageFactory.makeError(event.getMessage(),
+                "Invalid role name given, you must provide a valid name of an existing role to setup the splash manager role!"
+            ).queue();
             return;
         }
 
