@@ -96,7 +96,7 @@ public class SettingsCommand extends Command {
             return;
         }
 
-        if (!isGuildMasterOfServerGuild(event, guildEntry)) {
+        if (!isGuildMasterOrOfficerOfServerGuild(event, guildEntry)) {
             MessageFactory.makeError(event.getMessage(),
                 "You must be the guild master of the **:name** guild to use this command!"
             ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
