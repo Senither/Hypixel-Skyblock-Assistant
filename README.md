@@ -3,10 +3,30 @@ Hypixel Skyblock Assistant
 
 Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](https://hypixel.net/), primarily the custom Skyblock gamemode they have created, the bots main focuses is to help guilds on Hypixel manage their Discord server by automatically synchronizing guild ranks, allowing users to verify themselves through the bot, and get stats about themselves or other people for the Skyblock gamemode.
 
+## Features
+
+ * Verification system to verify their IGNs.
+ * Hypixel rank assignment(Auto giving MVP++, VIP, etc)
+ * Commands to track and see stats for skills, slayers, bank, auction house, talismans, & pets.
+ * Guild and Player leaderboards(Includes individual leaderboards for skills and slayer types).
+ * Calculators for skills and pet experience.
+ * Guild linking with the bot, which provides features like:
+ 	* Guild XP Leaderbords.
+ 	* Automatic guild role assignments.
+ 	* Automatic renaming users to their IGNs.
+ 	* Defining guild rank requirements through the bot.
+ 	* Checking what rank a user should have based on the requirements that have been setup.
+ 	* Scanning the entire guild to calculate guild averages, and to see who meets what rank requirements.
+ 	* Donation & Splash trackers to see who contribute the most to the guild.
+ 	* Broadcasting system to announce messages through the bot.
+ 	* Settings command to configure and customize all the features above. 
+
+<hr>
+
 ## Table of Content
 
  - [Prerequisites](#prerequisites)
- - [Installing Hypixel Skyblock Assistant](#installing-hypixel-guild-assistant)
+ - [Installing Hypixel Skyblock Assistant](#installing-hypixel-skyblock-assistant)
  - [Installing Guild Report Web UI](#installing-guild-report-web-ui)
  - [Configuration](#configuration)
  
