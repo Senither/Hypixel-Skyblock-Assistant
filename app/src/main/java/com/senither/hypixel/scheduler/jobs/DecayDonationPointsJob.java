@@ -114,12 +114,6 @@ public class DecayDonationPointsJob extends Job {
             log.error("An SQL exception where thrown while trying to update donation points: {}", e.getMessage(), e);
         } catch (Exception e) {
             log.error("Something went wrong in the decay donation points job: {}", e.getMessage(), e);
-        } finally {
-            try {
-                app.getDatabaseManager().queryUpdate("UPDATE `donation_points` SET `points` = 0 WHERE `points` < 0");
-            } catch (SQLException e) {
-                log.error("An SQL exception where thrown while trying to reset donation points back to zero: {}", e.getMessage(), e);
-            }
         }
     }
 
