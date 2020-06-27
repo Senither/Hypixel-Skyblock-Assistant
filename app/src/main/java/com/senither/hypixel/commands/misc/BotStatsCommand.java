@@ -93,6 +93,11 @@ public class BotStatsCommand extends Command {
             .addField("Cached UUIDs", NumberUtil.formatNicely(getTotalForType("uuids")), true)
             .addField("Cached Players", NumberUtil.formatNicely(getTotalForType("players")), true)
             .addField("Cached Profiles", NumberUtil.formatNicely(getTotalForType("profiles")), true)
+            .addField("Members", NumberUtil.formatNicely(app.getShardManager().getUsers().size()), true)
+            .addField("Channels", NumberUtil.formatNicely(
+                app.getShardManager().getTextChannels().size() + app.getShardManager().getVoiceChannels().size()
+            ), true)
+            .addField("Servers", NumberUtil.formatNicely(app.getShardManager().getGuilds().size()), true)
             .setFooter(String.format("There are %s verified users with the bot.",
                 NumberUtil.formatNicely(getTotalVerifiedPlayers())
             ))
