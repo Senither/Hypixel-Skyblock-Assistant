@@ -63,7 +63,7 @@ public class BankBalanceCommand extends SkillCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("bank", "balance", "bal");
+        return Arrays.asList("bank", "balance", "bal", "b");
     }
 
     @Override

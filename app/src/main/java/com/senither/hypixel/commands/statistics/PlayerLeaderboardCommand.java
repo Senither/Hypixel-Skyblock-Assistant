@@ -82,9 +82,7 @@ public class PlayerLeaderboardCommand extends Command {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList(
-            "playerleaderboard", "pleaderboard", "plead", "ptop"
-        );
+        return Arrays.asList("playerleaderboard", "pleaderboard", "plead", "ptop", "pt", "pl");
     }
 
     @Override

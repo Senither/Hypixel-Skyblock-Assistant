@@ -67,7 +67,7 @@ public class SkillsCommand extends SkillCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("skills", "skill");
+        return Arrays.asList("skills", "skill", "sk");
     }
 
     @Override

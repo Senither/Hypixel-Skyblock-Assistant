@@ -69,7 +69,7 @@ public class TalismansCommand extends SkillCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("talismans", "talisman");
+        return Arrays.asList("talismans", "talisman", "t");
     }
 
     @Override

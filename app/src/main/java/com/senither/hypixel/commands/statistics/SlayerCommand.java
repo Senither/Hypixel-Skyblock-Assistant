@@ -73,7 +73,7 @@ public class SlayerCommand extends SkillCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("slayers", "slayer");
+        return Arrays.asList("slayers", "slayer", "sl");
     }
 
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {

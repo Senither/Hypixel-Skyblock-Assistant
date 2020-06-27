@@ -86,7 +86,7 @@ public class LeaderboardCommand extends Command {
     @Override
     public List<String> getTriggers() {
         return Arrays.asList(
-            "leaderboard", "lead", "top"
+            "leaderboard", "lead", "top", "lb", "l"
         );
     }
 

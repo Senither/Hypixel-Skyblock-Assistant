@@ -80,7 +80,7 @@ public class PlayerOverviewCommand extends SkillCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("player", "profile", "overview", "stats");
+        return Arrays.asList("player", "profile", "overview", "stats", "p");
     }
 
     @Override
