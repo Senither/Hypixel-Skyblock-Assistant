@@ -94,6 +94,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new VerifyCommand(this));
         commandManager.registerCommand(new SkillsCommand(this));
         commandManager.registerCommand(new SlayerCommand(this));
+        commandManager.registerCommand(new SplashCostCommand(this));
         commandManager.registerCommand(new AuctionHouseStatisticsCommand(this));
         commandManager.registerCommand(new BankBalanceCommand(this));
         commandManager.registerCommand(new GuildExperienceLeaderboardCommand(this));

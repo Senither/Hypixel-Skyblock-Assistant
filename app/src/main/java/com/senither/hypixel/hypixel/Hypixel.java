@@ -31,6 +31,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.hypixel.Response;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
+import com.senither.hypixel.hypixel.bazaar.BazaarProductReply;
 import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
 import com.senither.hypixel.hypixel.response.GuildMetricsResponse;
 import com.senither.hypixel.hypixel.response.LeaderboardStatsResponse;
@@ -451,6 +452,40 @@ public class Hypixel {
         });
 
         return future;
+    }
+
+    public BazaarProductReply getBazaarProducts() {
+        final String cacheKey = "skyblock-bazaar-products";
+
+        AbstractReply bazaarProductsCacheReply = replyCache.getIfPresent(cacheKey);
+        if (bazaarProductsCacheReply instanceof BazaarProductReply) {
+            log.debug("Found Bazaar Products using the in-memory cache");
+
+            return (BazaarProductReply) bazaarProductsCacheReply;
+        }
+
+        log.debug("Requesting for SkyBlock Bazaar Products from the API");
+
+        UUID randomApiKey = clientContainer.getNextClient().getApiKey();
+
+        try {
+            BazaarProductReply bazaarProductReply = httpClient.execute(new HttpGet(String.format(
+                "https://api.hypixel.net/skyblock/bazaar?key=%s", randomApiKey.toString()
+            )), obj -> {
+                String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
+                return gson.fromJson(content, BazaarProductReply.class);
+            });
+
+            if (bazaarProductReply == null || !bazaarProductReply.isSuccess()) {
+                return null;
+            }
+
+            replyCache.put(cacheKey, bazaarProductReply);
+
+            return bazaarProductReply;
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     public PlayerLeaderboardResponse getPlayerLeaderboard() {
