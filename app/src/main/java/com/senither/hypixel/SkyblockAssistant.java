@@ -28,6 +28,7 @@ import com.senither.hypixel.commands.calculators.SkillsCalculatorCommand;
 import com.senither.hypixel.commands.calculators.SkillsExperienceCalculatorCommand;
 import com.senither.hypixel.commands.general.HelpCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
+import com.senither.hypixel.commands.misc.BoopCommand;
 import com.senither.hypixel.commands.misc.BotStatsCommand;
 import com.senither.hypixel.commands.misc.InformationCommand;
 import com.senither.hypixel.commands.misc.PingCommand;
@@ -104,6 +105,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new PlayerOverviewCommand(this));
         commandManager.registerCommand(new TalismansCommand(this));
         commandManager.registerCommand(new PingCommand(this));
+        commandManager.registerCommand(new BoopCommand(this));
         commandManager.registerCommand(new BotStatsCommand(this));
         commandManager.registerCommand(new InformationCommand(this));
         commandManager.registerCommand(new HelpCommand(this));
