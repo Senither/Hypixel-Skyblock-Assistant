@@ -31,6 +31,7 @@ import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.hypixel.HypixelRank;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
@@ -115,7 +116,13 @@ public class VerifyCommand extends Command {
         embedBuilder.queue(message -> app.getHypixel().getPlayerByName(args[0], true)
             .whenCompleteAsync(((playerResponse, throwable) -> {
                 if (throwable == null) {
-                    handleResponse(event, message, playerResponse, embedBuilder);
+                    try {
+                        handleResponse(event, message, playerResponse, embedBuilder);
+                    } catch (Exception e) {
+                        log.error("Unknown exception was caught while trying to handle verifying {}, error: {}",
+                            event.getAuthor().getAsTag(), e.getMessage(), e
+                        );
+                    }
                     return;
                 }
 
@@ -230,7 +237,7 @@ public class VerifyCommand extends Command {
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         if (guildReply == null || guildReply.getGuild() == null) {
             if (!rolesToAdd.isEmpty()) {
-                event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, null).queue();
+                assignRolesToMember(event, rolesToAdd, rolesToRemove);
             }
             return;
         }
@@ -241,7 +248,7 @@ public class VerifyCommand extends Command {
 
         if (member == null) {
             if (!rolesToAdd.isEmpty()) {
-                event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, null).queue();
+                assignRolesToMember(event, rolesToAdd, rolesToRemove);
             }
             return;
         }
@@ -269,7 +276,7 @@ public class VerifyCommand extends Command {
             Role role = discordRoles.getOrDefault(member.getRank(), null);
             if (role == null) {
                 if (!rolesToAdd.isEmpty()) {
-                    event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, null).queue();
+                    assignRolesToMember(event, rolesToAdd, rolesToRemove);
                 }
                 return;
             }
@@ -298,12 +305,7 @@ public class VerifyCommand extends Command {
             }
         }
 
-        //noinspection ConstantConditions
-        event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, rolesToRemove).queue(null, throwable -> {
-            log.error("Failed to assign {} to {} due to an error: {}",
-                rolesToAdd, event.getMember().getEffectiveName(), throwable.getMessage(), throwable
-            );
-        });
+        assignRolesToMember(event, rolesToAdd, rolesToRemove);
     }
 
     private void sendNoSocialLinksMessage(Message message, User user, PlaceholderMessage embedBuilder, JsonObject player) {
@@ -315,6 +317,38 @@ public class VerifyCommand extends Command {
             .setColor(MessageType.ERROR.getColor())
             .buildEmbed()
         ).queue();
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private void assignRolesToMember(MessageReceivedEvent event, List<Role> rolesToAdd, List<Role> rolesToRemove) {
+        rolesToAdd.removeIf(role -> hasRole(event.getMember(), role));
+        rolesToRemove.removeIf(role -> !hasRole(event.getMember(), role));
+
+        if (rolesToAdd.isEmpty() && rolesToRemove.isEmpty()) {
+            log.debug("Skipping role assignment for {} while verifying, no roles to assign.",
+                event.getAuthor().getAsTag()
+            );
+            return;
+        }
+
+        log.debug("Attempting to give {} the follow roles ({}), and removing the following roles ({})",
+            event.getAuthor().getAsTag(), rolesToAdd, rolesToRemove
+        );
+
+        event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, rolesToRemove).queue(null, throwable -> {
+            log.error("Failed to assign {} to {} due to an error: {}",
+                rolesToAdd, event.getMember().getEffectiveName(), throwable.getMessage(), throwable
+            );
+        });
+    }
+
+    private boolean hasRole(Member member, Role role) {
+        for (Role memberRole : member.getRoles()) {
+            if (memberRole.getId().equals(role.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean hasDiscordLinked(JsonObject json) {
