@@ -108,10 +108,16 @@ public class RoleAssignmentJob extends Job {
         Role defaultRole = guildEntry.getDefaultRole() == null ? null : guild.getRoleById(guildEntry.getDefaultRole());
         Role memberRole = guildEntry.getGuildMemberRole() == null ? null : guild.getRoleById(guildEntry.getGuildMemberRole());
 
+        Role verifiedRole = null;
+        List<Role> verifiedRoles = guild.getRolesByName(Constants.VERIFY_ROLE, true);
+        if (!verifiedRoles.isEmpty() && guild.getSelfMember().canInteract(verifiedRoles.get(0))) {
+            verifiedRole = verifiedRoles.get(0);
+        }
+
         boolean canAssignRoles = guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES);
         boolean canRenamePeople = guild.getSelfMember().hasPermission(Permission.NICKNAME_MANAGE);
 
-        Collection verifiedMembers = getEveryVerifiedMemberFromTheGuild(guild);
+        Collection verifiedMembers = getEveryVerifiedMemberFromGuild(guild);
 
         for (Member member : guild.getMembers()) {
             if (member.getUser().isBot() || member.getUser().isFake()) {
@@ -149,7 +155,20 @@ public class RoleAssignmentJob extends Job {
                 continue;
             }
 
-            guild.modifyMemberRoles(member, Collections.singletonList(memberRole), Collections.emptyList()).queue(null, throwable -> {
+            List<Role> rolesToAdd = new ArrayList<>();
+            if (!hasRole(member, memberRole)) {
+                rolesToAdd.add(memberRole);
+            }
+
+            if (verifiedRole != null && !hasRole(member, verifiedRole)) {
+                rolesToAdd.add(verifiedRole);
+            }
+
+            if (rolesToAdd.isEmpty()) {
+                continue;
+            }
+
+            guild.modifyMemberRoles(member, rolesToAdd, Collections.emptyList()).queue(null, throwable -> {
                 log.error("Failed to assign {} role to {} due to an error: {}",
                     memberRole.getName(), member.getEffectiveName(), throwable.getMessage(), throwable
                 );
@@ -181,7 +200,7 @@ public class RoleAssignmentJob extends Job {
         boolean canAssignRoles = guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES);
         boolean canRenamePeople = guild.getSelfMember().hasPermission(Permission.NICKNAME_MANAGE);
 
-        Collection verifiedMembers = getEveryVerifiedMemberFromTheGuild(guild);
+        Collection verifiedMembers = getEveryVerifiedMemberFromGuild(guild);
 
         for (Member member : guild.getMembers()) {
             if (member.getUser().isBot() || member.getUser().isFake()) {
@@ -222,11 +241,13 @@ public class RoleAssignmentJob extends Job {
             List<Role> rolesToAdd = new ArrayList<>();
             List<Role> verifiedRoles = guild.getRolesByName(Constants.VERIFY_ROLE, true);
             if (!verifiedRoles.isEmpty() && guild.getSelfMember().canInteract(verifiedRoles.get(0))) {
-                rolesToAdd.add(verifiedRoles.get(0));
+                if (!hasRole(member, verifiedRoles.get(0))) {
+                    rolesToAdd.add(verifiedRoles.get(0));
+                }
             }
 
             Role guildRole = discordRoles.getOrDefault(guildMember.getRank(), null);
-            if (guildRole != null) {
+            if (guildRole != null && !hasRole(member, guildRole)) {
                 rolesToAdd.add(guildRole);
             }
 
@@ -234,11 +255,11 @@ public class RoleAssignmentJob extends Job {
                 .filter(filteringRole -> guildRole == null || filteringRole.getIdLong() != guildRole.getIdLong())
                 .collect(Collectors.toList());
 
-            if (defaultRole != null) {
+            if (defaultRole != null && hasRole(member, defaultRole)) {
                 rolesToRemove.add(defaultRole);
             }
 
-            if (hasRoles(member, rolesToAdd) && !hasRoles(member, rolesToRemove)) {
+            if (rolesToAdd.isEmpty() && rolesToRemove.isEmpty()) {
                 continue;
             }
 
@@ -250,7 +271,7 @@ public class RoleAssignmentJob extends Job {
         }
     }
 
-    private Collection getEveryVerifiedMemberFromTheGuild(Guild guild) throws SQLException {
+    private Collection getEveryVerifiedMemberFromGuild(Guild guild) throws SQLException {
         List<String> memberIds = new ArrayList<>();
         guild.getMembers().forEach(member -> memberIds.add(member.getId()));
 
@@ -276,36 +297,30 @@ public class RoleAssignmentJob extends Job {
         }
 
         List<Role> rolesToAdd = new ArrayList<>();
-        List<Role> rolesToRemove = new ArrayList<>();
-        rolesToRemove.addAll(values);
+        List<Role> rolesToRemove = values.stream()
+            .filter(role -> hasRole(member, role))
+            .collect(Collectors.toList());
 
-        if (defaultRole != null) {
+        if (defaultRole != null && !hasRole(member, defaultRole)) {
             rolesToAdd.add(defaultRole);
         }
 
         List<Role> verifiedRoles = guild.getRolesByName(Constants.VERIFY_ROLE, true);
         if (!verifiedRoles.isEmpty() && guild.getSelfMember().canInteract(verifiedRoles.get(0))) {
-            if (isVerified) {
+            boolean hasVerifiedRole = hasRole(member, verifiedRoles.get(0));
+
+            if (isVerified && !hasVerifiedRole) {
                 rolesToAdd.add(verifiedRoles.get(0));
-            } else {
+            } else if (!isVerified && hasVerifiedRole) {
                 rolesToRemove.add(verifiedRoles.get(0));
             }
         }
 
-        if (hasRoles(member, rolesToAdd) && !hasRoles(member, rolesToRemove)) {
+        if (rolesToAdd.isEmpty() && rolesToRemove.isEmpty()) {
             return;
         }
 
         guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue();
-    }
-
-    private boolean hasRoles(Member member, java.util.Collection<Role> roles) {
-        for (Role role : roles) {
-            if (!hasRole(member, role)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private boolean hasRole(Member member, Role role) {
