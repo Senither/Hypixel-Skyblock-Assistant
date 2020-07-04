@@ -134,6 +134,9 @@ public class RoleAssignmentJob extends Job {
             String memberUUID = dataRow.getString("uuid");
 
             if (canRenamePeople && shouldRename(guildEntry, member, dataRow) && guild.getSelfMember().canInteract(member)) {
+                log.debug("modifyNickname was called for {} ({}) at @handleGuildMemberRoleAssignments",
+                    member.getEffectiveName(), dataRow.getString("username")
+                );
                 guild.modifyNickname(member, dataRow.getString("username")).queue();
             }
 
@@ -167,6 +170,10 @@ public class RoleAssignmentJob extends Job {
             if (rolesToAdd.isEmpty()) {
                 continue;
             }
+
+            log.debug("{} are being given guild member role in @handleGuildMemberRoleAssignments, roles added ({})",
+                member.getUser().getAsTag(), rolesToAdd
+            );
 
             guild.modifyMemberRoles(member, rolesToAdd, Collections.emptyList()).queue(null, throwable -> {
                 log.error("Failed to assign {} role to {} due to an error: {}",
@@ -217,6 +224,9 @@ public class RoleAssignmentJob extends Job {
             String memberUUID = dataRow.getString("uuid");
 
             if (canRenamePeople && shouldRename(guildEntry, member, dataRow) && guild.getSelfMember().canInteract(member)) {
+                log.debug("modifyNickname was called for {} ({})at @handleGuildRankRoleAssignments",
+                    member.getEffectiveName(), dataRow.getString("username")
+                );
                 guild.modifyNickname(member, dataRow.getString("username")).queue();
             }
 
@@ -262,6 +272,10 @@ public class RoleAssignmentJob extends Job {
             if (rolesToAdd.isEmpty() && rolesToRemove.isEmpty()) {
                 continue;
             }
+
+            log.debug("{} are being given guild rank role in @handleGuildRankRoleAssignments, roles added ({}), roles removed({})",
+                member.getUser().getAsTag(), rolesToAdd, rolesToRemove
+            );
 
             guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(null, throwable -> {
                 log.error("Failed to assign {} role to {} due to an error: {}",
@@ -319,6 +333,10 @@ public class RoleAssignmentJob extends Job {
         if (rolesToAdd.isEmpty() && rolesToRemove.isEmpty()) {
             return;
         }
+
+        log.debug("{} has been marked as a guest, roles added ({}), roles removed ({})",
+            member.getUser().getAsTag(), rolesToAdd, rolesToRemove
+        );
 
         guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue();
     }
