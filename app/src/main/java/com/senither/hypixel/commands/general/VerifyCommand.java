@@ -244,7 +244,7 @@ public class VerifyCommand extends Command {
 
         GuildReply.Guild.Member member = guildReply.getGuild().getMembers().stream()
             .filter(guildMember -> guildMember.getUuid().equals(uuid))
-            .findFirst().orElseGet(null);
+            .findFirst().orElse(null);
 
         if (member == null) {
             if (!rolesToAdd.isEmpty()) {
