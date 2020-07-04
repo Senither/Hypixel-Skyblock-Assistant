@@ -263,6 +263,7 @@ public class RoleAssignmentJob extends Job {
 
             List<Role> rolesToRemove = discordRoles.values().stream()
                 .filter(filteringRole -> guildRole == null || filteringRole.getIdLong() != guildRole.getIdLong())
+                .filter(filteringRole -> hasRole(member, filteringRole))
                 .collect(Collectors.toList());
 
             if (defaultRole != null && hasRole(member, defaultRole)) {
