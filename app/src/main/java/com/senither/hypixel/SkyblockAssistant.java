@@ -47,6 +47,7 @@ import com.senither.hypixel.servlet.WebServlet;
 import com.senither.hypixel.servlet.routes.GetGuildRoute;
 import com.senither.hypixel.servlet.routes.GetProfileRoute;
 import com.senither.hypixel.servlet.routes.GetReportRoute;
+import com.senither.hypixel.servlet.routes.GetUsernameRoute;
 import com.senither.hypixel.splash.SplashManager;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -140,6 +141,7 @@ public class SkyblockAssistant {
             log.info("Creating web servlet on port {}", configuration.getServlet().getPort());
             this.servlet = new WebServlet(configuration.getServlet().getPort());
             servlet.registerGet("report/:id", new GetReportRoute(this));
+            servlet.registerGet("username", new GetUsernameRoute(this));
 
             if (configuration.getServlet().getAccessToken() != null) {
                 servlet.registerGet("player/:username", new GetProfileRoute(this));
