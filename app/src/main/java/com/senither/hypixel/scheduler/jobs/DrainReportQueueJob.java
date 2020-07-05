@@ -23,6 +23,7 @@ package com.senither.hypixel.scheduler.jobs;
 
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.scheduler.Job;
+import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.reports.Report;
 import com.senither.hypixel.reports.ReportService;
 import com.senither.hypixel.reports.UnfinishedPlayerReport;
@@ -86,16 +87,23 @@ public class DrainReportQueueJob extends Job {
             app.getHypixel().getUsernameFromUuid(unfinishedPlayerReport.getUuid())
         );
 
-        SkyBlockProfileReply profileReply = app.getHypixel().getSelectedSkyBlockProfileFromUsername(unfinishedPlayerReport.getUsername())
-            .get(5, TimeUnit.SECONDS);
+        SkyBlockProfileReply profileReply = null;
+        try {
+            profileReply = app.getHypixel().getSelectedSkyBlockProfileFromUsername(unfinishedPlayerReport.getUsername())
+                .get(5, TimeUnit.SECONDS);
 
-        String stringifiedPlayerUUID = unfinishedPlayerReport.getUuid().toString().replace("-", "");
-        profileReply.getProfile().get("members").getAsJsonObject().keySet()
-            .removeIf(memberUUID -> !memberUUID.equals(stringifiedPlayerUUID));
+            String stringifiedPlayerUUID = unfinishedPlayerReport.getUuid().toString().replace("-", "");
+            profileReply.getProfile().get("members").getAsJsonObject().keySet()
+                .removeIf(memberUUID -> !memberUUID.equals(stringifiedPlayerUUID));
 
-        report.createPlayerReport(unfinishedPlayerReport, profileReply);
+            report.createPlayerReport(unfinishedPlayerReport, profileReply);
 
-        return profileReply.getProfile().has("isFromCache")
-            && profileReply.getProfile().get("isFromCache").getAsBoolean();
+            return profileReply.getProfile().has("isFromCache")
+                && profileReply.getProfile().get("isFromCache").getAsBoolean();
+        } catch (FriendlyException e) {
+            // This should only be thrown if the user has no SkyBlock profiles, if
+            // they don't have a profile we just ignore the user and skips them.
+            return false;
+        }
     }
 }
