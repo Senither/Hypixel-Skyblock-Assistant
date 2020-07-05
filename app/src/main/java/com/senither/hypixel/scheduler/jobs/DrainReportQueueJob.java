@@ -33,6 +33,7 @@ import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class DrainReportQueueJob extends Job {
@@ -100,10 +101,13 @@ public class DrainReportQueueJob extends Job {
 
             return profileReply.getProfile().has("isFromCache")
                 && profileReply.getProfile().get("isFromCache").getAsBoolean();
-        } catch (FriendlyException e) {
-            // This should only be thrown if the user has no SkyBlock profiles, if
-            // they don't have a profile we just ignore the user and skips them.
-            return false;
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof FriendlyException) {
+                // This should only be thrown if the user has no SkyBlock profiles, if
+                // they don't have a profile we just ignore the user and skips them.
+                return true;
+            }
+            throw e;
         }
     }
 }
