@@ -14,6 +14,7 @@ public class SplashContainer {
     private String note;
     private long messageId;
     private long lastUpdatedAt;
+    private boolean notifiedEveryone;
 
     public SplashContainer(long id, long discordId, UUID userUuid, long messageId, Carbon time, String note) {
         this.id = id;
@@ -23,6 +24,7 @@ public class SplashContainer {
         this.time = time;
         this.note = note;
 
+        notifiedEveryone = time.diffInSeconds(Carbon.now()) <= SplashManager.getEndingSoonTimer();
         lastUpdatedAt = Carbon.now().getTimestamp();
     }
 
@@ -64,6 +66,14 @@ public class SplashContainer {
 
     public void setLastUpdatedAt(long lastUpdatedAt) {
         this.lastUpdatedAt = lastUpdatedAt;
+    }
+
+    public void setNotifiedEveryone(boolean notifiedEveryone) {
+        this.notifiedEveryone = notifiedEveryone;
+    }
+
+    public boolean hasNotifiedEveryone() {
+        return notifiedEveryone;
     }
 
     public boolean shouldUpdate() {

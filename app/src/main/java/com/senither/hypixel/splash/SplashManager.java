@@ -137,18 +137,22 @@ public class SplashManager {
             return;
         }
 
-        if (splash.isEndingSoon() && splash.getTime().getTimestamp() - splash.getLastUpdatedAt() > endingSoonTimer) {
+        boolean shouldPingEveryone = splash.getTime().diffInSeconds(Carbon.now()) <= endingSoonTimer;
+
+        if (splash.isEndingSoon() && shouldPingEveryone && !splash.hasNotifiedEveryone()) {
             channelById.deleteMessageById(splash.getMessageId()).queue(null, null);
+
+            splash.setNotifiedEveryone(true);
 
             channelById.sendMessage(buildSplashMessage(
                 userById, splash.getTime(), splash.getNote(), splash.getId()
             )).queue(message -> {
                 try {
-                    splash.setMessageId(message.getIdLong());
-
                     app.getDatabaseManager().queryUpdate("UPDATE `splashes` SET `message_id` = ? WHERE `discord_id` = ? and `message_id` = ?",
                         message.getIdLong(), splash.getDiscordId(), splash.getMessageId()
                     );
+
+                    splash.setMessageId(message.getIdLong());
                 } catch (SQLException e) {
                     log.error("Something went wrong while trying to send \"ending soon\" splash message, error: {}", e.getMessage(), e);
                 }
