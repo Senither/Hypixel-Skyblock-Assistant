@@ -45,7 +45,11 @@ public class PlayerDonationController {
         .build();
 
     public static synchronized PlayerDonationEntry getPlayerByUuid(DatabaseManager manager, long guildId, UUID uuid) {
-        final String cacheKey = String.valueOf(guildId) + "-" + uuid.toString();
+        return getPlayerByUuid(manager, guildId, uuid, true);
+    }
+
+    public static synchronized PlayerDonationEntry getPlayerByUuid(DatabaseManager manager, long guildId, UUID uuid, boolean createIfNotExists) {
+        final String cacheKey = guildId + "-" + uuid.toString();
 
         PlayerDonationEntry cacheEntry = cache.getIfPresent(cacheKey);
         if (cacheEntry != null) {
@@ -56,6 +60,10 @@ public class PlayerDonationController {
         try {
             Collection result = manager.query("SELECT * FROM `donation_points` WHERE `discord_id` = ? AND `uuid` = ?", guildId, uuid);
             if (result.isEmpty()) {
+                if (!createIfNotExists) {
+                    return null;
+                }
+
                 log.debug("Failed to find player donation entry for {} on {}, creating new entry", uuid, guildId);
 
                 manager.queryInsert("INSERT INTO `donation_points` (`uuid`, `discord_id`) VALUES (?, ?)",
@@ -142,7 +150,7 @@ public class PlayerDonationController {
             return lastCheckedAt;
         }
 
-        public Carbon lastDonatedAt() {
+        public Carbon getLastDonatedAt() {
             return lastDonatedAt;
         }
     }

@@ -25,6 +25,7 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.commands.DonationAdditionFunction;
@@ -71,7 +72,8 @@ public class DonationCommand extends Command {
     public List<String> getUsageInstructions() {
         return Arrays.asList(
             "`:command [page]` - Lists every player in the guild, and their donation points",
-            "`:command add <player> <points> [message]` - Gives the player X amount of points"
+            "`:command add <player> <points> [message]` - Gives the player X amount of points",
+            "`:command show <player>` - Show the amount of points the given user has"
         );
     }
 
@@ -80,7 +82,8 @@ public class DonationCommand extends Command {
         return Arrays.asList(
             "`:command 2` - Views page 2 of the donation leaderboard",
             "`:command add Senither 5` - Gives Senither 5 donation points",
-            "`:command add Senither 10 Some cool stuff` - Gives Senither 10 donation points with the note of \"Some coll stuff\""
+            "`:command add Senither 10 Some cool stuff` - Gives Senither 10 donation points with the note of \"Some coll stuff\"",
+            "`:command show Senither` - Shows how many donation points Senither has"
         );
     }
 
@@ -120,6 +123,11 @@ public class DonationCommand extends Command {
             case "list":
             case "leaderboard":
                 showLeaderboard(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
+                break;
+
+            case "show":
+            case "lookup":
+                showPlayerInfo(guildEntry, event, Arrays.copyOfRange(args, 1, args.length));
                 break;
 
             case "add":
@@ -228,7 +236,7 @@ public class DonationCommand extends Command {
                     padString(memberUsernameMap.get(player.getUuid()), 16),
                     player.getPoints(),
                     splashMessage,
-                    player.lastDonatedAt().diffForHumans()
+                    player.getLastDonatedAt().diffForHumans()
                 ));
                 memberUsernameMap.remove(player.getUuid());
             }
@@ -276,6 +284,62 @@ public class DonationCommand extends Command {
                 .queue();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void showPlayerInfo(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must include the username of the player you show donation points for."
+            ).setTitle("Missing username").queue();
+            return;
+        }
+
+        UUID uuid;
+        String username = args[0];
+
+        try {
+            uuid = app.getHypixel().getUUIDFromName(username);
+        } catch (SQLException e) {
+            throw new FriendlyException("Failed to find a UUID matching the given username!");
+        }
+
+        if (uuid == null) {
+            MessageFactory.makeError(event.getMessage(),
+                "The given username is not a valid or existing Minecraft username."
+            ).setTitle("Invalid username provided").queue();
+            return;
+        }
+
+        GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
+        boolean isMember = guildReply.getGuild().getMembers().stream().anyMatch(member -> member.getUuid().equals(uuid));
+
+        if (!isMember) {
+            MessageFactory.makeError(event.getMessage(),
+                ":name is not a member of the guild, and does therefore not have any donation points."
+            ).set("name", formatPlayerUsername(args[0])).setTitle("User is not a guild member").queue();
+            return;
+        }
+
+        PlayerDonationController.PlayerDonationEntry player = PlayerDonationController.getPlayerByUuid(
+            app.getDatabaseManager(), event.getGuild().getIdLong(), uuid, false
+        );
+
+        try {
+            username = app.getHypixel().getUsernameFromUuid(uuid);
+        } catch (SQLException ignored) {
+        }
+
+        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(), "")
+            .set("name", formatPlayerUsername(username))
+            .set("points", player != null ? NumberUtil.formatNicely(player.getPoints()) : 0)
+            .set("time", player != null ? player.getLastDonatedAt().diffForHumans() : "Unknown")
+            .setTitle(String.format("%s Donation Points", username));
+
+        if (player == null) {
+            message.setDescription("**:name** has never donated before, and thus has no donation points.").queue();
+        } else {
+            message.setDescription("**:name** has **:points** points, they last donated **:time** ago.").queue();
         }
     }
 
