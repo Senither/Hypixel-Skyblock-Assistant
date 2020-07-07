@@ -29,8 +29,7 @@ public class SplashCostCommand extends Command {
         1000 +      // Spirit Potion
         10000 +     // Magic Find Potion
         25000 +     // True Essence
-        25000 * 2 + // Skill Potion of other types x2
-        40000;      // Combat XP Potion
+        50000 * 3;  // Skill Potions x3
 
     private final List<BazaarProduct> products = Arrays.asList(
         BazaarProduct.ENCHANTED_REDSTONE_BLOCK,
