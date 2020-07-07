@@ -29,15 +29,15 @@ import java.util.List;
 public enum LeaderboardType {
 
     OVERVIEW(
-        "Overview", Arrays.asList("guild", "overview", "view", "metrics", "metric"),
+        "Overview", Arrays.asList("guild", "overview", "view", "metrics", "metric", "ov"),
         null, null
     ),
     AVERAGE_SKILL(
-        "Average Skill", Arrays.asList("skills", "skill"),
+        "Average Skill", Arrays.asList("skills", "skill", "sk"),
         LeaderboardPlayer::getAverageSkillProgress, LeaderboardPlayer::getAverageSkill
     ),
     TOTAL_SLAYER(
-        "Total Slayer", Arrays.asList("slayers", "slayer"),
+        "Total Slayer", Arrays.asList("slayers", "slayer", "sl"),
         LeaderboardPlayer::getTotalSlayer, null
     ),
     REVENANT(
