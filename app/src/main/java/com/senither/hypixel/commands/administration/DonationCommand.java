@@ -454,7 +454,7 @@ public class DonationCommand extends Command {
                     MessageFactory.makeEmbeddedMessage(logChannel, MessageType.INFO.getColor(), message.isEmpty()
                         ? "**:user** was given **:points** points by **:author**, no note were given!"
                         : "**:user** was given **:points** points by **:author** for \":note\""
-                    ).setFooter("The points where given by " + event.getAuthor().getAsTag() + " (ID: " + event.getAuthor().getId() + ")")
+                    ).setFooter("The points were given by " + event.getAuthor().getAsTag() + " (ID: " + event.getAuthor().getId() + ")")
                         .set("user", formatPlayerUsername(app.getHypixel().getUsernameFromUuid(uuid)))
                         .set("author", formatPlayerUsername(getUsernameFromUser(event.getAuthor())))
                         .set("points", points)
