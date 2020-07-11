@@ -233,20 +233,22 @@ public class LeaderboardCommand extends Command {
         GuildMetricsResponse.GuildMetrics weekOldMetrics = metrics.getData().get(Math.min(7, metrics.getData().size()) - 1);
 
         PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(),
-            "The guild was last updated :time!\n\nSince last week the guild has gone up:\n> **:skills** average skill levels\n> **:slayers** average slayer XP"
+            "The guild was last updated :time!\n\nSince last week the guild has gone up:\n> **:skills** average skill levels\n> **:slayers** average slayer XP\n> **:weight** guild weight points"
         )
             .setTitle(guild.getName() + " Overview")
             .set("time", guild.getLastUpdatedAt().diffForHumans())
             .set("skills", NumberUtil.formatNicelyWithDecimals(guild.getAverageSkill() - weekOldMetrics.getAverageSkill()))
-            .set("slayers", NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer() - weekOldMetrics.getAverageSlayer()));
+            .set("slayers", NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer() - weekOldMetrics.getAverageSlayer()))
+            .set("weight", NumberUtil.formatNicelyWithDecimals(guild.getWeight().getTotal() - weekOldMetrics.getWeight().getTotal()));
 
         paginator.forEach((index, key, guildMetrics) -> {
             message.addField("Stats from " + guildMetrics.getCreatedAt().diffForHumans(), String.format(
-                "```elm\nAverage Skills  > %s (%s)\nAverage Slayers > %s\nMembers         > %s```",
+                "```elm\nAverage Skills  > %s (%s)\nAverage Slayers > %s\nMembers         > %s\nGuild Weight    > %s```",
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkillProgress()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkill()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
-                NumberUtil.formatNicely(guildMetrics.getMembers())
+                NumberUtil.formatNicely(guildMetrics.getMembers()),
+                NumberUtil.formatNicelyWithDecimals(guildMetrics.getWeight().getTotal())
             ), false);
         });
 

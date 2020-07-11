@@ -43,6 +43,7 @@ public class GuildLeaderboardResponse extends Response {
         protected double average_skill_progress;
         protected double average_slayer;
         protected int members;
+        protected GuildWeight weight;
         private String last_updated_at;
 
         public String getId() {
@@ -69,8 +70,36 @@ public class GuildLeaderboardResponse extends Response {
             return average_slayer;
         }
 
+        public GuildWeight getWeight() {
+            return weight;
+        }
+
         public Carbon getLastUpdatedAt() {
             return timestampToCarbonInstance(last_updated_at);
+        }
+
+        public class GuildWeight {
+
+            protected double total;
+            protected double skill;
+            protected double slayer;
+            protected double multiplier;
+
+            public double getTotal() {
+                return total;
+            }
+
+            public double getSkill() {
+                return skill;
+            }
+
+            public double getSlayer() {
+                return slayer;
+            }
+
+            public double getMultiplier() {
+                return multiplier;
+            }
         }
     }
 }
