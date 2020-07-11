@@ -106,7 +106,7 @@ public class LeaderboardCommand extends Command {
 
             MessageFactory.makeError(event.getMessage(),
                 "Invalid type given, please provide one of the types below to see a leaderboard for your desired guild.\n`:types`"
-            ).set("types", String.join("`, `", types)).setTitle("Invalid leaderboard type").queue();
+            ).set("types", String.join("`, `", types)).setTitle("Invalid leaderboard type", "https://hypixel-leaderboard.senither.com/").queue();
             return;
         }
 
@@ -126,7 +126,7 @@ public class LeaderboardCommand extends Command {
             if (guildById == null) {
                 MessageFactory.makeError(event.getMessage(),
                     "You must also specify the name of the guild you wish to see the stats for."
-                ).setTitle("Missing guild name").queue();
+                ).setTitle("Missing guild name", "https://hypixel-leaderboard.senither.com/").queue();
                 return;
             }
             guildName = guildById.getName();
@@ -147,7 +147,7 @@ public class LeaderboardCommand extends Command {
             MessageFactory.makeError(event.getMessage(),
                 "There are no guild called `:name` that are being tracked by the bot currently, "
                     + "please provide the name of a guild that the bot is already tracking to see their player leaderboard."
-            ).set("name", guildName).setTitle("Invalid guild name").queue();
+            ).set("name", guildName).setTitle("Invalid guild name", "https://hypixel-leaderboard.senither.com/").queue();
             return;
         }
 
@@ -160,7 +160,7 @@ public class LeaderboardCommand extends Command {
         if (leaderboard == null || !leaderboard.isSuccess()) {
             MessageFactory.makeError(event.getMessage(),
                 "The `:name` guild does not appear to have any player stats being tracked right now, try again later."
-            ).set("name", guildName).setTitle("Missing guild data").queue();
+            ).set("name", guildName).setTitle("Missing guild data", "https://hypixel-leaderboard.senither.com/").queue();
             return;
         }
 
@@ -212,7 +212,10 @@ public class LeaderboardCommand extends Command {
             String.join("\n", rows)) + "\n"
             + note + paginator.generateFooter(command)
         )
-            .setTitle(String.format("%s's %s Leaderboard", guild.getName(), type.getName()))
+            .setTitle(
+                String.format("%s's %s Leaderboard", guild.getName(), type.getName()),
+                String.format("https://hypixel-leaderboard.senither.com/guild/%s", guild.getId())
+            )
             .setFooter("Requested by " + event.getAuthor().getAsTag(), event.getAuthor().getEffectiveAvatarUrl())
             .setTimestamp(Carbon.now().getTime().toInstant())
             .queue();
@@ -222,7 +225,7 @@ public class LeaderboardCommand extends Command {
         GuildMetricsResponse metrics = app.getHypixel().getGuildLeaderboardMetrics(guild.getId());
         if (metrics.getData().isEmpty()) {
             MessageFactory.makeWarning(event.getMessage(), "There are no metrics for this guild yet!\nTry again later.")
-                .setTitle(guild.getName() + " Overview")
+                .setTitle(guild.getName() + " Overview", "https://hypixel-leaderboard.senither.com/")
                 .queue();
             return;
         }
@@ -235,7 +238,7 @@ public class LeaderboardCommand extends Command {
         PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(),
             "The guild was last updated :time!\n\nSince last week the guild has gone up:\n> **:skills** average skill levels\n> **:slayers** average slayer XP\n> **:weight** guild weight points"
         )
-            .setTitle(guild.getName() + " Overview")
+            .setTitle(guild.getName() + " Overview", String.format("https://hypixel-leaderboard.senither.com/guild/%s", guild.getId()))
             .set("time", guild.getLastUpdatedAt().diffForHumans())
             .set("skills", NumberUtil.formatNicelyWithDecimals(guild.getAverageSkill() - weekOldMetrics.getAverageSkill()))
             .set("slayers", NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer() - weekOldMetrics.getAverageSlayer()))
@@ -304,7 +307,7 @@ public class LeaderboardCommand extends Command {
         slayerPaginator.forEach((index, key, val) -> slayerRow.add(val));
 
         MessageFactory.makeInfo(event.getMessage(), "The guild leaderboards are the total average skill and slayer stats for each guild, the stats are refreshed every 24 hours.")
-            .setTitle("Guild Leaderboard")
+            .setTitle("Guild Leaderboard", "https://hypixel-leaderboard.senither.com/")
             .setTimestamp(Carbon.now().getTime().toInstant())
             .addField("Skills Leaderboard", String.format("```elm\n%s```", String.join("\n", skillsRow)), true)
             .addField("Slayer Leaderboard", String.format("```elm\n%s```", String.join("\n", slayerRow)), true)
