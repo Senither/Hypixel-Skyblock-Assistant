@@ -52,6 +52,7 @@ public class CommandManager {
 
     public static final Cache<Long, Boolean> verifyCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     private final SkyblockAssistant app;

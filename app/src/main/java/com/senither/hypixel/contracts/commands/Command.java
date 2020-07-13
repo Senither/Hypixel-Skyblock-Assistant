@@ -48,10 +48,12 @@ public abstract class Command {
 
     public static final Cache<Long, String> discordIdToUsernameCache = CacheBuilder.newBuilder()
         .expireAfterAccess(5, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     public static final Cache<Long, UUID> discordIdToUuidCache = CacheBuilder.newBuilder()
         .expireAfterAccess(5, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     protected final SkyblockAssistant app;

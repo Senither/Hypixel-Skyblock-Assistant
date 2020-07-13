@@ -44,6 +44,7 @@ public class GuildController {
 
     public static final Cache<Long, GuildEntry> cache = CacheBuilder.newBuilder()
         .expireAfterAccess(60, TimeUnit.SECONDS)
+        .recordStats()
         .build();
 
     public static GuildEntry getGuildById(DatabaseManager manager, long guildId) {

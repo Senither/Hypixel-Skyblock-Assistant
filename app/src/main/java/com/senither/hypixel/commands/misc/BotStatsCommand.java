@@ -45,6 +45,7 @@ public class BotStatsCommand extends Command {
 
     public static final Cache<String, Long> cache = CacheBuilder.newBuilder()
         .expireAfterWrite(60, TimeUnit.SECONDS)
+        .recordStats()
         .build();
 
     public BotStatsCommand(SkyblockAssistant app) {

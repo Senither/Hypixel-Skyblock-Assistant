@@ -73,22 +73,27 @@ public class Hypixel {
 
     public static final Cache<String, UUID> usernameToUuidCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     public static final Cache<UUID, Long> uuidToDiscordIdCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     public static final Cache<UUID, String> uuidToUsernameCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     public static final Cache<String, AbstractReply> replyCache = CacheBuilder.newBuilder()
         .expireAfterWrite(90, TimeUnit.SECONDS)
+        .recordStats()
         .build();
 
     public static final Cache<String, Response> responseCache = CacheBuilder.newBuilder()
         .expireAfterWrite(30, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     private static final Gson gson = new GsonBuilder()

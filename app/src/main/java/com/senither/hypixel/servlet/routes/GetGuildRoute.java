@@ -38,6 +38,7 @@ public class GetGuildRoute extends SparkRoute {
 
     public static final Cache<String, GuildReply> guildCache = CacheBuilder.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
+        .recordStats()
         .build();
 
     public GetGuildRoute(SkyblockAssistant app) {
