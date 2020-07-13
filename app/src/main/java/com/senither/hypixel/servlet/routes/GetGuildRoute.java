@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GetGuildRoute extends SparkRoute {
 
-    private static final Cache<String, GuildReply> guildCache = CacheBuilder.newBuilder()
+    public static final Cache<String, GuildReply> guildCache = CacheBuilder.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .build();
 

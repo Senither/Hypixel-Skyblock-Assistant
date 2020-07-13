@@ -25,8 +25,6 @@ import com.senither.hypixel.AppInfo;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.commands.CommandContainer;
-import com.senither.hypixel.metrics.MetricType;
-import com.senither.hypixel.metrics.Metrics;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -69,8 +67,6 @@ public class MessageEventListener extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
-        Metrics.increment(MetricType.MESSAGES_RECEIVED);
-
         if (event.getAuthor().isBot()) {
             return;
         }

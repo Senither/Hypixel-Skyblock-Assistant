@@ -28,6 +28,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.SkyblockAssistant;
+import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.hypixel.Response;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
@@ -70,23 +71,23 @@ public class Hypixel {
 
     private static final Logger log = LoggerFactory.getLogger(Hypixel.class);
 
-    private static final Cache<String, UUID> uuidCache = CacheBuilder.newBuilder()
+    public static final Cache<String, UUID> usernameToUuidCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
         .build();
 
-    private static final Cache<UUID, Long> discordIdCache = CacheBuilder.newBuilder()
+    public static final Cache<UUID, Long> uuidToDiscordIdCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
         .build();
 
-    private static final Cache<UUID, String> usernameCache = CacheBuilder.newBuilder()
+    public static final Cache<UUID, String> uuidToUsernameCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
         .build();
 
-    private static final Cache<String, AbstractReply> replyCache = CacheBuilder.newBuilder()
+    public static final Cache<String, AbstractReply> replyCache = CacheBuilder.newBuilder()
         .expireAfterWrite(90, TimeUnit.SECONDS)
         .build();
 
-    private static final Cache<String, Response> responseCache = CacheBuilder.newBuilder()
+    public static final Cache<String, Response> responseCache = CacheBuilder.newBuilder()
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .build();
 
@@ -626,7 +627,7 @@ public class Hypixel {
     }
 
     public Long getDiscordIdFromUUID(UUID uuid) {
-        Long discordId = discordIdCache.getIfPresent(uuid);
+        Long discordId = uuidToDiscordIdCache.getIfPresent(uuid);
         if (discordId != null) {
             log.debug("Found Discord ID for {} using the in-memory cache (ID: {})", uuid, discordId);
             return discordId;
@@ -640,7 +641,7 @@ public class Hypixel {
                     return null;
                 }
 
-                discordIdCache.put(uuid, discordId);
+                uuidToDiscordIdCache.put(uuid, discordId);
                 log.debug("Found Discord ID for {} using the database cache (ID: {})", uuid, discordId);
 
                 return discordId;
@@ -652,7 +653,7 @@ public class Hypixel {
     }
 
     public UUID getUUIDFromUser(User user) throws SQLException {
-        UUID cachedUUID = uuidCache.getIfPresent(user.getId());
+        UUID cachedUUID = Command.discordIdToUuidCache.getIfPresent(user.getIdLong());
         if (cachedUUID != null) {
             log.debug("Found UUID for {} using the in-memory cache (ID: {})", user.getAsTag(), cachedUUID);
             return cachedUUID;
@@ -661,7 +662,7 @@ public class Hypixel {
         Collection result = app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `discord_id` = ?", user.getIdLong());
         if (!result.isEmpty()) {
             UUID uuid = UUID.fromString(result.get(0).getString("uuid"));
-            uuidCache.put(user.getId(), uuid);
+            Command.discordIdToUuidCache.put(user.getIdLong(), uuid);
             log.debug("Found UUID for {} using the database cache (ID: {})", user, uuid);
 
             return uuid;
@@ -671,7 +672,7 @@ public class Hypixel {
     }
 
     public synchronized UUID getUUIDFromName(String name) throws SQLException {
-        UUID cachedUUID = uuidCache.getIfPresent(name.toLowerCase());
+        UUID cachedUUID = usernameToUuidCache.getIfPresent(name.toLowerCase());
         if (cachedUUID != null) {
             log.debug("Found UUID for {} using the in-memory cache (ID: {})", name, cachedUUID);
             return cachedUUID;
@@ -680,7 +681,7 @@ public class Hypixel {
         Collection result = app.getDatabaseManager().query("SELECT `uuid` FROM `uuids` WHERE `username` = ?", name);
         if (!result.isEmpty()) {
             UUID uuid = UUID.fromString(result.get(0).getString("uuid"));
-            uuidCache.put(name.toLowerCase(), uuid);
+            usernameToUuidCache.put(name.toLowerCase(), uuid);
             log.debug("Found UUID for {} using the database cache (ID: {})", name, uuid);
 
             return uuid;
@@ -720,11 +721,11 @@ public class Hypixel {
     }
 
     public void forgetUsernameCacheEntry(UUID uuid) {
-        usernameCache.invalidate(uuid);
+        uuidToUsernameCache.invalidate(uuid);
     }
 
     public synchronized String getUsernameFromUuid(UUID uuid) throws SQLException {
-        String cachedUsername = usernameCache.getIfPresent(uuid);
+        String cachedUsername = uuidToUsernameCache.getIfPresent(uuid);
         if (cachedUsername != null) {
             log.debug("Found Username for {} using the in-memory cache (Username: {})", uuid, cachedUsername);
             return cachedUsername;
@@ -733,7 +734,7 @@ public class Hypixel {
         Collection result = app.getDatabaseManager().query("SELECT `username` FROM `uuids` WHERE `uuid` = ?", uuid.toString());
         if (!result.isEmpty()) {
             String username = result.get(0).getString("username");
-            usernameCache.put(uuid, username);
+            uuidToUsernameCache.put(uuid, username);
             log.debug("Found Username for {} using the database cache (Username: {})", uuid, username);
 
             return username;
@@ -748,7 +749,7 @@ public class Hypixel {
 
             String username = playerReply.getPlayer().get("displayname").getAsString();
 
-            usernameCache.put(uuid, username);
+            uuidToUsernameCache.put(uuid, username);
 
             log.debug("Found Username for {} using the Hypixel API (Username: {})", uuid, username);
 

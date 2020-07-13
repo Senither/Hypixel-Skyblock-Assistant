@@ -29,8 +29,8 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
 import com.senither.hypixel.exceptions.FriendlyException;
-import com.senither.hypixel.metrics.MetricType;
 import com.senither.hypixel.metrics.Metrics;
+import io.prometheus.client.Histogram;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
@@ -50,7 +50,7 @@ public class CommandManager {
     private static final Set<CommandContainer> commands = new HashSet<>();
     private static final Pattern argumentsRegEX = Pattern.compile("([^\"]\\S*|\".+?\")\\s*", Pattern.MULTILINE);
 
-    private static final Cache<Long, Boolean> verifyCache = CacheBuilder.newBuilder()
+    public static final Cache<Long, Boolean> verifyCache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)
         .build();
 
@@ -91,12 +91,16 @@ public class CommandManager {
     }
 
     public void invokeCommand(@Nonnull MessageReceivedEvent event, @Nonnull Command command, boolean invokedThroughMentions) {
-        Metrics.increment(MetricType.COMMANDS_RAN);
+        Metrics.commandsReceived.labels(command.getClass().getSimpleName()).inc();
+        Histogram.Timer timer = Metrics.executionTime.labels(command.getClass().getSimpleName()).startTimer();
 
         try {
             String[] arguments = toArguments(event.getMessage().getContentRaw());
             if (!command.isVerificationRequired() || isUserVerified(event.getAuthor())) {
                 command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
+
+                Metrics.commandsExecuted.labels(command.getClass().getSimpleName()).inc();
+                Metrics.commandsExecutedByGuild.labels(event.getGuild().getName()).inc();
                 return;
             }
 
@@ -116,9 +120,15 @@ public class CommandManager {
         } catch (FriendlyException e) {
             MessageFactory.makeError(event.getMessage(), e.getMessage()).queue();
         } catch (Exception e) {
+            Metrics.commandExceptions.labels(e.getClass().getSimpleName()).inc();
+
             log.error("The {} command threw an {} exception, error: {}",
                 command.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage(), e
             );
+        } finally {
+            if (timer != null) {
+                timer.observeDuration();
+            }
         }
     }
 

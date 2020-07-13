@@ -42,7 +42,7 @@ public class GuildController {
     private static final Logger log = LoggerFactory.getLogger(GuildController.class);
     private static final Gson gson = new Gson();
 
-    private static final Cache<Long, GuildEntry> cache = CacheBuilder.newBuilder()
+    public static final Cache<Long, GuildEntry> cache = CacheBuilder.newBuilder()
         .expireAfterAccess(60, TimeUnit.SECONDS)
         .build();
 

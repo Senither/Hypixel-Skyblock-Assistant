@@ -37,17 +37,16 @@ import com.senither.hypixel.config.Configuration;
 import com.senither.hypixel.config.ConfigurationLoader;
 import com.senither.hypixel.database.DatabaseManager;
 import com.senither.hypixel.hypixel.Hypixel;
+import com.senither.hypixel.listeners.GenericEventListener;
 import com.senither.hypixel.listeners.MemberActivityEventListener;
 import com.senither.hypixel.listeners.MessageEventListener;
 import com.senither.hypixel.listeners.ReactionEventListener;
+import com.senither.hypixel.metrics.Metrics;
 import com.senither.hypixel.reports.ReportService;
 import com.senither.hypixel.scheduler.ScheduleManager;
 import com.senither.hypixel.scheduler.jobs.*;
 import com.senither.hypixel.servlet.WebServlet;
-import com.senither.hypixel.servlet.routes.GetGuildRoute;
-import com.senither.hypixel.servlet.routes.GetProfileRoute;
-import com.senither.hypixel.servlet.routes.GetReportRoute;
-import com.senither.hypixel.servlet.routes.GetUsernameRoute;
+import com.senither.hypixel.servlet.routes.*;
 import com.senither.hypixel.splash.SplashManager;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
@@ -115,6 +114,7 @@ public class SkyblockAssistant {
         log.info("Registering jobs...");
         this.scheduleManager = new ScheduleManager(this);
         scheduleManager.registerJob(new SplashQueueJob(this));
+        scheduleManager.registerJob(new SyncJDAMetricsJob(this));
         scheduleManager.registerJob(new RoleAssignmentJob(this));
         scheduleManager.registerJob(new DrainReportQueueJob(this));
         scheduleManager.registerJob(new DecayDonationPointsJob(this));
@@ -138,8 +138,11 @@ public class SkyblockAssistant {
         ReportService.resumeUnfinishedReports(this);
 
         if (configuration.getServlet().isEnabled()) {
+            Metrics.setup();
+
             log.info("Creating web servlet on port {}", configuration.getServlet().getPort());
             this.servlet = new WebServlet(configuration.getServlet().getPort());
+            servlet.registerGet("/metrics", new GetMetrics(this));
             servlet.registerGet("report/:id", new GetReportRoute(this));
             servlet.registerGet("username", new GetUsernameRoute(this));
 
@@ -188,6 +191,7 @@ public class SkyblockAssistant {
             .setContextEnabled(true)
             .addEventListeners(
                 new ReactionEventListener(),
+                new GenericEventListener(),
                 new MessageEventListener(this),
                 new MemberActivityEventListener(this)
             ).build();

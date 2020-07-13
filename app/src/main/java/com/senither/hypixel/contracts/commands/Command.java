@@ -46,11 +46,11 @@ public abstract class Command {
 
     private static final Logger log = LoggerFactory.getLogger(Command.class);
 
-    private static final Cache<Long, String> usernameCache = CacheBuilder.newBuilder()
+    public static final Cache<Long, String> discordIdToUsernameCache = CacheBuilder.newBuilder()
         .expireAfterAccess(5, TimeUnit.MINUTES)
         .build();
 
-    private static final Cache<Long, UUID> uuidCache = CacheBuilder.newBuilder()
+    public static final Cache<Long, UUID> discordIdToUuidCache = CacheBuilder.newBuilder()
         .expireAfterAccess(5, TimeUnit.MINUTES)
         .build();
 
@@ -83,7 +83,7 @@ public abstract class Command {
     }
 
     protected final void clearUsernameCacheFor(User user) {
-        usernameCache.invalidate(user.getIdLong());
+        discordIdToUsernameCache.invalidate(user.getIdLong());
     }
 
     protected final boolean isGuildMasterOfServerGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
@@ -95,7 +95,7 @@ public abstract class Command {
     }
 
     protected final String getUsernameFromUser(IMentionable user) {
-        String username = usernameCache.getIfPresent(user.getIdLong());
+        String username = discordIdToUsernameCache.getIfPresent(user.getIdLong());
         if (username != null) {
             return username;
         }
@@ -111,8 +111,8 @@ public abstract class Command {
             }
 
             username = result.first().getString("username");
-            usernameCache.put(user.getIdLong(), username);
-            uuidCache.put(user.getIdLong(), UUID.fromString(result.first().getString("uuid")));
+            discordIdToUsernameCache.put(user.getIdLong(), username);
+            discordIdToUuidCache.put(user.getIdLong(), UUID.fromString(result.first().getString("uuid")));
 
             return username;
         } catch (SQLException e) {
@@ -121,7 +121,7 @@ public abstract class Command {
     }
 
     protected final UUID getUUIDFromUser(IMentionable user) {
-        UUID uuid = uuidCache.getIfPresent(user.getIdLong());
+        UUID uuid = discordIdToUuidCache.getIfPresent(user.getIdLong());
         if (uuid != null) {
             return uuid;
         }
@@ -137,8 +137,8 @@ public abstract class Command {
             }
 
             uuid = UUID.fromString(result.first().getString("uuid"));
-            uuidCache.put(user.getIdLong(), uuid);
-            usernameCache.put(user.getIdLong(), result.first().getString("username"));
+            discordIdToUuidCache.put(user.getIdLong(), uuid);
+            discordIdToUsernameCache.put(user.getIdLong(), result.first().getString("username"));
 
             return uuid;
         } catch (SQLException e) {

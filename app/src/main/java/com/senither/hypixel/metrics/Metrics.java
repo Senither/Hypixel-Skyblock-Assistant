@@ -21,27 +21,157 @@
 
 package com.senither.hypixel.metrics;
 
-import java.util.EnumMap;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import com.senither.hypixel.commands.CommandManager;
+import com.senither.hypixel.commands.misc.BotStatsCommand;
+import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.database.controller.GuildController;
+import com.senither.hypixel.hypixel.Hypixel;
+import com.senither.hypixel.servlet.routes.GetGuildRoute;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.guava.cache.CacheMetricsCollector;
+import io.prometheus.client.hotspot.DefaultExports;
+import io.prometheus.client.logback.InstrumentedAppender;
+import net.dv8tion.jda.api.events.Event;
+import org.reflections.Reflections;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Modifier;
+import java.util.Set;
 
 public class Metrics {
 
-    private static final EnumMap<MetricType, Long> metric = new EnumMap<>(MetricType.class);
+    // ################################################################################
+    // ##                              JDA Stats
+    // ################################################################################
 
-    static {
-        for (MetricType type : MetricType.values()) {
-            metric.put(type, 0L);
+    public static final Counter jdaEvents = Counter.build()
+        .name("skyblock_assistant_jda_events_received_total")
+        .help("All events that JDA provides us with by class")
+        .labelNames("class") // GuildJoinedEvent, MessageReceivedEvent, ReconnectEvent etc
+        .register();
+
+    public static final Gauge memoryTotal = Gauge.build()
+        .name("skyblock_assistant_memory_total")
+        .help("Total number bytes of memory dedicated to the app")
+        .register();
+
+    public static final Gauge memoryUsed = Gauge.build()
+        .name("skyblock_assistant_memory_used")
+        .help("Total number bytes used in memory for the app")
+        .register();
+
+    // ################################################################################
+    // ##                         SkyBlock Assistant Stats
+    // ################################################################################
+
+
+    public static final Gauge guilds = Gauge.build()
+        .name("skyblock_assistant_guilds_total")
+        .help("Total number of guilds the bot is in")
+        .register();
+
+    public static final Gauge channels = Gauge.build()
+        .name("skyblock_assistant_channels_total")
+        .help("Total number of channels the bot is in")
+        .labelNames("type")
+        .register();
+
+    public static final Gauge geoTracker = Gauge.build()
+        .name("skyblock_assistant_geo_tracker_total")
+        .help("Total number of guilds split up by geographic location")
+        .labelNames("region")
+        .register();
+
+    public static final Gauge websocketHeartbeat = Gauge.build()
+        .name("skyblock_assistant_shard_websocket_heartbeat")
+        .help("Websocket heartbeat in milliseconds for each shard")
+        .labelNames("shard")
+        .register();
+
+    public static final Counter commandsReceived = Counter.build()
+        .name("skyblock_assistant_commands_received_total")
+        .help("Total received commands. Some of these might get ratelimited.")
+        .labelNames("class")
+        .register();
+
+    public static final Counter commandsExecuted = Counter.build()
+        .name("skyblock_assistant_commands_executed_total")
+        .help("Total executed commands by class")
+        .labelNames("class")
+        .register();
+
+    public static final Counter commandsExecutedByGuild = Counter.build()
+        .name("skyblock_assistant_guild_commands_executed_total")
+        .help("Total executed commands by class")
+        .labelNames("name")
+        .register();
+
+    public static final Histogram executionTime = Histogram.build() // commands execution time, excluding ratelimited ones
+        .name("skyblock_assistant_command_execution_duration_seconds")
+        .help("Command execution time, excluding handling ratelimited commands.")
+        .labelNames("class")
+        .register();
+
+    public static final Counter commandExceptions = Counter.build()
+        .name("skyblock_assistant_commands_exceptions_total")
+        .help("Total uncaught exceptions thrown by command invocation")
+        .labelNames("class") // class of the exception
+        .register();
+
+    public static final Counter databaseQueries = Counter.build()
+        .name("skyblock_assistant_database_queries")
+        .help("Total prepared statements created for the given type")
+        .labelNames("type")
+        .register();
+
+    private static boolean isSetup = false;
+
+    public static void setup() {
+        if (isSetup) {
+            throw new IllegalStateException("The metrics has already been setup!");
         }
+
+        final LoggerContext factory = (LoggerContext) LoggerFactory.getILoggerFactory();
+        final ch.qos.logback.classic.Logger root = factory.getLogger(Logger.ROOT_LOGGER_NAME);
+        final InstrumentedAppender prometheusAppender = new InstrumentedAppender();
+        prometheusAppender.setContext(root.getLoggerContext());
+        prometheusAppender.start();
+        root.addAppender(prometheusAppender);
+
+        // JVM (hotspot) metrics
+        DefaultExports.initialize();
+        Metrics.initializeEventMetrics();
+
+        CacheMetricsCollector cacheMetrics = new CacheMetricsCollector().register();
+        cacheMetrics.addCache("bot-stats", BotStatsCommand.cache);
+        cacheMetrics.addCache("levels", BotStatsCommand.cache);
+        cacheMetrics.addCache("api-guilds", GetGuildRoute.guildCache);
+        cacheMetrics.addCache("username-to-uuid", Hypixel.usernameToUuidCache);
+        cacheMetrics.addCache("uuid-to-discord-id", Hypixel.uuidToDiscordIdCache);
+        cacheMetrics.addCache("uuid-to-username", Hypixel.uuidToUsernameCache);
+        cacheMetrics.addCache("reply", Hypixel.replyCache);
+        cacheMetrics.addCache("response", Hypixel.responseCache);
+        cacheMetrics.addCache("verify", CommandManager.verifyCache);
+        cacheMetrics.addCache("database-guild", GuildController.cache);
+        cacheMetrics.addCache("discord-id-to-username", Command.discordIdToUsernameCache);
+        cacheMetrics.addCache("discord-id-to-uuid", Command.discordIdToUuidCache);
+
+        isSetup = true;
     }
 
-    public synchronized static void increment(MetricType type) {
-        metric.put(type, metric.get(type) + 1);
-    }
+    private static void initializeEventMetrics() {
+        Set<Class<? extends Event>> types = new Reflections("net.dv8tion.jda.core.events")
+            .getSubTypesOf(Event.class);
 
-    public synchronized static void decrement(MetricType type) {
-        metric.put(type, metric.get(type) - 1);
-    }
-
-    public synchronized static long getValue(MetricType type) {
-        return metric.get(type);
+        for (Class<? extends Event> type : types) {
+            if (type.isInterface() || Modifier.isAbstract(type.getModifiers())) {
+                continue;
+            }
+            jdaEvents.labels(type.getSimpleName()).inc(0D);
+        }
     }
 }

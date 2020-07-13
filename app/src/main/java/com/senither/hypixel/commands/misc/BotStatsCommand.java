@@ -27,10 +27,10 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
-import com.senither.hypixel.metrics.MetricType;
 import com.senither.hypixel.metrics.Metrics;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
+import io.prometheus.client.Collector;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.lang.management.ManagementFactory;
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BotStatsCommand extends Command {
 
-    private static final Cache<String, Long> cache = CacheBuilder.newBuilder()
+    public static final Cache<String, Long> cache = CacheBuilder.newBuilder()
         .expireAfterWrite(60, TimeUnit.SECONDS)
         .build();
 
@@ -84,12 +84,14 @@ public class BotStatsCommand extends Command {
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
+        long messageReceived = (long) Metrics.jdaEvents.labels(MessageReceivedEvent.class.getSimpleName()).get();
+
         MessageFactory.makeInfo(event.getMessage(), "The bot has been online for :time!")
             .set("time", Constants.STARTED_BOT_AT.diffForHumans(true))
             .setTitle("Bot Statistics")
-            .addField("DB Queries ran", formatDynamicValue(event, Metrics.getValue(MetricType.DB_QUERIES_RAN)), true)
-            .addField("Commands Ran", formatDynamicValue(event, Metrics.getValue(MetricType.COMMANDS_RAN)), true)
-            .addField("Messages Received", formatDynamicValue(event, Metrics.getValue(MetricType.MESSAGES_RECEIVED)), true)
+            .addField("DB Queries ran", formatDynamicValue(event, getTotalsFrom(Metrics.databaseQueries.collect())), true)
+            .addField("Commands Ran", formatDynamicValue(event, getTotalsFrom(Metrics.commandsExecuted.collect())), true)
+            .addField("Messages Received", formatDynamicValue(event, messageReceived), true)
             .addField("Cached UUIDs", NumberUtil.formatNicely(getTotalForType("uuids")), true)
             .addField("Cached Players", NumberUtil.formatNicely(getTotalForType("players")), true)
             .addField("Cached Profiles", NumberUtil.formatNicely(getTotalForType("profiles")), true)
@@ -113,6 +115,16 @@ public class BotStatsCommand extends Command {
             .set("sub", NumberUtil.formatNicelyWithDecimals(value < 1.5D ? value * 60D : value))
             .set("unit", value < 1.5D ? "min" : "sec")
             .toString();
+    }
+
+    private int getTotalsFrom(List<Collector.MetricFamilySamples> familySamples) {
+        double total = 0.0D;
+        for (Collector.MetricFamilySamples family : familySamples) {
+            for (Collector.MetricFamilySamples.Sample sample : family.samples) {
+                total += sample.value;
+            }
+        }
+        return (int) total;
     }
 
     private long getTotalForType(String type) {

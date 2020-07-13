@@ -40,7 +40,7 @@ public class PlayerDonationController {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerDonationController.class);
 
-    private static final Cache<String, PlayerDonationEntry> cache = CacheBuilder.newBuilder()
+    public static final Cache<String, PlayerDonationEntry> cache = CacheBuilder.newBuilder()
         .expireAfterAccess(15, TimeUnit.MINUTES)
         .build();
 
