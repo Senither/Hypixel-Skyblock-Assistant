@@ -71,6 +71,7 @@ public class DatabaseManager {
             migrationManager.register(new AddSplashesColumnsToGuildsTableMigration());
             migrationManager.register(new CreateMessagesTableMigration());
             migrationManager.register(new AddSplashPointsColumnToGuildsTableMigration());
+            migrationManager.register(new CreateBlacklistTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();

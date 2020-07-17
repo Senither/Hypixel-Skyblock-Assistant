@@ -8,6 +8,7 @@ import com.senither.hypixel.commands.ThrottleContainer;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.commands.Middleware;
 import com.senither.hypixel.metrics.Metrics;
+import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import javax.annotation.Nonnull;
@@ -26,6 +27,15 @@ public class ThrottleMiddleware extends Middleware {
         ThrottleEntity entity = getEntityFromCache(event.getAuthor().getIdLong(), throttleContainer);
 
         if (entity.getHits() >= throttleContainer.getMaxAttempts()) {
+            Carbon expires = app.getBlacklist().getRatelimit().hit(event.getAuthor().getIdLong());
+
+            if (expires != null) {
+                app.getBlacklist().getRatelimit().sendBlacklistMessage(
+                    event.getAuthor(), expires
+                );
+                return false;
+            }
+
             return cancelCommandThrottleRequest(event, command, entity);
         }
 

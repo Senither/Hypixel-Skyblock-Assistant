@@ -24,6 +24,7 @@ package com.senither.hypixel.commands;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.commands.middlewares.BlacklistMiddleware;
 import com.senither.hypixel.commands.middlewares.ThrottleMiddleware;
 import com.senither.hypixel.commands.middlewares.VerificationMiddleware;
 import com.senither.hypixel.contracts.commands.Command;
@@ -48,6 +49,7 @@ public class CommandManager {
     private static final Set<CommandContainer> commands = new HashSet<>();
     private static final Pattern argumentsRegEX = Pattern.compile("([^\"]\\S*|\".+?\")\\s*", Pattern.MULTILINE);
     private static final List<Middleware> middlewares = Arrays.asList(
+        new BlacklistMiddleware(),
         new VerificationMiddleware(),
         new ThrottleMiddleware()
     );

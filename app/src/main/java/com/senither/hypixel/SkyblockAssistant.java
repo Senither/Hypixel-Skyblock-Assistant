@@ -21,6 +21,7 @@
 
 package com.senither.hypixel;
 
+import com.senither.hypixel.blacklist.Blacklist;
 import com.senither.hypixel.commands.CommandManager;
 import com.senither.hypixel.commands.administration.*;
 import com.senither.hypixel.commands.calculators.PetsCalculatorCommand;
@@ -67,6 +68,7 @@ public class SkyblockAssistant {
     private final CommandManager commandManager;
     private final SplashManager splashManager;
     private final ScheduleManager scheduleManager;
+    private final Blacklist blacklist;
     private final WebServlet servlet;
     private final Hypixel hypixel;
     private final ShardManager shardManager;
@@ -124,6 +126,10 @@ public class SkyblockAssistant {
         log.info("Creating database manager");
         this.databaseManager = new DatabaseManager(this);
 
+        log.info("Preparing blacklist and syncing the list with the database");
+        blacklist = new Blacklist(this);
+        blacklist.syncBlacklistWithDatabase();
+
         log.info("Creating Hypixel API factory");
         this.hypixel = new Hypixel(this);
         if (!this.hypixel.isLeaderboardApiValid()) {
@@ -168,6 +174,10 @@ public class SkyblockAssistant {
 
     public SplashManager getSplashManager() {
         return splashManager;
+    }
+
+    public Blacklist getBlacklist() {
+        return blacklist;
     }
 
     public Hypixel getHypixel() {
