@@ -27,6 +27,7 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.chat.PlaceholderMessage;
+import com.senither.hypixel.commands.middlewares.VerificationMiddleware;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
@@ -177,7 +178,7 @@ public class VerifyCommand extends Command {
         }
 
         clearUsernameCacheFor(event.getAuthor());
-        app.getCommandManager().clearVerificationCacheFor(event.getAuthor());
+        VerificationMiddleware.clearVerificationCacheFor(event.getAuthor());
 
         message.editMessage(embedBuilder
             .setDescription("Your account has now been verified!")

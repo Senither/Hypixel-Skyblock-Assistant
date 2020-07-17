@@ -23,7 +23,7 @@ package com.senither.hypixel.metrics;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import com.senither.hypixel.commands.CommandManager;
+import com.senither.hypixel.commands.middlewares.VerificationMiddleware;
 import com.senither.hypixel.commands.misc.BotStatsCommand;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
@@ -155,7 +155,7 @@ public class Metrics {
         cacheMetrics.addCache("uuid-to-username", Hypixel.uuidToUsernameCache);
         cacheMetrics.addCache("reply", Hypixel.replyCache);
         cacheMetrics.addCache("response", Hypixel.responseCache);
-        cacheMetrics.addCache("verify", CommandManager.verifyCache);
+        cacheMetrics.addCache("verify", VerificationMiddleware.cache);
         cacheMetrics.addCache("database-guild", GuildController.cache);
         cacheMetrics.addCache("discord-id-to-username", Command.discordIdToUsernameCache);
         cacheMetrics.addCache("discord-id-to-uuid", Command.discordIdToUuidCache);

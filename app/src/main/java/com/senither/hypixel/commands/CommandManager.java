@@ -21,26 +21,23 @@
 
 package com.senither.hypixel.commands;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.commands.middlewares.VerificationMiddleware;
 import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.contracts.commands.Middleware;
 import com.senither.hypixel.exceptions.CommandAlreadyRegisteredException;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.metrics.Metrics;
 import io.prometheus.client.Histogram;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,11 +46,9 @@ public class CommandManager {
     private static final Logger log = LoggerFactory.getLogger(CommandManager.class);
     private static final Set<CommandContainer> commands = new HashSet<>();
     private static final Pattern argumentsRegEX = Pattern.compile("([^\"]\\S*|\".+?\")\\s*", Pattern.MULTILINE);
-
-    public static final Cache<Long, Boolean> verifyCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(30, TimeUnit.MINUTES)
-        .recordStats()
-        .build();
+    private static final List<Middleware> middlewares = Arrays.asList(
+        new VerificationMiddleware()
+    );
 
     private final SkyblockAssistant app;
 
@@ -97,27 +92,17 @@ public class CommandManager {
 
         try {
             String[] arguments = toArguments(event.getMessage().getContentRaw());
-            if (!command.isVerificationRequired() || isUserVerified(event.getAuthor())) {
-                command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
 
-                Metrics.commandsExecuted.labels(command.getClass().getSimpleName()).inc();
-                Metrics.commandsExecutedByGuild.labels(event.getGuild().getName()).inc();
-                return;
+            for (Middleware middleware : middlewares) {
+                if (!middleware.handle(app, event, command)) {
+                    return;
+                }
             }
 
-            MessageFactory.makeError(event.getMessage(), String.join("\n", Arrays.asList(
-                "You must verify your account with the bot to use this command, you can do this by",
-                "running `:prefixverify <username>`, where your username is your in-game Minecraft",
-                "username that has your Discord account linked on Hypixel.net",
-                "",
-                "If you haven't already linked your Discord account on Hypixel you can login to",
-                "the server, go to your Hypixel social settings, click on Discord, and set",
-                "your username to `:user`"
-            )))
-                .set("prefix", Constants.COMMAND_PREFIX)
-                .set("user", event.getAuthor().getAsTag())
-                .setTitle("Missing verification")
-                .queue();
+            command.onCommand(event, Arrays.copyOfRange(arguments, invokedThroughMentions ? 2 : 1, arguments.length));
+
+            Metrics.commandsExecuted.labels(command.getClass().getSimpleName()).inc();
+            Metrics.commandsExecutedByGuild.labels(event.getGuild().getName()).inc();
         } catch (FriendlyException e) {
             MessageFactory.makeError(event.getMessage(), e.getMessage()).queue();
         } catch (Exception e) {
@@ -135,26 +120,6 @@ public class CommandManager {
 
     public Set<CommandContainer> getCommands() {
         return commands;
-    }
-
-    public void clearVerificationCacheFor(User user) {
-        verifyCache.invalidate(user.getIdLong());
-    }
-
-    private boolean isUserVerified(User user) {
-        Boolean verificationState = verifyCache.getIfPresent(user.getIdLong());
-        if (verificationState != null) {
-            return verificationState;
-        }
-
-        try {
-            boolean result = app.getHypixel().getUUIDFromUser(user) != null;
-
-            verifyCache.put(user.getIdLong(), result);
-            return result;
-        } catch (SQLException ignored) {
-            return false;
-        }
     }
 
     private String[] toArguments(String string) {
