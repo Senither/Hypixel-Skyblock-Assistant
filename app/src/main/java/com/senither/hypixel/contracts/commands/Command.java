@@ -25,6 +25,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageType;
+import com.senither.hypixel.commands.ThrottleContainer;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
@@ -56,8 +57,13 @@ public abstract class Command {
         .recordStats()
         .build();
 
+    private static final ThrottleContainer defaultThrottleContainer = new ThrottleContainer(
+        3, 5
+    );
+
     protected final SkyblockAssistant app;
     private final boolean verificationRequired;
+    private ThrottleContainer throttleContainer = defaultThrottleContainer;
 
     public Command(SkyblockAssistant app) {
         this(app, true);
@@ -82,6 +88,14 @@ public abstract class Command {
 
     public final boolean isVerificationRequired() {
         return verificationRequired;
+    }
+
+    public ThrottleContainer getThrottleContainer() {
+        return throttleContainer;
+    }
+
+    public void setThrottleContainer(int maxAttempts, int decaySeconds) {
+        this.throttleContainer = new ThrottleContainer(maxAttempts, decaySeconds);
     }
 
     protected final void clearUsernameCacheFor(User user) {

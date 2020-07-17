@@ -52,6 +52,8 @@ public class VerifyCommand extends Command {
 
     public VerifyCommand(SkyblockAssistant app) {
         super(app, false);
+
+        setThrottleContainer(2, 5);
     }
 
     @Override

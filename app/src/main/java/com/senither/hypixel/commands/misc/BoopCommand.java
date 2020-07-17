@@ -15,6 +15,8 @@ public class BoopCommand extends Command {
 
     public BoopCommand(SkyblockAssistant app) {
         super(app, false);
+
+        setThrottleContainer(2, 10);
     }
 
     @Override

@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-public class VerificationMiddleware implements Middleware {
+public class VerificationMiddleware extends Middleware {
 
     public static final Cache<Long, Boolean> cache = CacheBuilder.newBuilder()
         .expireAfterAccess(30, TimeUnit.MINUTES)

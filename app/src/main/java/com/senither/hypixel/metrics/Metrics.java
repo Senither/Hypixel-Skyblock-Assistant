@@ -23,6 +23,7 @@ package com.senither.hypixel.metrics;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import com.senither.hypixel.commands.middlewares.ThrottleMiddleware;
 import com.senither.hypixel.commands.middlewares.VerificationMiddleware;
 import com.senither.hypixel.commands.misc.BotStatsCommand;
 import com.senither.hypixel.contracts.commands.Command;
@@ -110,6 +111,12 @@ public class Metrics {
         .labelNames("name")
         .register();
 
+    public static final Counter commandsRatelimited = Counter.build()
+        .name("skyblock_assistant_commands_ratelimited_total")
+        .help("Total ratelimited commands")
+        .labelNames("class")
+        .register();
+
     public static final Histogram executionTime = Histogram.build() // commands execution time, excluding ratelimited ones
         .name("skyblock_assistant_command_execution_duration_seconds")
         .help("Command execution time, excluding handling ratelimited commands.")
@@ -159,6 +166,7 @@ public class Metrics {
         cacheMetrics.addCache("database-guild", GuildController.cache);
         cacheMetrics.addCache("discord-id-to-username", Command.discordIdToUsernameCache);
         cacheMetrics.addCache("discord-id-to-uuid", Command.discordIdToUuidCache);
+        cacheMetrics.addCache("throttle-commands", ThrottleMiddleware.cache);
 
         isSetup = true;
     }
