@@ -118,6 +118,7 @@ public class SkyblockAssistant {
         scheduleManager.registerJob(new SplashQueueJob(this));
         scheduleManager.registerJob(new SyncJDAMetricsJob(this));
         scheduleManager.registerJob(new RoleAssignmentJob(this));
+        scheduleManager.registerJob(new GarbageCollectorJob(this));
         scheduleManager.registerJob(new DrainReportQueueJob(this));
         scheduleManager.registerJob(new DecayDonationPointsJob(this));
         scheduleManager.registerJob(new HypixelRankSynchronizeJob(this));
