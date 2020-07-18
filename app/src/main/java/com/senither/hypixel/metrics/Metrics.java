@@ -69,6 +69,11 @@ public class Metrics {
     // ##                         SkyBlock Assistant Stats
     // ################################################################################
 
+    public static final Gauge uptime = Gauge.build()
+        .name("skyblock_assistant_uptime")
+        .help("Total number of seconds the bot has been online for")
+        .labelNames("type")
+        .register();
 
     public static final Gauge guilds = Gauge.build()
         .name("skyblock_assistant_guilds_total")
@@ -135,12 +140,19 @@ public class Metrics {
         .labelNames("type")
         .register();
 
+    public static final Gauge blacklist = Gauge.build()
+        .name("skyblock_assistant_blacklist_current")
+        .help("The amount of servers and users that are currently on the blacklist")
+        .register();
+
     private static boolean isSetup = false;
 
     public static void setup() {
         if (isSetup) {
             throw new IllegalStateException("The metrics has already been setup!");
         }
+
+        uptime.labels("static").set(System.currentTimeMillis());
 
         final LoggerContext factory = (LoggerContext) LoggerFactory.getILoggerFactory();
         final ch.qos.logback.classic.Logger root = factory.getLogger(Logger.ROOT_LOGGER_NAME);

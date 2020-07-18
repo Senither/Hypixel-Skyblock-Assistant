@@ -115,8 +115,8 @@ public class SkyblockAssistant {
 
         log.info("Registering jobs...");
         this.scheduleManager = new ScheduleManager(this);
+        scheduleManager.registerJob(new SyncMetricsJob(this));
         scheduleManager.registerJob(new SplashQueueJob(this));
-        scheduleManager.registerJob(new SyncJDAMetricsJob(this));
         scheduleManager.registerJob(new RoleAssignmentJob(this));
         scheduleManager.registerJob(new GarbageCollectorJob(this));
         scheduleManager.registerJob(new DrainReportQueueJob(this));
