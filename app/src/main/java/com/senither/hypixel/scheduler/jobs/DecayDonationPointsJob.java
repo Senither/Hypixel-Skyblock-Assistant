@@ -98,8 +98,8 @@ public class DecayDonationPointsJob extends Job {
                 memberIds.clear();
                 for (DataRow player : updatePlayers) {
                     long points = player.getLong("points");
-                    if (points > 0 && points - guild.getDonationPoints() <= 0) {
-                        notifyPlayer(app, guild, notificationChannel, player);
+                    if (points - guild.getDonationPoints() <= 0) {
+                        notifyPlayer(app, guild, notificationChannel, player, points - guild.getDonationPoints());
                     }
                     memberIds.add(player.getString("uuid"));
                 }
@@ -117,15 +117,16 @@ public class DecayDonationPointsJob extends Job {
         }
     }
 
-    private void notifyPlayer(SkyblockAssistant app, GuildController.GuildEntry guild, TextChannel notificationChannel, DataRow player) {
+    private void notifyPlayer(SkyblockAssistant app, GuildController.GuildEntry guild, TextChannel notificationChannel, DataRow player, long points) {
         if (notificationChannel != null) {
             MessageFactory.makeEmbeddedMessage(notificationChannel)
                 .setColor(MessageType.WARNING.getColor())
                 .setTitle(player.getString("username") + " has no points left!")
-                .setDescription("**:name** is now at zero donation points!\nThey last donated :time.")
+                .setDescription("**:name** is now at **:points** donation points!\nThey last donated :time.")
                 .setTimestamp(Carbon.now().getTime().toInstant())
                 .set("name", player.getString("username"))
                 .set("time", player.getTimestamp("last_donated_at").diffForHumans())
+                .set("points", points)
                 .queue();
         }
 
@@ -140,16 +141,19 @@ public class DecayDonationPointsJob extends Job {
         }
 
         userById.openPrivateChannel().queue(privateChannel -> {
-            privateChannel.sendMessage(MessageFactory.createEmbeddedBuilder()
-                .setColor(MessageType.WARNING.getColor())
-                .setTitle("You're now at zero points!")
-                .setDescription(String.format(String.join("\n",
-                    "You're now at zero donation points in the **%s** guild!",
-                    "Make sure you donate soon so you don't run the risk of getting kicked!",
-                    "",
-                    "You last donated %s."
-                ), guild.getName(), player.getTimestamp("last_donated_at").diffForHumans()))
-                .build()
+            privateChannel.sendMessage(
+                MessageFactory.makeEmbeddedMessage(null)
+                    .setColor(MessageType.WARNING.getColor())
+                    .setDescription(String.join("\n",
+                        "You're now at **:points** donation points in the **:guild** guild!",
+                        "Make sure you donate soon so you don't run the risk of getting kicked!",
+                        "",
+                        "You last donated :time."
+                    )).setTitle("You're now at zero points!")
+                    .set("points", points)
+                    .set("guild", guild.getName())
+                    .set("time", player.getTimestamp("last_donated_at").diffForHumans())
+                    .buildEmbed()
             ).queue();
         }, null);
     }
