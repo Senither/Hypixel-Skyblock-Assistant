@@ -1,5 +1,7 @@
 package com.senither.hypixel.commands.misc;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.contracts.commands.Command;
@@ -8,10 +10,17 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class BoopCommand extends Command {
+
+    public static final Cache<Long, Boolean> cache = CacheBuilder.newBuilder()
+        .expireAfterWrite(60, TimeUnit.SECONDS)
+        .recordStats()
+        .build();
 
     public BoopCommand(SkyblockAssistant app) {
         super(app, false);
@@ -61,9 +70,17 @@ public class BoopCommand extends Command {
             return;
         }
 
+        if (!isOptIn(mentionedUser.getIdLong())) {
+            MessageFactory.makeWarning(event.getMessage(),
+                ":user has opt-out of getting boop notifications!\nYou can't boop this person."
+            ).set("user", mentionedUser.getAsMention()).queue();
+            return;
+        }
+
         mentionedUser.openPrivateChannel().queue(privateChannel -> {
             privateChannel.sendMessage(MessageFactory.makeEmbeddedMessage(null)
                 .setDescription("**Boop!**\nYou have just been booped by :user from **:guild** in :channel")
+                .setFooter("You can opt-out of getting boop notifications by using \"h!boop-opt out\"")
                 .set("user", event.getAuthor().getAsMention())
                 .set("guild", event.getGuild().getName())
                 .set("channel", event.getTextChannel().getAsMention())
@@ -101,5 +118,26 @@ public class BoopCommand extends Command {
         }
 
         return null;
+    }
+
+    private boolean isOptIn(long id) {
+        Boolean ifPresent = cache.getIfPresent(id);
+        if (ifPresent != null) {
+            return ifPresent;
+        }
+
+        try {
+            boolean isOptIn = app.getDatabaseManager().query(
+                "SELECT * FROM `boop_opt` WHERE `discord_id` = ?", id
+            ).isEmpty();
+
+            cache.put(id, isOptIn);
+
+            return isOptIn;
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+            return true;
+        }
     }
 }

@@ -25,6 +25,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.senither.hypixel.commands.middlewares.ThrottleMiddleware;
 import com.senither.hypixel.commands.middlewares.VerificationMiddleware;
+import com.senither.hypixel.commands.misc.BoopCommand;
 import com.senither.hypixel.commands.misc.BotStatsCommand;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
@@ -166,6 +167,7 @@ public class Metrics {
         Metrics.initializeEventMetrics();
 
         CacheMetricsCollector cacheMetrics = new CacheMetricsCollector().register();
+        cacheMetrics.addCache("boop", BoopCommand.cache);
         cacheMetrics.addCache("bot-stats", BotStatsCommand.cache);
         cacheMetrics.addCache("levels", BotStatsCommand.cache);
         cacheMetrics.addCache("api-guilds", GetGuildRoute.guildCache);
