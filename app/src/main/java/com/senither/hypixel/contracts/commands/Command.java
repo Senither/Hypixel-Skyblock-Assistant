@@ -63,6 +63,7 @@ public abstract class Command {
 
     protected final SkyblockAssistant app;
     private final boolean verificationRequired;
+    private boolean visible = true;
     private ThrottleContainer throttleContainer = defaultThrottleContainer;
 
     public Command(SkyblockAssistant app) {
@@ -96,6 +97,14 @@ public abstract class Command {
 
     public void setThrottleContainer(int maxAttempts, int decaySeconds) {
         this.throttleContainer = new ThrottleContainer(maxAttempts, decaySeconds);
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public boolean isVisible() {
+        return visible;
     }
 
     protected final void clearUsernameCacheFor(User user) {

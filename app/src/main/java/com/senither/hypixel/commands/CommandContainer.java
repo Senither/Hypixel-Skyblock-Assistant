@@ -62,4 +62,8 @@ public class CommandContainer {
     public List<String> getTriggers() {
         return command.getTriggers();
     }
+
+    public boolean isVisible() {
+        return command.isVisible();
+    }
 }

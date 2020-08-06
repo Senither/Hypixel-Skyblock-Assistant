@@ -66,7 +66,7 @@ public class HelpCommand extends Command {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("help");
+        return Collections.singletonList("help");
     }
 
     @Override
@@ -120,6 +120,7 @@ public class HelpCommand extends Command {
             .set("prefix", Constants.COMMAND_PREFIX);
 
         List<CommandContainer> containers = app.getCommandManager().getCommands().stream()
+            .filter(CommandContainer::isVisible)
             .sorted(Comparator.comparing(CommandContainer::getCategory))
             .collect(Collectors.toList());
 
