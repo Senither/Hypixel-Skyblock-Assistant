@@ -170,7 +170,7 @@ public class BanLogCommand extends Command {
                 if (row.getString("name") == null) {
                     continue;
                 }
-                
+
                 fields.add(new MessageEmbed.Field(String.format(
                     "#%d - Added by %s from %s",
                     row.getLong("id"),
@@ -202,12 +202,47 @@ public class BanLogCommand extends Command {
     }
 
     private void removeUser(MessageReceivedEvent event, String username, String[] args) {
+        if (args.length == 0) {
+            MessageFactory.makeError(event.getMessage(),
+                "Missing the ban-log entry ID that should be removed from the log."
+            ).queue();
+            return;
+        }
+
+        int id = NumberUtil.parseInt(args[0], -1);
+        if (id < 1) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "Invalid ban-log entry ID given, the ID must be a valid number!"
+            ).queue();
+            return;
+        }
+
         UUID uuid = getUuidFromUsername(event, username);
         if (uuid == null) {
             MessageFactory.makeWarning(event.getMessage(),
                 "Found no Minecraft user account with the name `:name`, please make sure you have entered the username correctly!"
             ).set("name", username).queue();
             return;
+        }
+
+        try {
+            boolean result = app.getDatabaseManager().queryUpdate(
+                "DELETE FROM `ban_log` WHERE `discord_id` = ? AND `uuid` = ? AND `id` = ?",
+                event.getGuild().getIdLong(), uuid, id
+            );
+
+            if (!result) {
+                MessageFactory.makeWarning(event.getMessage(),
+                    "Found no ban-log entries with an ID of **:id** belonging to **:name** that was created on this server."
+                ).set("id", id).set("name", app.getHypixel().getUsernameFromUuid(uuid)).queue();
+                return;
+            }
+
+            MessageFactory.makeSuccess(event.getMessage(),
+                "The ban-log entry with an ID of **:id** for **:name** have been successfully been deleted!"
+            ).set("id", id).set("name", app.getHypixel().getUsernameFromUuid(uuid)).queue();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
