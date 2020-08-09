@@ -1,15 +1,19 @@
 package com.senither.hypixel.commands.administration;
 
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
+import com.senither.hypixel.chat.PlaceholderMessage;
+import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
+import com.senither.hypixel.database.collection.Collection;
+import com.senither.hypixel.database.collection.DataRow;
+import com.senither.hypixel.utils.NumberUtil;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class BanLogCommand extends Command {
 
@@ -143,6 +147,57 @@ public class BanLogCommand extends Command {
                 "Found no Minecraft user account with the name `:name`, please make sure you have entered the username correctly!"
             ).set("name", username).queue();
             return;
+        }
+
+        try {
+            Collection result = app.getDatabaseManager().query(
+                "SELECT `ban_log`.*, `guilds`.`name` FROM `ban_log`" +
+                    "LEFT JOIN `guilds` ON `guilds`.`discord_id` = `ban_log`.`discord_id`" +
+                    "WHERE `uuid` = ?" +
+                    "ORDER BY `created_at` DESC",
+                uuid
+            );
+
+            if (result.isEmpty()) {
+                MessageFactory.makeWarning(event.getMessage(),
+                    "**:name** has no entries in the ban-log."
+                ).set("name", app.getHypixel().getUsernameFromUuid(uuid)).queue();
+                return;
+            }
+
+            List<MessageEmbed.Field> fields = new ArrayList<>();
+            for (DataRow row : result) {
+                if (row.getString("name") == null) {
+                    continue;
+                }
+                
+                fields.add(new MessageEmbed.Field(String.format(
+                    "#%d - Added by %s from %s",
+                    row.getLong("id"),
+                    app.getHypixel().getUsernameFromUuid(UUID.fromString(row.getString("added_by"))),
+                    row.getString("name")
+                ), (row.getString("reason") == null
+                    ? "_No reason was given_"
+                    : row.getString("reason")
+                ), false
+                ));
+            }
+
+            SimplePaginator<MessageEmbed.Field> paginator = new SimplePaginator<>(fields, 5);
+            if (args.length > 0) {
+                paginator.setCurrentPage(NumberUtil.parseInt(args[0], 1));
+            }
+
+            PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(), "")
+                .setTitle("Ban log for " + app.getHypixel().getUsernameFromUuid(uuid));
+
+            paginator.forEach((index, key, val) -> message.addField(val));
+
+            message.addField(" ", paginator.generateFooter(String.format("%s%s %s",
+                Constants.COMMAND_PREFIX, getTriggers().get(0), username
+            )), false).queue();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
