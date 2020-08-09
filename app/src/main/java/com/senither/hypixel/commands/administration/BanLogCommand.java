@@ -131,7 +131,7 @@ public class BanLogCommand extends Command {
 
             MessageFactory.makeSuccess(event.getMessage(),
                 "**:name** have been added to the ban-log, :reason"
-            ).set("name", username).set("reason", reason == null
+            ).set("name", app.getHypixel().getUsernameFromUuid(uuid)).set("reason", reason == null
                 ? "with *no reason* given"
                 : "for \"" + String.join(" ", args) + "\""
             ).queue();
@@ -239,7 +239,7 @@ public class BanLogCommand extends Command {
             }
 
             MessageFactory.makeSuccess(event.getMessage(),
-                "The ban-log entry with an ID of **:id** for **:name** have been successfully been deleted!"
+                "The ban-log entry with an ID of **:id** for **:name** have been successfully deleted!"
             ).set("id", id).set("name", app.getHypixel().getUsernameFromUuid(uuid)).queue();
         } catch (SQLException e) {
             e.printStackTrace();
