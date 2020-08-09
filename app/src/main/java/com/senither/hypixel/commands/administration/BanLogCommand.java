@@ -8,6 +8,7 @@ import com.senither.hypixel.chat.SimplePaginator;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.database.collection.DataRow;
+import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -60,6 +61,22 @@ public class BanLogCommand extends Command {
 
     @Override
     public void onCommand(MessageReceivedEvent event, String[] args) {
+        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
+        if (guildEntry == null) {
+            MessageFactory.makeError(event.getMessage(),
+                "The server is not currently setup with a guild, you must setup "
+                    + "the server with a guild before you can use this command!"
+            ).setTitle("Server is not setup").queue();
+            return;
+        }
+
+        if (!isGuildMasterOrOfficerOfServerGuild(event, guildEntry)) {
+            MessageFactory.makeError(event.getMessage(),
+                "You must be the guild master of the **:name** guild to use this command!"
+            ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
+            return;
+        }
+
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
                 "Missing the `name` of the action you wish to preform!"
@@ -98,7 +115,7 @@ public class BanLogCommand extends Command {
     }
 
     private void addUser(MessageReceivedEvent event, String username, String[] args) {
-        UUID uuid = getUuidFromUsername(event, username);
+        UUID uuid = getUuidFromUsername(username);
         if (uuid == null) {
             MessageFactory.makeWarning(event.getMessage(),
                 "Found no Minecraft user account with the name `:name`, please make sure you have entered the username correctly!"
@@ -141,7 +158,7 @@ public class BanLogCommand extends Command {
     }
 
     private void showUser(MessageReceivedEvent event, String username, String[] args) {
-        UUID uuid = getUuidFromUsername(event, username);
+        UUID uuid = getUuidFromUsername(username);
         if (uuid == null) {
             MessageFactory.makeWarning(event.getMessage(),
                 "Found no Minecraft user account with the name `:name`, please make sure you have entered the username correctly!"
@@ -217,7 +234,7 @@ public class BanLogCommand extends Command {
             return;
         }
 
-        UUID uuid = getUuidFromUsername(event, username);
+        UUID uuid = getUuidFromUsername(username);
         if (uuid == null) {
             MessageFactory.makeWarning(event.getMessage(),
                 "Found no Minecraft user account with the name `:name`, please make sure you have entered the username correctly!"
@@ -254,7 +271,7 @@ public class BanLogCommand extends Command {
         }
     }
 
-    private UUID getUuidFromUsername(MessageReceivedEvent event, String username) {
+    private UUID getUuidFromUsername(String username) {
         try {
             return app.getHypixel().getUUIDFromName(username);
         } catch (SQLException e) {
