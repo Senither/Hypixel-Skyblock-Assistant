@@ -25,6 +25,7 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
+import com.senither.hypixel.commands.administration.settings.BanLogCommand;
 import com.senither.hypixel.commands.administration.settings.*;
 import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.contracts.commands.SettingsSubCommand;
@@ -42,6 +43,7 @@ public class SettingsCommand extends Command {
     public SettingsCommand(SkyblockAssistant app) {
         super(app);
 
+        commands.add(new BanLogCommand(app));
         commands.add(new AutoRenameCommand(app));
         commands.add(new DefaultRoleCommand(app));
         commands.add(new SplashTrackerCommand(app));

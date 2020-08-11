@@ -11,6 +11,7 @@ import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.sql.SQLException;
@@ -70,7 +71,17 @@ public class BanLogCommand extends Command {
             return;
         }
 
-        if (!isGuildMasterOrOfficerOfServerGuild(event, guildEntry)) {
+        if (!guildEntry.isBanLogEnabled()) {
+            MessageFactory.makeError(event.getMessage(),
+                "The ban-log feature have not yet been enabled for the server, you must setup "
+                    + "the feature before being able to use this command, you can enable the "
+                    + "feature by running:"
+                    + "\n```h!settings ban-log <role>```"
+            ).setTitle("Ban-Log is not setup").queue();
+            return;
+        }
+
+        if (!isOfficerInGuildOrHasBanLogRole(event, guildEntry)) {
             MessageFactory.makeError(event.getMessage(),
                 "You must be the guild master of the **:name** guild to use this command!"
             ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
@@ -277,5 +288,16 @@ public class BanLogCommand extends Command {
         } catch (SQLException e) {
             return null;
         }
+    }
+
+    private boolean isOfficerInGuildOrHasBanLogRole(MessageReceivedEvent event, GuildController.GuildEntry guildEntry) {
+        if (event.getMember() != null) {
+            for (Role role : event.getMember().getRoles()) {
+                if (role.getIdLong() == guildEntry.getBanLogRole()) {
+                    return true;
+                }
+            }
+        }
+        return isGuildMasterOrOfficerOfServerGuild(event, guildEntry);
     }
 }

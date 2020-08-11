@@ -109,6 +109,7 @@ public class GuildController {
         private final Long donationRole;
         private final Long donationChannel;
         private final Long donationNotificationChannel;
+        private final Long banLogRole;
         private final boolean autoRename;
         private final LinkedHashMap<String, RankRequirement> rankRequirements;
 
@@ -125,6 +126,7 @@ public class GuildController {
             donationRole = row.getLong("donation_role");
             donationChannel = row.getLong("donation_channel");
             donationNotificationChannel = row.getLong("donation_notification_channel");
+            banLogRole = row.getLong("ban_log_role");
             autoRename = row.getBoolean("auto_rename");
 
             long defaultRole = row.getLong("default_role", 0L);
@@ -202,6 +204,15 @@ public class GuildController {
                 && getDonationTime() > 0
                 && getDonationPoints() != null
                 && getDonationPoints() > 0;
+        }
+
+        public Long getBanLogRole() {
+            return banLogRole;
+        }
+
+        public boolean isBanLogEnabled() {
+            return getBanLogRole() != null
+                && getBanLogRole() > 0;
         }
 
         public Long getDefaultRole() {
