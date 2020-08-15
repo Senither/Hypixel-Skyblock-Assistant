@@ -196,20 +196,6 @@ public class VerifyCommand extends Command {
             return;
         }
 
-        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
-        if (guildEntry == null) {
-            return;
-        }
-
-        final String username = playerReply.getPlayer().get("displayname").getAsString();
-
-        if (guildEntry.isAutoRename()) {
-            //noinspection ConstantConditions
-            if (!event.getMember().getEffectiveName().equalsIgnoreCase(username)) {
-                event.getGuild().modifyNickname(event.getMember(), username).queue(null, null);
-            }
-        }
-
         List<Role> rolesToAdd = new ArrayList<>();
         List<Role> rolesToRemove = new ArrayList<>();
 
@@ -234,6 +220,23 @@ public class VerifyCommand extends Command {
             List<Role> rankRolesByName = event.getGuild().getRolesByName(hypixelRank.getName(), true);
             if (!rankRolesByName.isEmpty()) {
                 rolesToRemove.add(rankRolesByName.get(0));
+            }
+        }
+
+        GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
+        if (guildEntry == null) {
+            if (!rolesToAdd.isEmpty() || !rolesToRemove.isEmpty()) {
+                assignRolesToMember(event, rolesToAdd, rolesToRemove);
+            }
+            return;
+        }
+
+        final String username = playerReply.getPlayer().get("displayname").getAsString();
+
+        if (guildEntry.isAutoRename()) {
+            //noinspection ConstantConditions
+            if (!event.getMember().getEffectiveName().equalsIgnoreCase(username)) {
+                event.getGuild().modifyNickname(event.getMember(), username).queue(null, null);
             }
         }
 
