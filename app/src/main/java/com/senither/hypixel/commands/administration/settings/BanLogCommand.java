@@ -109,7 +109,7 @@ public class BanLogCommand extends SettingsSubCommand {
 
             MessageFactory.makeSuccess(event.getMessage(), "The ban-log feature have now been disabled!").queue();
         } catch (SQLException e) {
-            log.error("Failed to set the default role for {} to null during reset, error: {}",
+            log.error("Failed to set the ban-log role for {} to null during reset, error: {}",
                 event.getGuild().getId(), e.getMessage(), e
             );
 
