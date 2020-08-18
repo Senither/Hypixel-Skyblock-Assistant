@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class LeaderboardCommand extends Command {
@@ -168,6 +169,10 @@ public class LeaderboardCommand extends Command {
             ? "%s: %s\n%s> %s " : type.equals(LeaderboardType.AVERAGE_SKILL)
             ? "%s: %s\n%s> %s (%s)" : "%s: %s\n%s> %s [%s XP]";
 
+        AtomicReference<Double> totalStatCounter = new AtomicReference<>(0D);
+        AtomicReference<Double> totalExpCounter = new AtomicReference<>(0D);
+        AtomicReference<Integer> totalPlayers = new AtomicReference<>(0);
+
         final int[] index = {1};
         final UUID finalUserUUID = userUUID;
         List<String> completeRows = new ArrayList<>();
@@ -177,16 +182,29 @@ public class LeaderboardCommand extends Command {
                 if (player.getUuid().equals(finalUserUUID)) {
                     position[0] = index[0];
                 }
+
+                double stat = type.getStatFunction().getStat(player);
+                Double exp = type.getExpFunction() == null ? null : type.getExpFunction().getStat(player);
+
+                if (stat > 0) {
+                    totalStatCounter.updateAndGet(v -> v + stat);
+                    totalPlayers.getAndSet(totalPlayers.get() + 1);
+
+                    if (exp != null && exp > 0) {
+                        totalExpCounter.updateAndGet(v -> v + exp);
+                    }
+                }
+
                 completeRows.add(String.format(rowMessage,
                     padPosition("#" + NumberUtil.formatNicely(index[0]), index[0] - 1),
                     player.getUsername(),
                     padPosition("", index[0] - 1),
-                    type.getStatFunction().getStat(player) == -1
+                    stat == -1
                         ? "API IS DISABLED"
-                        : NumberUtil.formatNicelyWithDecimals(type.getStatFunction().getStat(player)),
-                    type.getExpFunction() == null ? "" : type.getExpFunction().getStat(player) == -1
+                        : NumberUtil.formatNicelyWithDecimals(stat),
+                    exp == null ? "" : exp == -1
                         ? "API IS DISABLED"
-                        : NumberUtil.formatNicelyWithDecimals(type.getExpFunction().getStat(player))
+                        : NumberUtil.formatNicelyWithDecimals(exp)
                 ));
                 index[0]++;
             });
@@ -208,7 +226,8 @@ public class LeaderboardCommand extends Command {
         }
 
         MessageFactory.makeInfo(event.getMessage(), String.format(
-            "```ada\n%s```",
+            "The guild :type average is **:skill**%s\n\n```ada\n%s```",
+            type.getExpFunction() == null ? " XP!" : " with **:xp** :xptype",
             String.join("\n", rows)) + "\n"
             + note + paginator.generateFooter(command)
         )
@@ -216,6 +235,10 @@ public class LeaderboardCommand extends Command {
                 String.format("%s's %s Leaderboard", guild.getName(), type.getName()),
                 String.format("https://hypixel-leaderboard.senither.com/guild/%s", guild.getId())
             )
+            .set("type", type.getName().toLowerCase().replace("average", "").trim())
+            .set("skill", NumberUtil.formatNicelyWithDecimals(totalStatCounter.get() / totalPlayers.get()))
+            .set("xp", NumberUtil.formatNicelyWithDecimals(totalExpCounter.get() / totalPlayers.get()))
+            .set("xptype", type.equals(LeaderboardType.AVERAGE_SKILL) ? " without progress!" : " average XP!")
             .setFooter("Requested by " + event.getAuthor().getAsTag(), event.getAuthor().getEffectiveAvatarUrl())
             .setTimestamp(Carbon.now().getTime().toInstant())
             .queue();
