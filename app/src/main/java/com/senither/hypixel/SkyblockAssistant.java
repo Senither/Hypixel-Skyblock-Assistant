@@ -80,6 +80,7 @@ public class SkyblockAssistant {
 
         log.info("Registering commands...");
         this.commandManager = new CommandManager(this);
+        commandManager.registerCommand(new BanLogCommand(this));
         commandManager.registerCommand(new DonationCommand(this));
         commandManager.registerCommand(new GuildRankScanCommand(this));
         commandManager.registerCommand(new GuildSetupCommand(this));

@@ -63,7 +63,6 @@ public class SimplePaginator<T> extends Paginator<T> {
         this(iterator, perPage, 1);
     }
 
-
     public String generateFooter(String command) {
         return String.format("Page **%s** out of **%s** pages.\n`%s [page]`",
             getCurrentPage(),
