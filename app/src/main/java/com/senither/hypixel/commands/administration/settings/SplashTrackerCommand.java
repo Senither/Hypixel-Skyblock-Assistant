@@ -42,7 +42,7 @@ public class SplashTrackerCommand extends SettingsSubCommand {
     @Override
     public List<String> getUsageInstructions() {
         return Arrays.asList(
-            "`:command <channel> <role>` - Enables the splash tracker.",
+            "`:command <channel> <management role> <exempt role>` - Enables the splash tracker.",
             "`:command points <status>` - Toggles splash points on or off.",
             "`:command disable` - Disables the splash tracker."
         );
@@ -51,7 +51,7 @@ public class SplashTrackerCommand extends SettingsSubCommand {
     @Override
     public List<String> getExampleUsage() {
         return Arrays.asList(
-            "`:command #guild-splashes @Splash Manager` - Enables the splash tracker with the given settings.",
+            "`:command #guild-splashes Staff Splasher` - Enables the splash tracker with the given settings.",
             "`:command points on` - Enables giving donation points to splashes when they splash.",
             "`:command disable` - Disables the splash tracker."
         );
@@ -98,8 +98,23 @@ public class SplashTrackerCommand extends SettingsSubCommand {
             return;
         }
 
-        List<Role> rolesByName = event.getGuild().getRolesByName(args[1], true);
-        if (rolesByName.isEmpty()) {
+        List<Role> managerRole = event.getGuild().getRolesByName(args[1], true);
+        if (managerRole.isEmpty()) {
+            MessageFactory.makeError(event.getMessage(),
+                "Invalid role name given, you must provide a valid name of an existing role to setup the splash manager role!"
+            ).queue();
+            return;
+        }
+
+        if (args.length == 2) {
+            MessageFactory.makeError(event.getMessage(),
+                "Missing splash role, the splash exempt role is required!"
+            ).queue();
+            return;
+        }
+
+        List<Role> exemptRole = event.getGuild().getRolesByName(args[2], true);
+        if (exemptRole.isEmpty()) {
             MessageFactory.makeError(event.getMessage(),
                 "Invalid role name given, you must provide a valid name of an existing role to setup the splash manager role!"
             ).queue();
@@ -110,18 +125,25 @@ public class SplashTrackerCommand extends SettingsSubCommand {
             app.getDatabaseManager().queryUpdate(
                 "UPDATE `guilds` SET\n" +
                     "    `splash_channel` = ?,\n" +
+                    "    `splash_management_role` = ?,\n" +
                     "    `splash_role` = ?\n" +
                     "WHERE `discord_id` = ?",
                 channelsByName.get(0).getIdLong(),
-                rolesByName.get(0).getIdLong(),
+                managerRole.get(0).getIdLong(),
+                exemptRole.get(0).getIdLong(),
                 event.getGuild().getIdLong()
             );
 
             GuildController.forgetCacheFor(event.getGuild().getIdLong());
 
-            MessageFactory.makeSuccess(event.getMessage(), "Splash is setup to use :channel and :role")
+            MessageFactory.makeSuccess(event.getMessage(), String.join("\n", Arrays.asList(
+                "Splash Tracking is now setup to use :channel!",
+                "The :management role will be used for splash management, and :role for queueing splashes!",
+                "Anyone who is already a guild member wont need the :role role to queue splashes."
+            )))
                 .set("channel", channelsByName.get(0).getAsMention())
-                .set("role", rolesByName.get(0).getAsMention())
+                .set("management", managerRole.get(0).getAsMention())
+                .set("role", exemptRole.get(0).getAsMention())
                 .queue();
         } catch (SQLException e) {
             log.error("Something went wrong while trying to reset the new splash settings: {}", e.getMessage(), e);
@@ -173,6 +195,7 @@ public class SplashTrackerCommand extends SettingsSubCommand {
             app.getDatabaseManager().queryUpdate(
                 "UPDATE `guilds` SET\n" +
                     "    `splash_channel` = NULL,\n" +
+                    "    `splash_management_role` = NULL,\n" +
                     "    `splash_role` = NULL,\n" +
                     "WHERE `discord_id` = ?",
                 event.getGuild().getIdLong()

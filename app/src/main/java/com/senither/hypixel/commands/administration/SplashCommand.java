@@ -120,7 +120,7 @@ public class SplashCommand extends Command {
         }
 
         try {
-            if (!isMemberOfGuild(guildEntry, app.getHypixel().getUUIDFromUser(event.getAuthor()))) {
+            if (!isMemberOfGuildOrHasSplashRole(event, guildEntry, app.getHypixel().getUUIDFromUser(event.getAuthor()))) {
                 MessageFactory.makeWarning(event.getMessage(),
                     "You're not a member of the **:name** guild!\nYou can't use this command if you're not a member of the guild."
                 ).set("name", guildEntry.getName()).queue();
@@ -356,10 +356,10 @@ public class SplashCommand extends Command {
         }
 
         UUID uuid = getUUIDFromUser(event.getAuthor());
-        if (!splashContainer.getUserUuid().equals(uuid) && !isOfficerInGuildOrHasSplashRole(event, guildEntry, uuid)) {
+        if (!splashContainer.getUserUuid().equals(uuid) && !isOfficerInGuildOrHasManagerSplashRole(event, guildEntry, uuid)) {
             MessageFactory.makeWarning(event.getMessage(),
                 "You cannot cancel a splash created by other users without having the <@&:id> role, or being an officer of the guild."
-            ).set("id", guildEntry.getSplashRole()).queue();
+            ).set("id", guildEntry.getSplashManagementRole()).queue();
             return;
         }
 
@@ -386,10 +386,10 @@ public class SplashCommand extends Command {
     }
 
     private void removeSplash(GuildController.GuildEntry guildEntry, MessageReceivedEvent event, String[] args) {
-        if (!isOfficerInGuildOrHasSplashRole(event, guildEntry, getUUIDFromUser(event.getAuthor()))) {
+        if (!isOfficerInGuildOrHasManagerSplashRole(event, guildEntry, getUUIDFromUser(event.getAuthor()))) {
             MessageFactory.makeWarning(event.getMessage(),
                 "You must have the <@&:id> role, or be an officer of the **:name** guild to remove splashes from the splash tracker."
-            ).set("id", guildEntry.getSplashRole()).set("name", guildEntry.getName()).queue();
+            ).set("id", guildEntry.getSplashManagementRole()).set("name", guildEntry.getName()).queue();
             return;
         }
 
@@ -467,11 +467,11 @@ public class SplashCommand extends Command {
 
 
         UUID uuid = getUUIDFromUser(event.getAuthor());
-        boolean officerInGuildOrHasSplashRole = isOfficerInGuildOrHasSplashRole(event, guildEntry, uuid);
+        boolean officerInGuildOrHasSplashRole = isOfficerInGuildOrHasManagerSplashRole(event, guildEntry, uuid);
         if (!splashContainer.getUserUuid().equals(uuid) && !officerInGuildOrHasSplashRole) {
             MessageFactory.makeWarning(event.getMessage(),
                 "You cannot edit a splash message created by other users without having the <@&:id> role, or being an officer of the guild."
-            ).set("id", guildEntry.getSplashRole()).queue();
+            ).set("id", guildEntry.getSplashManagementRole()).queue();
             return;
         }
 
@@ -731,7 +731,15 @@ public class SplashCommand extends Command {
         return builder.toString();
     }
 
-    private boolean isMemberOfGuild(GuildController.GuildEntry guildEntry, UUID uuid) {
+    private boolean isMemberOfGuildOrHasSplashRole(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, UUID uuid) {
+        if (event.getMember() != null) {
+            for (Role role : event.getMember().getRoles()) {
+                if (role.getIdLong() == guildEntry.getSplashRole()) {
+                    return true;
+                }
+            }
+        }
+
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         if (guildReply == null || guildReply.getGuild() == null) {
             throw new FriendlyException("The request to the API returned null for a guild with the given name, try again later.");
@@ -745,10 +753,10 @@ public class SplashCommand extends Command {
         return false;
     }
 
-    private boolean isOfficerInGuildOrHasSplashRole(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, UUID uuid) {
+    private boolean isOfficerInGuildOrHasManagerSplashRole(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, UUID uuid) {
         if (event.getMember() != null) {
             for (Role role : event.getMember().getRoles()) {
-                if (role.getIdLong() == guildEntry.getSplashRole()) {
+                if (role.getIdLong() == guildEntry.getSplashManagementRole()) {
                     return true;
                 }
             }

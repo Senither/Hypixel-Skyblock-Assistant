@@ -75,6 +75,7 @@ public class DatabaseManager {
             migrationManager.register(new CreateBoopOptTableMigration());
             migrationManager.register(new CreateBanLogTableMigration());
             migrationManager.register(new AddBanLogRoleColumnToGuildsTableMigration());
+            migrationManager.register(new AddSplashManagementRoleColumnToGuildsTableMigration());
 
             log.info("Running database migrations");
             migrationManager.migrate();
