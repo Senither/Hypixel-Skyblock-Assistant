@@ -37,6 +37,7 @@ import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,7 +86,7 @@ public class GuildSetupCommand extends Command {
     public void onCommand(MessageReceivedEvent event, String[] args) {
         if (!canRunCommand(event.getMember())) {
             MessageFactory.makeError(event.getMessage(),
-                "You must be a `Manage Server` or `Administrator` Discord permissions "
+                "You must have the `Manage Server` or `Administrator` Discord permissions "
                     + "for this server to use this command!"
             ).setTitle("Missing Permissions").queue();
             return;
@@ -210,7 +211,9 @@ public class GuildSetupCommand extends Command {
                 "The **:name** guild have now been linked to the server, users who are already verified",
                 "with the bot will soon get their guild rank on the server, and new users who are",
                 "verifying themselves with the bot will get their rank when their verification",
-                "process is completed successfully!"
+                "process is completed successfully!\n",
+                "You now also have access to the `h!settings` command which can be used to customize",
+                "the bot in various of ways, as-well-as enabling and disabling guild only features."
                 ))
                     .set("name", guildReply.getGuild().getName())
                     .setTitle("Guild has been linked!")
@@ -229,10 +232,12 @@ public class GuildSetupCommand extends Command {
         }
     }
 
-    private boolean canRunCommand(Member member) {
-        return member.isOwner()
-            || member.hasPermission(Permission.ADMINISTRATOR)
-            || member.hasPermission(Permission.MANAGE_SERVER);
+    private boolean canRunCommand(@Nullable Member member) {
+        return member != null && (
+            member.isOwner()
+                || member.hasPermission(Permission.ADMINISTRATOR)
+                || member.hasPermission(Permission.MANAGE_SERVER)
+        );
     }
 
     private GuildReply.Guild.Member getMemberFromUUID(GuildReply.Guild guild, UUID uuid) {
