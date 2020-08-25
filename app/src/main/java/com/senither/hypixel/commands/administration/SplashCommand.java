@@ -142,7 +142,7 @@ public class SplashCommand extends Command {
                 "The splash tracker feature have not yet been enabled for the server, you "
                     + "must setup the feature before being able to use this command, you can enable the "
                     + "feature by running:"
-                    + "\n```h!settings splash <channel> <role>```"
+                    + "\n```h!settings splash <channel> <management role> <exempt role>```"
             ).setTitle("Splash tracker is not setup").queue();
             return;
         }
