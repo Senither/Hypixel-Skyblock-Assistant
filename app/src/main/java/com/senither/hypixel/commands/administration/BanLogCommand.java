@@ -42,7 +42,8 @@ public class BanLogCommand extends Command {
         return Arrays.asList(
             "`:command add <user> <reason>` - Adds the user to the ban log.",
             "`:command remove <user> <id>` - Removes the entry with the given ID from the user in the ban log.",
-            "`:command view <user>` - Views a users ban log status."
+            "`:command view <user>` - Views a users ban log status.",
+            "`:command list [guild] [page]>` - Views a list of banned people."
         );
     }
 
@@ -50,8 +51,11 @@ public class BanLogCommand extends Command {
     public List<String> getExampleUsage() {
         return Arrays.asList(
             "`:command add Senither Being a dumb dumb`",
+            "`:command view Senither`",
             "`:command remove Senither 9`",
-            "`:command view Senither`"
+            "`:command list Trouble Brewing`",
+            "`:command list Trouble Brewing 3`",
+            "`:command list 4`"
         );
     }
 
@@ -95,6 +99,21 @@ public class BanLogCommand extends Command {
             return;
         }
 
+        if (args[0].equalsIgnoreCase("list") || args[0].equalsIgnoreCase("lists")) {
+            try {
+                if (args.length == 1 || (args.length == 2 && NumberUtil.isNumeric(args[1]))) {
+                    showGlobalList(event, args.length == 1 ? 1 : NumberUtil.parseInt(args[1], 1));
+                } else {
+                    showGuildList(event, Arrays.copyOfRange(args, 1, args.length));
+                }
+            } catch (SQLException e) {
+                MessageFactory.makeError(event.getMessage(),
+                    "Something went wrong while trying to load the ban-log entries, error: " + e.getMessage()
+                ).queue();
+            }
+            return;
+        }
+
         if (args.length == 1) {
             MessageFactory.makeError(event.getMessage(),
                 "Missing the `username` of the user you wish to use the ban log action on."
@@ -123,6 +142,103 @@ public class BanLogCommand extends Command {
                     "Invalid ban log action given! `:type` is not a valid ban log action."
                 ).set("type", args[0]).queue();
         }
+    }
+
+    private void showGlobalList(MessageReceivedEvent event, int page) throws SQLException {
+        Collection query = app.getDatabaseManager().query(
+            "SELECT `guilds`.`name`, `uuids`.`username` FROM `ban_log`" +
+                "  LEFT JOIN `guilds` ON `ban_log`.`discord_id` = `guilds`.`discord_id`" +
+                "  LEFT JOIN `uuids` ON `ban_log`.`uuid` = `uuids`.`uuid`" +
+                "GROUP BY `name`, `username`" +
+                "ORDER BY `username`"
+        );
+
+        if (query.isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "There are currently no ban log entries to display."
+            ).queue();
+            return;
+        }
+
+        // The key is the username of the banned user, and the list of strings
+        // is the names of the guilds the user is banned in.
+        LinkedHashMap<String, List<String>> banLogEntries = new LinkedHashMap<>();
+        for (DataRow row : query) {
+            String username = row.getString("username");
+            if (!banLogEntries.containsKey(username)) {
+                banLogEntries.put(username, new ArrayList<>());
+            }
+            banLogEntries.get(username).add(row.getString("name"));
+        }
+
+        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(), "")
+            .setTitle("Global Ban log");
+
+        SimplePaginator<List<String>> paginator = new SimplePaginator<>(banLogEntries, 5, page);
+        paginator.forEach((index, key, val) -> {
+            message.addField(
+                key.toString(),
+                String.join(", ", val),
+                false
+            );
+        });
+
+        message.addField("", paginator.generateFooter(
+            Constants.COMMAND_PREFIX + getTriggers().get(0) + " list"
+        ), false);
+
+        message.queue();
+    }
+
+    private void showGuildList(MessageReceivedEvent event, String[] args) throws SQLException {
+        int page = 1;
+        String name = String.join(" ", args);
+
+        if (NumberUtil.isNumeric(args[args.length - 1])) {
+            page = NumberUtil.parseInt(args[args.length - 1], 1);
+            name = String.join(" ", Arrays.copyOfRange(args, 0, args.length - 1));
+        }
+
+        if (name.trim().isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "Missing guild name, you must include the name of the guild you wish to view ban-log entries for."
+            ).queue();
+            return;
+        }
+
+        Collection query = app.getDatabaseManager().query(
+            "SELECT `ban_log`.`id`, `ban_log`.`reason`, `guilds`.`name`, `uuids`.`username` FROM `ban_log`" +
+                "  LEFT JOIN `guilds` ON `ban_log`.`discord_id` = `guilds`.`discord_id`" +
+                "  LEFT JOIN `uuids` ON `ban_log`.`uuid` = `uuids`.`uuid`" +
+                "WHERE `name` = ?" +
+                "GROUP BY `username`" +
+                "ORDER BY `username`",
+            name
+        );
+
+        if (query.isEmpty()) {
+            MessageFactory.makeWarning(event.getMessage(),
+                "Found no ban-log entries for a guild called **:name**!"
+            ).set("name", name).queue();
+            return;
+        }
+
+        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(), "")
+            .setTitle("Ban Log entries from \"" + name + "\"");
+
+        SimplePaginator<DataRow> paginator = new SimplePaginator<>(query.getItems(), 5, page);
+        paginator.forEach((index, key, val) -> {
+            message.addField(String.format("#%s - %s",
+                val.getLong("id"),
+                val.getString("username")
+            ), val.getString("reason"), false);
+        });
+
+        message.addField("", paginator.generateFooter(
+            Constants.COMMAND_PREFIX + getTriggers().get(0) + " list " + name
+        ), false);
+
+        message.queue();
     }
 
     private void addUser(MessageReceivedEvent event, String username, String[] args) {
