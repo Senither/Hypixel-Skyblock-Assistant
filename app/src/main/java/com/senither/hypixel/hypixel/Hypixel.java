@@ -33,10 +33,7 @@ import com.senither.hypixel.contracts.hypixel.Response;
 import com.senither.hypixel.database.collection.Collection;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.hypixel.bazaar.BazaarProductReply;
-import com.senither.hypixel.hypixel.response.GuildLeaderboardResponse;
-import com.senither.hypixel.hypixel.response.GuildMetricsResponse;
-import com.senither.hypixel.hypixel.response.LeaderboardStatsResponse;
-import com.senither.hypixel.hypixel.response.PlayerLeaderboardResponse;
+import com.senither.hypixel.hypixel.response.*;
 import com.senither.hypixel.statistics.StatisticsChecker;
 import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.entities.User;
@@ -93,6 +90,11 @@ public class Hypixel {
 
     public static final Cache<String, Response> responseCache = CacheBuilder.newBuilder()
         .expireAfterWrite(30, TimeUnit.MINUTES)
+        .recordStats()
+        .build();
+
+    public static final Cache<String, AuctionHouseResponse> auctionsCache = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.MINUTES)
         .recordStats()
         .build();
 
@@ -458,6 +460,39 @@ public class Hypixel {
         });
 
         return future;
+    }
+
+    public AuctionHouseResponse getAuctionsFromProfile(String profileId) {
+        AuctionHouseResponse cachedAuctionResponse = auctionsCache.getIfPresent(profileId);
+        if (cachedAuctionResponse != null) {
+            log.debug("Found SkyBlock Auctions for {} using the in-memory cache", profileId);
+
+            return cachedAuctionResponse;
+        }
+
+        log.debug("Requesting SkyBlock Auctions for {} from the API", profileId);
+
+        UUID randomApiKey = clientContainer.getNextClient().getApiKey();
+
+        try {
+            AuctionHouseResponse auctionHouseResponse = httpClient.execute(new HttpGet(String.format(
+                "https://api.hypixel.net/skyblock/auction?key=%s&profile=%s",
+                randomApiKey.toString(), profileId
+            )), obj -> {
+                String content = EntityUtils.toString(obj.getEntity(), "UTF-8");
+                return gson.fromJson(content, AuctionHouseResponse.class);
+            });
+
+            if (auctionHouseResponse == null || !auctionHouseResponse.isSuccess()) {
+                return null;
+            }
+
+            auctionsCache.put(profileId, auctionHouseResponse);
+
+            return auctionHouseResponse;
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     public BazaarProductReply getBazaarProducts() {

@@ -176,6 +176,7 @@ public class Metrics {
         cacheMetrics.addCache("uuid-to-username", Hypixel.uuidToUsernameCache);
         cacheMetrics.addCache("reply", Hypixel.replyCache);
         cacheMetrics.addCache("response", Hypixel.responseCache);
+        cacheMetrics.addCache("profile-auctions", Hypixel.auctionsCache);
         cacheMetrics.addCache("verify", VerificationMiddleware.cache);
         cacheMetrics.addCache("database-guild", GuildController.cache);
         cacheMetrics.addCache("discord-id-to-username", Command.discordIdToUsernameCache);
