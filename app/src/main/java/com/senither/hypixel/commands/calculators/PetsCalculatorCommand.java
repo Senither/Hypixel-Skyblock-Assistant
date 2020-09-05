@@ -105,7 +105,7 @@ public class PetsCalculatorCommand extends Command {
         }
 
         int min = NumberUtil.getBetween(NumberUtil.parseInt(args[1], 0), 1, 100);
-        int max = NumberUtil.getBetween(NumberUtil.parseInt(args[2], 50), 1, 100);
+        int max = NumberUtil.getBetween(NumberUtil.parseInt(args[2], 0), 1, 100);
 
         if (min > max) {
             int temp = min;
