@@ -27,6 +27,7 @@ import java.util.HashSet;
 public enum ItemRarity {
 
     SPECIAL("Special", "spec", "s"),
+    MYTHIC("Mythic", "myth", "m"),
     LEGENDARY("Legendary", "legend", "leg", "l"),
     EPIC("Epic", "e"),
     RARE("Rare", "r"),

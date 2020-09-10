@@ -29,7 +29,7 @@ public enum ItemType {
     WEAPON("sword", "bow"),
     TOOL("pickaxe", "axe", "shovel", "shears", "hoe", "wand"),
     ARMOR("helmet", "chestplate", "leggings", "boots"),
-    ACCESSORY("accessory"),
+    ACCESSORY("accessory", "hatccessory"),
     UNKNOWN();
 
     private final List<String> types;

@@ -35,6 +35,7 @@ public class Item implements InventoryDecoder {
     private final int tagId;
     private final ItemRarity rarity;
     private final ItemType type;
+    private final boolean recombobulated;
 
     private final CompoundTag compoundTag;
 
@@ -70,8 +71,15 @@ public class Item implements InventoryDecoder {
 
         String[] itemMeta = metaString.split(" ");
 
-        this.rarity = ItemRarity.fromName(itemMeta[0].substring(2, itemMeta[0].length()));
-        this.type = ItemType.fromName(itemMeta.length == 1 ? null : itemMeta[1]);
+        this.recombobulated = itemMeta[itemMeta.length - 1].equals("§l§ka");
+
+        if (isRecombobulated()) {
+            this.rarity = ItemRarity.fromName(itemMeta[1].substring(4));
+            this.type = ItemType.fromName(itemMeta[itemMeta.length - 2]);
+        } else {
+            this.rarity = ItemRarity.fromName(itemMeta[0].substring(2));
+            this.type = ItemType.fromName(itemMeta.length == 1 ? null : itemMeta[1]);
+        }
     }
 
     public String getName() {
@@ -88,6 +96,10 @@ public class Item implements InventoryDecoder {
 
     public ItemType getType() {
         return type;
+    }
+
+    public boolean isRecombobulated() {
+        return recombobulated;
     }
 
     public CompoundTag getRawCompoundTag() {
