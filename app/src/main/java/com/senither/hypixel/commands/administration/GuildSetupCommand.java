@@ -141,25 +141,28 @@ public class GuildSetupCommand extends Command {
             }));
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void handleUnlinkGuild(MessageReceivedEvent event, GuildController.GuildEntry guildEntry, UUID uuid) {
-        GuildReply guild = app.getHypixel().getGson().fromJson(
-            guildEntry.getData(), GuildReply.class
-        );
+        if (!event.getMember().isOwner()) {
+            GuildReply guild = app.getHypixel().getGson().fromJson(
+                guildEntry.getData(), GuildReply.class
+            );
 
-        GuildReply.Guild.Member fromUUID = getMemberFromUUID(guild.getGuild(), uuid);
-        if (fromUUID != null && "Guild Master".equalsIgnoreCase(fromUUID.getRank())) {
-            GuildController.deleteGuildWithId(app.getDatabaseManager(), event.getGuild().getIdLong());
-
-            MessageFactory.makeSuccess(event.getMessage(),
-                "The **:name** have been unlinked with the bot, and will no longer"
-                    + " be automatically updated or scanned for rank synchronization."
-            ).set("name", guildEntry.getName()).setTitle("Guild has been unlinked!").queue();
-            return;
+            GuildReply.Guild.Member fromUUID = getMemberFromUUID(guild.getGuild(), uuid);
+            if (fromUUID == null || !"Guild Master".equalsIgnoreCase(fromUUID.getRank())) {
+                MessageFactory.makeError(event.getMessage(),
+                    "You're not the guild master of the **:name** guild or the owner of this Discord server!"
+                ).set("name", guildEntry.getName()).setTitle("Unable to unlink").queue();
+                return;
+            }
         }
 
-        MessageFactory.makeError(event.getMessage(),
-            "You're not the guild master of the **:name** guild, or the guild is not linked to this Discord server!"
-        ).set("name", guildEntry.getName()).setTitle("Unable to unlink").queue();
+        GuildController.deleteGuildWithId(app.getDatabaseManager(), event.getGuild().getIdLong());
+
+        MessageFactory.makeSuccess(event.getMessage(),
+            "The **:name** have been unlinked with the bot, and will no longer"
+                + " be automatically updated or scanned for rank synchronization."
+        ).set("name", guildEntry.getName()).setTitle("Guild has been unlinked!").queue();
     }
 
     private void handleGuildRegistration(Message message, GuildReply guildReply, Throwable throwable, UUID uuid, String[] args) {
