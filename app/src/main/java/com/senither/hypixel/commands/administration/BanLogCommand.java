@@ -86,9 +86,20 @@ public class BanLogCommand extends Command {
         }
 
         if (!isOfficerInGuildOrHasBanLogRole(event, guildEntry)) {
+            Role banLogRole = null;
+            Long banLogRoleId = guildEntry.getBanLogRole();
+            if (banLogRoleId != null) {
+                banLogRole = event.getGuild().getRoleById(banLogRoleId);
+            }
+
             MessageFactory.makeError(event.getMessage(),
-                "You must be the guild master of the **:name** guild to use this command!"
-            ).set("name", guildEntry.getName()).setTitle("Missing argument").queue();
+                banLogRole == null
+                    ? "You must be the guild master or officer of the **:name** guild to use this command!"
+                    : "You must be the guild master or officer of the **:name** guild, or have the :role role to use this command!"
+            )
+                .set("name", guildEntry.getName())
+                .set("role", banLogRole == null ? "" : banLogRole.getAsMention())
+                .setTitle("Missing permissions").queue();
             return;
         }
 
