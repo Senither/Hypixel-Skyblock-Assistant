@@ -193,6 +193,11 @@ public enum BazaarProduct {
     SHARK_FIN("SHARK_FIN", "Shark Fin", "Fin"),
     ENCHANTED_SHARK_FIN("ENCHANTED_SHARK_FIN", "Enchanted Shark Fin", "E Shark Fin", "E Fin"),
 
+    // The main baits
+    FISH_BAIT("FISH_BAIT", "Fish Bait"),
+    WHALE_BAIT("WHALE_BAIT", "Whale Bait"),
+    SHARK_BAIT("SHARK_BAIT", "Shark Bait"),
+
     // Misc
     STOCK_OF_STONKS("STOCK_OF_STONKS", "Stocks of Stonks", "Stocks", "Stonks"),
     GREEN_CANDY("GREEN_CANDY", "Green Candy"),
@@ -224,6 +229,7 @@ public enum BazaarProduct {
     DAEDALUS_STICK("DAEDALUS_STICK", "Daedalus Stick", "Daedalus"),
     ANCIENT_CLAW("ANCIENT_CLAW", "Ancient Claw"),
     ENCHANTED_ANCIENT_CLAW("ENCHANTED_ANCIENT_CLAW", "Enchanted Ancient Claw", "E Ancient Claw"),
+    RECOMBOBULATOR_3000("RECOMBOBULATOR_3000", "Recombobulator 3000", "Recomb 3000", "Recomb"),
     BOOSTER_COOKIE("BOOSTER_COOKIE", "Booster Cookie", "Boost");
 
     private final String key;
