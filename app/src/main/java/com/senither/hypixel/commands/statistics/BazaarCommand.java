@@ -118,7 +118,7 @@ public class BazaarCommand extends Command {
         }
 
         placeholderMessage.addField("Summary",
-            String.format("```yml\nTotal Buy Price:  %s\nTotal Sell Price: %s```",
+            String.format("```scala\nTotal Buy Price:  %s\nTotal Sell Price: %s```",
                 NumberUtil.formatNicelyWithDecimals(totalBuy),
                 NumberUtil.formatNicelyWithDecimals(totalSell)
             ), false
@@ -144,7 +144,7 @@ public class BazaarCommand extends Command {
             content.add(totalSellPriceString + NumberUtil.formatNicelyWithDecimals(sellPrice * amount));
         }
 
-        return String.format("```yml\n%s```", String.join("\n", content));
+        return String.format("```scala\n%s```", String.join("\n", content));
     }
 
     private String padSpaces(String string, double size) {
