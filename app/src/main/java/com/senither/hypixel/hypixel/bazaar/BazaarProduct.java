@@ -186,6 +186,12 @@ public enum BazaarProduct {
     ENCHANTED_WATER_LILY("ENCHANTED_WATER_LILY", "Enchanted Lilypad", "E Lilypad"),
     CLAY_BALL("CLAY_BALL", "Clay"),
     ENCHANTED_CLAY_BALL("ENCHANTED_CLAY_BALL", "Enchanted Clay", "E Clay"),
+    NURSE_SHARK_TOOTH("NURSE_SHARK_TOOTH", "Nurse Shark Tooth", "Nurse Shark"),
+    BLUE_SHARK_TOOTH("BLUE_SHARK_TOOTH", "Blue Shark Tooth", "Blue Shark"),
+    TIGER_SHARK_TOOTH("TIGER_SHARK_TOOTH", "Tiger Shark Tooth", "Tiger Shark"),
+    GREAT_WHITE_SHARK_TOOTH("GREAT_WHITE_SHARK_TOOTH", "Great White Shark Tooth", "Great White Shark", "Great White"),
+    SHARK_FIN("SHARK_FIN", "Shark Fin", "Fin"),
+    ENCHANTED_SHARK_FIN("ENCHANTED_SHARK_FIN", "Enchanted Shark Fin", "E Shark Fin", "E Fin"),
 
     // Misc
     STOCK_OF_STONKS("STOCK_OF_STONKS", "Stocks of Stonks", "Stocks", "Stonks"),
