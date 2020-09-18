@@ -100,6 +100,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new AuctionHouseStatisticsCommand(this));
         commandManager.registerCommand(new BankBalanceCommand(this));
         commandManager.registerCommand(new BazaarCommand(this));
+        commandManager.registerCommand(new CatacombsCommand(this));
         commandManager.registerCommand(new GuildExperienceLeaderboardCommand(this));
         commandManager.registerCommand(new LeaderboardCommand(this));
         commandManager.registerCommand(new PetsCommand(this));

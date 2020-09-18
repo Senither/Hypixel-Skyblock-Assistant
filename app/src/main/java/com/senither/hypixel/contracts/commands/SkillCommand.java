@@ -82,8 +82,13 @@ public abstract class SkillCommand extends Command {
             return;
         }
 
+        String[] typeParts = type.split(" ");
+        for (int i = 0; i < typeParts.length; i++) {
+            typeParts[i] = typeParts[i].substring(0, 1).toUpperCase() + typeParts[i].substring(1);
+        }
+
         EmbedBuilder embedBuilder = new EmbedBuilder()
-            .setTitle(username + "'s " + type.substring(0, 1).toUpperCase() + type.substring(1, type.length()) + "s")
+            .setTitle(username + "'s " + String.join(" ", typeParts) + "s")
             .setDescription("Loading Skyblock profile data for " + username + "!")
             .setColor(MessageType.INFO.getColor());
 
