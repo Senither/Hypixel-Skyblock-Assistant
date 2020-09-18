@@ -75,6 +75,7 @@ public class GetProfileRoute extends SparkRoute {
             data.add("profile", profile.getProfile());
 
             JsonObject stats = new JsonObject();
+            stats.add("dungeons", StatisticsChecker.DUNGEON.checkUser(player, profile, member).toJson());
             stats.add("skills", StatisticsChecker.SKILLS.checkUser(player, profile, member).toJson());
             stats.add("slayer", StatisticsChecker.SLAYER.checkUser(player, profile, member).toJson());
             data.add("stats", stats);

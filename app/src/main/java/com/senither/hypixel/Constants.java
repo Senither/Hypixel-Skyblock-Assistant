@@ -47,6 +47,12 @@ public class Constants {
         7800, 9800, 12200, 15300, 19050
     );
 
+    public static final ImmutableMultiset<Integer> DUNGEON_EXPERIENCE = ImmutableMultiset.of(
+        50, 75, 110, 160, 230, 330, 470, 670, 950, 1340,
+        1890, 2665, 3760, 5260, 7380, 10300, 14400, 200000, 27600, 38000,
+        52500, 71500, 97000, 132000, 180000, 243000, 328000, 445000
+    );
+
     public static final ImmutableMultiset<Integer> SLAYER_EXPERIENCE = ImmutableMultiset.of(
         5, 15, 200, 1000, 5000, 20000, 100000, 400000, 1000000
     );
