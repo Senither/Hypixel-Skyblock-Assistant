@@ -24,6 +24,7 @@ package com.senither.hypixel.hypixel.leaderboard;
 import com.senither.hypixel.contracts.hypixel.PlayerStatConversionFunction;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public enum LeaderboardType {
@@ -51,6 +52,24 @@ public enum LeaderboardType {
     SVEN(
         "Sven Slayer", Arrays.asList("sven", "wolf", "dog"),
         LeaderboardPlayer::getSvenXP, null
+    ),
+    CATACOMB("Catacombs", Arrays.asList("catacomb", "cata", "ca"),
+        LeaderboardPlayer::getCatacomb, LeaderboardPlayer::getCatacombXp, LeaderboardPlayer::getCatacombXp
+    ),
+    HEALER("Healer", Arrays.asList("healer", "heal"),
+        LeaderboardPlayer::getHealer, LeaderboardPlayer::getHealerXp, LeaderboardPlayer::getHealerXp
+    ),
+    MAGE("Mage", Arrays.asList("mage", "wizard"),
+        LeaderboardPlayer::getMage, LeaderboardPlayer::getMageXp, LeaderboardPlayer::getMageXp
+    ),
+    BERSERK("Berserk", Arrays.asList("berserk", "warrior"),
+        LeaderboardPlayer::getBerserk, LeaderboardPlayer::getBerserkXp, LeaderboardPlayer::getBerserkXp
+    ),
+    ARCHER("Archer", Arrays.asList("archer", "bow"),
+        LeaderboardPlayer::getArcher, LeaderboardPlayer::getArcherXp, LeaderboardPlayer::getArcherXp
+    ),
+    TANK("Tank", Collections.singletonList("tank"),
+        LeaderboardPlayer::getTank, LeaderboardPlayer::getTankXp, LeaderboardPlayer::getTankXp
     ),
     MINING(
         "Mining", Arrays.asList("mining", "mine", "ore"),

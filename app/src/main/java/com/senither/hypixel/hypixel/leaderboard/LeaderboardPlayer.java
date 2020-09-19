@@ -31,12 +31,28 @@ public abstract class LeaderboardPlayer {
     protected UUID uuid;
     protected String guild_name;
     protected String username;
+    // Average Stats
     protected double average_skill;
     protected double average_skill_progress;
     protected double total_slayer;
+    // Slayer
     protected double revenant_xp;
     protected double tarantula_xp;
     protected double sven_xp;
+    // Dungeons
+    protected double catacomb;
+    protected double catacomb_xp;
+    protected double healer;
+    protected double healer_xp;
+    protected double mage;
+    protected double mage_xp;
+    protected double berserk;
+    protected double berserk_xp;
+    protected double archer;
+    protected double archer_xp;
+    protected double tank;
+    protected double tank_xp;
+    // Skills
     protected double mining;
     protected double mining_xp;
     protected double foraging;
@@ -92,6 +108,54 @@ public abstract class LeaderboardPlayer {
 
     public double getSvenXP() {
         return sven_xp;
+    }
+
+    public double getCatacomb() {
+        return catacomb;
+    }
+
+    public double getCatacombXp() {
+        return catacomb_xp;
+    }
+
+    public double getHealer() {
+        return healer;
+    }
+
+    public double getHealerXp() {
+        return healer_xp;
+    }
+
+    public double getMage() {
+        return mage;
+    }
+
+    public double getMageXp() {
+        return mage_xp;
+    }
+
+    public double getBerserk() {
+        return berserk;
+    }
+
+    public double getBerserkXp() {
+        return berserk_xp;
+    }
+
+    public double getArcher() {
+        return archer;
+    }
+
+    public double getArcherXp() {
+        return archer_xp;
+    }
+
+    public double getTank() {
+        return tank;
+    }
+
+    public double getTankXp() {
+        return tank_xp;
     }
 
     public double getMining() {
