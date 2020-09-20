@@ -258,21 +258,29 @@ public class LeaderboardCommand extends Command {
 
         GuildMetricsResponse.GuildMetrics weekOldMetrics = metrics.getData().get(Math.min(7, metrics.getData().size()) - 1);
 
-        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(),
-            "The guild was last updated :time!\n\nSince last week the guild has gone up:\n> **:skills** average skill levels\n> **:slayers** average slayer XP\n> **:weight** guild weight points"
+        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(), String.join("\n", Arrays.asList(
+            "The guild was last updated :time!\n",
+            "Since last week the guild has gone up:",
+            "> **:skills** average skill levels",
+            "> **:slayers** average slayer XP",
+            "> **:catacomb** average catacomb level",
+            "> **:weight** guild weight points"
+            ))
         )
             .setTitle(guild.getName() + " Overview", String.format("https://hypixel-leaderboard.senither.com/guild/%s", guild.getId()))
             .set("time", guild.getLastUpdatedAt().diffForHumans())
             .set("skills", NumberUtil.formatNicelyWithDecimals(guild.getAverageSkill() - weekOldMetrics.getAverageSkill()))
             .set("slayers", NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer() - weekOldMetrics.getAverageSlayer()))
+            .set("catacomb", NumberUtil.formatNicelyWithDecimals(guild.getAverageCatacomb() - weekOldMetrics.getAverageCatacomb()))
             .set("weight", NumberUtil.formatNicelyWithDecimals(guild.getWeight().getTotal() - weekOldMetrics.getWeight().getTotal()));
 
         paginator.forEach((index, key, guildMetrics) -> {
             message.addField("Stats from " + guildMetrics.getCreatedAt().diffForHumans(), String.format(
-                "```elm\nAverage Skills  > %s (%s)\nAverage Slayers > %s\nMembers         > %s\nGuild Weight    > %s```",
+                "```elm\nAverage Skills   > %s (%s)\nAverage Slayers  > %s\nAverage Catacomb > %s\nMembers          > %s\nGuild Weight     > %s```",
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkillProgress()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSkill()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageSlayer()),
+                NumberUtil.formatNicelyWithDecimals(guildMetrics.getAverageCatacomb()),
                 NumberUtil.formatNicely(guildMetrics.getMembers()),
                 NumberUtil.formatNicelyWithDecimals(guildMetrics.getWeight().getTotal())
             ), false);

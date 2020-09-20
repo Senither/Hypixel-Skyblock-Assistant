@@ -39,6 +39,7 @@ public class GuildMetricsResponse extends Response {
         protected double average_skill;
         protected double average_skill_progress;
         protected double average_slayer;
+        protected double average_catacomb;
         protected int members;
         private GuildWeight weight;
         private String created_at;
@@ -53,6 +54,10 @@ public class GuildMetricsResponse extends Response {
 
         public double getAverageSlayer() {
             return average_slayer;
+        }
+
+        public double getAverageCatacomb() {
+            return average_catacomb;
         }
 
         public int getMembers() {

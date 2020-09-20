@@ -42,6 +42,7 @@ public class GuildLeaderboardResponse extends Response {
         protected double average_skill;
         protected double average_skill_progress;
         protected double average_slayer;
+        protected double average_catacomb;
         protected int members;
         protected GuildWeight weight;
         private String last_updated_at;
@@ -68,6 +69,10 @@ public class GuildLeaderboardResponse extends Response {
 
         public double getAverageSlayer() {
             return average_slayer;
+        }
+
+        public double getAverageCatacomb() {
+            return average_catacomb;
         }
 
         public GuildWeight getWeight() {
