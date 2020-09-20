@@ -3,6 +3,7 @@ package com.senither.hypixel.statistics.responses;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
+import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 import com.senither.hypixel.utils.NumberUtil;
@@ -42,12 +43,20 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         return dungeons;
     }
 
+    public Dungeon getDungeonFromType(DungeonType type) {
+        return dungeons.getOrDefault(type, null);
+    }
+
     public void setDungeonContent(DungeonType dungeonType, JsonObject object) {
         dungeons.put(dungeonType, new Dungeon(object));
     }
 
     public EnumMap<DungeonClassType, DungeonClass> getPlayerClasses() {
         return playerClasses;
+    }
+
+    public DungeonClass getClassFromType(DungeonClassType type) {
+        return playerClasses.getOrDefault(type, null);
     }
 
     public void setPlayerClassExperience(DungeonClassType dungeonClassType, double experience) {
@@ -106,7 +115,7 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         }
     }
 
-    public class Dungeon implements Jsonable {
+    public class Dungeon implements Jsonable, HasLevel {
 
         private final double experience;
         private final double level;
@@ -128,10 +137,12 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
             }
         }
 
+        @Override
         public double getExperience() {
             return experience;
         }
 
+        @Override
         public double getLevel() {
             return level;
         }
@@ -217,7 +228,7 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         }
     }
 
-    public class DungeonClass implements Jsonable {
+    public class DungeonClass implements Jsonable, HasLevel {
 
         private final double experience;
         private final double level;
@@ -227,10 +238,12 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
             this.level = getLevelFromExperience(experience);
         }
 
+        @Override
         public double getExperience() {
             return experience;
         }
 
+        @Override
         public double getLevel() {
             return level;
         }

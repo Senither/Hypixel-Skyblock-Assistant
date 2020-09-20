@@ -21,13 +21,14 @@
 
 package com.senither.hypixel.commands.calculators;
 
+import com.google.common.collect.ImmutableMultiset;
 import com.google.gson.JsonObject;
-import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.contracts.commands.CalculatorCommand;
 import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
@@ -126,8 +127,10 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                 SkyBlockProfileReply profileReply = app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).get(5, TimeUnit.SECONDS);
                 JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
 
-                SkillsResponse response = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
-                SkillType type = getSkillTypeFromName(args[0], response);
+                SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
+                DungeonResponse dungeonResponse = StatisticsChecker.DUNGEON.checkUser(playerReply, profileReply, member);
+
+                SkillType type = getSkillTypeFromName(args[0], skillsResponse, dungeonResponse);
 
                 if (type == null) {
                     message.editMessage(embedBuilder
@@ -135,14 +138,15 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                         .setTitle("Invalid skill type given!")
                         .setDescription(String.join("\n", Arrays.asList(
                             "Invalid skill type provided, the skill type must be one of the following:",
-                            "`mining`, `foraging`, `enchanting`, `farming`, `combat`, `fishing`, `alchemy`, or `taming`"
+                            "`mining`, `foraging`, `enchanting`, `farming`, `combat`, `fishing`, `alchemy`, "
+                                + "`taming`, `catacomb`, `healer`, `mage`, `berserk`, `archer`, or `tank`"
                         )))
                         .build()
                     ).queue();
                     return;
                 }
 
-                if (type.getStat().getLevel() >= 50) {
+                if (type.getStat().getLevel() >= type.getExperienceList().size()) {
                     message.editMessage(embedBuilder
                         .setColor(MessageType.INFO.getColor())
                         .setTitle("Already max level")
@@ -156,13 +160,16 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                 }
 
                 double experience = getExperienceFromString(args[1]);
-                double skillXp = (type.getStat().getExperience() == -1 ? getExperienceForLevel((int) type.getStat().getLevel()) : type.getStat().getExperience());
-                double combinedXp = experience + skillXp;
-                double newLevel = getLevelFromExperience(combinedXp);
+                double skillXp = (type.getStat().getExperience() == -1
+                    ? getExperienceForLevel(type.getExperienceList(), (int) type.getStat().getLevel())
+                    : type.getStat().getExperience());
 
-                String note = newLevel >= 50D ?
-                    String.format("You'll reach level **50** and max out your %s skill after gaining **%s** XP!",
-                        type.getName(), NumberUtil.formatNicelyWithDecimals(experience)
+                double combinedXp = experience + skillXp;
+                double newLevel = getLevelFromExperience(type.getExperienceList(), combinedXp);
+
+                String note = newLevel >= type.getExperienceList().size() ?
+                    String.format("You'll reach level **%s** and max out your %s skill after gaining **%s** XP!",
+                        type.getExperienceList().size(), type.getName(), NumberUtil.formatNicelyWithDecimals(experience)
                     ) :
                     String.format("You'll reach level **%s** after gaining **%s** %s XP!",
                         NumberUtil.formatNicelyWithDecimals(newLevel),
@@ -202,20 +209,20 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
         }
     }
 
-    private double getExperienceForLevel(int level) {
+    private double getExperienceForLevel(ImmutableMultiset<Integer> experience, int level) {
         double totalRequiredExperience = 0;
-        for (int i = 0; i < Math.min(level, Constants.GENERAL_SKILL_EXPERIENCE.size()); i++) {
-            totalRequiredExperience += Constants.GENERAL_SKILL_EXPERIENCE.asList().get(i);
+        for (int i = 0; i < Math.min(level, experience.size()); i++) {
+            totalRequiredExperience += experience.asList().get(i);
         }
         return totalRequiredExperience;
     }
 
-    private double getLevelFromExperience(double experience) {
+    private double getLevelFromExperience(ImmutableMultiset<Integer> experience, double exp) {
         int level = 0;
-        for (int toRemove : Constants.GENERAL_SKILL_EXPERIENCE) {
-            experience -= toRemove;
-            if (experience < 0) {
-                return level + (1D - (experience * -1) / (double) toRemove);
+        for (int toRemove : experience) {
+            exp -= toRemove;
+            if (exp < 0) {
+                return level + (1D - (exp * -1) / (double) toRemove);
             }
             level++;
         }

@@ -21,6 +21,7 @@
 
 package com.senither.hypixel.commands.calculators;
 
+import com.google.common.collect.ImmutableMultiset;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
@@ -28,6 +29,7 @@ import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
 import com.senither.hypixel.contracts.commands.CalculatorCommand;
 import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
@@ -117,7 +119,7 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
         MessageFactory.makeSuccess(event.getMessage(), "You need **:xp** XP to go from level **:first** to **:second**!")
             .setTitle("Skill Calculation")
             .set("xp", NumberUtil.formatNicelyWithDecimals(
-                getExperienceForLevel(max) - getExperienceForLevel(min)
+                getExperienceForLevel(Constants.GENERAL_SKILL_EXPERIENCE, max) - getExperienceForLevel(Constants.GENERAL_SKILL_EXPERIENCE, min)
             ))
             .set("first", min)
             .set("second", max)
@@ -153,8 +155,10 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                 SkyBlockProfileReply profileReply = app.getHypixel().getSelectedSkyBlockProfileFromUsername(username).get(5, TimeUnit.SECONDS);
                 JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(playerReply.getPlayer().get("uuid").getAsString());
 
-                SkillsResponse response = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
-                CalculatorCommand.SkillType type = getSkillTypeFromName(args[0], response);
+                SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
+                DungeonResponse dungeonResponse = StatisticsChecker.DUNGEON.checkUser(playerReply, profileReply, member);
+
+                CalculatorCommand.SkillType type = getSkillTypeFromName(args[0], skillsResponse, dungeonResponse);
 
                 if (type == null) {
                     message.editMessage(embedBuilder
@@ -162,16 +166,20 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                         .setTitle("Invalid skill type given!")
                         .setDescription(String.join("\n", Arrays.asList(
                             "Invalid skill type provided, the skill type must be one of the following:",
-                            "`mining`, `foraging`, `enchanting`, `farming`, `combat`, `fishing`, `alchemy` or `taming`"
+                            "`mining`, `foraging`, `enchanting`, `farming`, `combat`, `fishing`, `alchemy`, "
+                                + "`taming`, `catacomb`, `healer`, `mage`, `berserk`, `archer`, or `tank`"
                         )))
                         .build()
                     ).queue();
                     return;
                 }
 
-                double experience = type.getStat().getExperience() == -1 ? getExperienceForLevel((int) type.getStat().getLevel()) : type.getStat().getExperience();
-                int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], 50), 0, Constants.GENERAL_SKILL_EXPERIENCE.size());
-                double diff = getExperienceForLevel(max) - experience;
+                double experience = type.getStat().getExperience() == -1
+                    ? getExperienceForLevel(type.getExperienceList(), (int) type.getStat().getLevel())
+                    : type.getStat().getExperience();
+
+                int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], type.getExperienceList().size()), 0, type.getExperienceList().size());
+                double diff = getExperienceForLevel(type.getExperienceList(), max) - experience;
 
                 String note = "You need another **%s** XP to reach level **%s**!";
                 if (diff < 0) {
@@ -183,7 +191,8 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                     .setTitle(type.getName() + " Skill Calculation for " + username)
                     .setDescription(String.format("You're currently %s level **%s** with **%s** XP!\n" + note,
                         type.getName(),
-                        (int) type.getStat().getLevel(), NumberUtil.formatNicelyWithDecimals(experience),
+                        NumberUtil.formatNicelyWithDecimals(type.getStat().getLevel()),
+                        NumberUtil.formatNicelyWithDecimals(experience),
                         NumberUtil.formatNicelyWithDecimals(diff), max
                     ))
                     .setColor(MessageType.SUCCESS.getColor())
@@ -197,10 +206,10 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
         });
     }
 
-    private double getExperienceForLevel(int level) {
+    private double getExperienceForLevel(ImmutableMultiset<Integer> experience, int level) {
         double totalRequiredExperience = 0;
-        for (int i = 0; i < Math.min(level, Constants.GENERAL_SKILL_EXPERIENCE.size()); i++) {
-            totalRequiredExperience += Constants.GENERAL_SKILL_EXPERIENCE.asList().get(i);
+        for (int i = 0; i < Math.min(level, experience.size()); i++) {
+            totalRequiredExperience += experience.asList().get(i);
         }
         return totalRequiredExperience;
     }

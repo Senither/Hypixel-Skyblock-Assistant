@@ -23,6 +23,7 @@ package com.senither.hypixel.statistics.responses;
 
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
+import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 
@@ -249,7 +250,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
         return json;
     }
 
-    public class SkillStat implements Jsonable {
+    public class SkillStat implements Jsonable, HasLevel {
 
         private final double level;
         private final double experience;
@@ -264,10 +265,12 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
             this.experience = experience;
         }
 
+        @Override
         public double getLevel() {
             return level;
         }
 
+        @Override
         public double getExperience() {
             return experience;
         }
