@@ -96,10 +96,10 @@ public abstract class CalculatorCommand extends Command {
 
             case "bow":
             case "archer":
-                return new SkillType("Berserk", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.ARCHER), SkillCalculationType.DUNGEON);
+                return new SkillType("Archer", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.ARCHER), SkillCalculationType.DUNGEON);
 
             case "tank":
-                return new SkillType("Berserk", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.TANK), SkillCalculationType.DUNGEON);
+                return new SkillType("Tank", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.TANK), SkillCalculationType.DUNGEON);
 
             default:
                 return null;
