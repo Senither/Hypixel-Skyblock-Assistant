@@ -38,12 +38,9 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class LeaderboardCommand extends Command {
 
@@ -297,55 +294,98 @@ public class LeaderboardCommand extends Command {
     private void showGuildLeaderboard(MessageReceivedEvent event, String[] args) {
         GuildLeaderboardResponse leaderboard = app.getHypixel().getGuildLeaderboard();
 
-        List<String> slayerRow = new ArrayList<>();
-        List<GuildLeaderboardResponse.Guild> sortedBySlayer = leaderboard.getData().stream()
-            .filter(guild -> guild.getName() != null)
-            .sorted((o1, o2) -> Double.compare(o2.getAverageSlayer(), o1.getAverageSlayer()))
-            .collect(Collectors.toList());
+        AtomicInteger index = new AtomicInteger(0);
+        LinkedHashMap<String, List<String>> leaderboardMessages = new LinkedHashMap<>();
 
-        List<String> skillsRow = new ArrayList<>();
-        List<GuildLeaderboardResponse.Guild> sortedBySkills = leaderboard.getData().stream()
+        leaderboardMessages.put("Weight Leaderboard", new ArrayList<>());
+        leaderboard.getData().stream()
+            .filter(guild -> guild.getName() != null)
+            .sorted((o1, o2) -> Double.compare(o2.getWeight().getTotal(), o1.getWeight().getTotal()))
+            .forEachOrdered(guild -> {
+                leaderboardMessages.get("Weight Leaderboard").add(String.format("%s: %s\n    > %s < [%s]",
+                    padPosition("#" + (index.get() + 1), index.getAndIncrement()),
+                    guild.getName(),
+                    NumberUtil.formatNicelyWithDecimals(guild.getWeight().getTotal()),
+                    guild.getMembers()
+                ));
+            });
+
+        index.set(0);
+        leaderboardMessages.put("Skills Leaderboard", new ArrayList<>());
+        leaderboard.getData().stream()
             .filter(guild -> guild.getName() != null)
             .sorted((o1, o2) -> Double.compare(o2.getAverageSkill(), o1.getAverageSkill()))
-            .collect(Collectors.toList());
+            .forEachOrdered(guild -> {
+                leaderboardMessages.get("Skills Leaderboard").add(String.format("%s: %s\n    > %s (%s) < [%s]",
+                    padPosition("#" + (index.get() + 1), index.getAndIncrement()),
+                    guild.getName(),
+                    NumberUtil.formatNicelyWithDecimals(guild.getAverageSkillProgress()),
+                    NumberUtil.formatNicelyWithDecimals(guild.getAverageSkill()),
+                    guild.getMembers()
+                ));
+            });
 
-        for (int i = 0; i < sortedBySkills.size(); i++) {
-            GuildLeaderboardResponse.Guild skillsGuild = sortedBySkills.get(i);
-            skillsRow.add(String.format("%s: %s\n    > %s (%s) < [%s]",
-                padPosition("#" + (i + 1), i), skillsGuild.getName(),
-                NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkillProgress()),
-                NumberUtil.formatNicelyWithDecimals(skillsGuild.getAverageSkill()),
-                skillsGuild.getMembers()
-            ));
+        index.set(0);
+        leaderboardMessages.put("Catacombs Leaderboard", new ArrayList<>());
+        leaderboard.getData().stream()
+            .filter(guild -> guild.getName() != null)
+            .sorted((o1, o2) -> Double.compare(o2.getAverageCatacomb(), o1.getAverageCatacomb()))
+            .forEachOrdered(guild -> {
+                leaderboardMessages.get("Catacombs Leaderboard").add(String.format("%s: %s\n    > %s < [%s]",
+                    padPosition("#" + (index.get() + 1), index.getAndIncrement()),
+                    guild.getName(),
+                    NumberUtil.formatNicelyWithDecimals(guild.getAverageCatacomb()),
+                    guild.getMembers()
+                ));
+            });
 
-            GuildLeaderboardResponse.Guild slayerGuild = sortedBySlayer.get(i);
-            slayerRow.add(String.format("%s: %s\n    > %s < [%s]",
-                padPosition("#" + (i + 1), i), slayerGuild.getName(), NumberUtil.formatNicelyWithDecimals(slayerGuild.getAverageSlayer()), slayerGuild.getMembers()
-            ));
-        }
+        index.set(0);
+        leaderboardMessages.put("Slayers Leaderboard", new ArrayList<>());
+        leaderboard.getData().stream()
+            .filter(guild -> guild.getName() != null)
+            .sorted((o1, o2) -> Double.compare(o2.getAverageSlayer(), o1.getAverageSlayer()))
+            .forEachOrdered(guild -> {
+                leaderboardMessages.get("Slayers Leaderboard").add(String.format("%s: %s\n    > %s < [%s]",
+                    padPosition("#" + (index.get() + 1), index.getAndIncrement()),
+                    guild.getName(),
+                    NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer()),
+                    guild.getMembers()
+                ));
+            });
 
         int currentPage = 1;
         if (args.length > 0) {
             currentPage = NumberUtil.parseInt(args[0], 1);
         }
 
-        SimplePaginator<String> skillsPaginator = new SimplePaginator<>(skillsRow, 10, currentPage);
-        skillsRow.clear();
-        skillsPaginator.forEach((index, key, val) -> skillsRow.add(val));
-
-        SimplePaginator<String> slayerPaginator = new SimplePaginator<>(slayerRow, 10, currentPage);
-        slayerRow.clear();
-        slayerPaginator.forEach((index, key, val) -> slayerRow.add(val));
-
-        MessageFactory.makeInfo(event.getMessage(), "The guild leaderboards are the total average skill and slayer stats for each guild, the stats are refreshed every 24 hours.")
+        PlaceholderMessage message = MessageFactory.makeInfo(event.getMessage(),
+            "The guild leaderboards are refreshed every 24 hours, you can also view the leaderboard on the website by clicking on the message title."
+        )
             .setTitle("Guild Leaderboard", "https://hypixel-leaderboard.senither.com/")
-            .setTimestamp(Carbon.now().getTime().toInstant())
-            .addField("Skills Leaderboard", String.format("```elm\n%s```", String.join("\n", skillsRow)), true)
-            .addField("Slayer Leaderboard", String.format("```elm\n%s```", String.join("\n", slayerRow)), true)
-            .addField(EmbedBuilder.ZERO_WIDTH_SPACE, skillsPaginator.generateFooter(
-                Constants.COMMAND_PREFIX + getTriggers().get(0)
-            ), false)
-            .queue();
+            .setTimestamp(Carbon.now().getTime().toInstant());
+
+        int leaderboardCounter = 1;
+        for (Map.Entry<String, List<String>> leaderboardEntry : leaderboardMessages.entrySet()) {
+            List<String> messages = new ArrayList<>();
+            (new SimplePaginator<>(leaderboardEntry.getValue(), 5, currentPage))
+                .forEach((index1, key, val) -> messages.add(val));
+
+            message.addField(
+                leaderboardEntry.getKey(),
+                String.format("```elm\n%s```", String.join("\n", messages)),
+                true
+            );
+
+            if (leaderboardCounter++ == 2) {
+                message.addField(EmbedBuilder.ZERO_WIDTH_SPACE, "", false);
+            }
+        }
+
+        int totalPages = (int) Math.ceil((double) leaderboard.getData().size() / 5);
+        message.addField(EmbedBuilder.ZERO_WIDTH_SPACE, String.format("Page **%s** out of **%s** pages.\n`%s%s [page]`",
+            Math.min(currentPage, totalPages), totalPages,
+            Constants.COMMAND_PREFIX, getTriggers().get(0)
+        ), false).queue();
     }
 
     private GuildLeaderboardResponse.Guild getGuildFromName(String name) {

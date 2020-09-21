@@ -88,6 +88,7 @@ public class GuildLeaderboardResponse extends Response {
             protected double total;
             protected double skill;
             protected double slayer;
+            protected double catacomb;
             protected double multiplier;
 
             public double getTotal() {
@@ -100,6 +101,10 @@ public class GuildLeaderboardResponse extends Response {
 
             public double getSlayer() {
                 return slayer;
+            }
+
+            public double getCatacomb() {
+                return catacomb;
             }
 
             public double getMultiplier() {
