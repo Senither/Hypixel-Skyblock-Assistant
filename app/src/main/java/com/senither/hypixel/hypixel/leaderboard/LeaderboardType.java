@@ -62,7 +62,7 @@ public enum LeaderboardType {
     MAGE("Mage", Arrays.asList("mage", "wizard"),
         LeaderboardPlayer::getMage, LeaderboardPlayer::getMageXp, LeaderboardPlayer::getMageXp
     ),
-    BERSERK("Berserk", Arrays.asList("berserk", "warrior"),
+    BERSERK("Berserk", Arrays.asList("berserk", "berserker", "warrior"),
         LeaderboardPlayer::getBerserk, LeaderboardPlayer::getBerserkXp, LeaderboardPlayer::getBerserkXp
     ),
     ARCHER("Archer", Arrays.asList("archer", "bow"),

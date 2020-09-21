@@ -90,9 +90,10 @@ public abstract class CalculatorCommand extends Command {
             case "mages":
                 return new SkillType("Mage", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.MAGE), SkillCalculationType.DUNGEON);
 
-            case "berserk":
             case "warrior":
-                return new SkillType("Berserk", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.BERSERK), SkillCalculationType.DUNGEON);
+            case "berserk":
+            case "berserker":
+                return new SkillType("Berserker", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.BERSERK), SkillCalculationType.DUNGEON);
 
             case "bow":
             case "archer":
