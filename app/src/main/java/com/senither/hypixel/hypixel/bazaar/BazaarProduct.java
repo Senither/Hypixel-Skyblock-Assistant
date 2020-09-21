@@ -229,6 +229,7 @@ public enum BazaarProduct {
     DAEDALUS_STICK("DAEDALUS_STICK", "Daedalus Stick", "Daedalus"),
     ANCIENT_CLAW("ANCIENT_CLAW", "Ancient Claw"),
     ENCHANTED_ANCIENT_CLAW("ENCHANTED_ANCIENT_CLAW", "Enchanted Ancient Claw", "E Ancient Claw"),
+    REFINED_MINERAL("REFINED_MINERAL", "Refined Mineral", "R Mineral", "Mineral"),
     RECOMBOBULATOR_3000("RECOMBOBULATOR_3000", "Recombobulator 3000", "Recomb 3000", "Recomb"),
     BOOSTER_COOKIE("BOOSTER_COOKIE", "Booster Cookie", "Boost");
 
