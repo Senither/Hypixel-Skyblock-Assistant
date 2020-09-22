@@ -26,21 +26,25 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
+import com.senither.hypixel.statistics.weight.SkillWeight;
+import com.senither.hypixel.statistics.weight.Weight;
+
+import javax.annotation.Nonnull;
 
 public class SkillsResponse extends StatisticsResponse implements Jsonable {
 
     private final boolean hasData;
 
-    private SkillStat mining = new SkillStat();
-    private SkillStat foraging = new SkillStat();
-    private SkillStat enchanting = new SkillStat();
-    private SkillStat farming = new SkillStat();
-    private SkillStat combat = new SkillStat();
-    private SkillStat fishing = new SkillStat();
-    private SkillStat alchemy = new SkillStat();
-    private SkillStat taming = new SkillStat();
-    private SkillStat carpentry = new SkillStat();
-    private SkillStat runecrafting = new SkillStat();
+    private SkillStat mining = new SkillStat(SkillWeight.MINING);
+    private SkillStat foraging = new SkillStat(SkillWeight.FORAGING);
+    private SkillStat enchanting = new SkillStat(SkillWeight.ENCHANTING);
+    private SkillStat farming = new SkillStat(SkillWeight.FARMING);
+    private SkillStat combat = new SkillStat(SkillWeight.COMBAT);
+    private SkillStat fishing = new SkillStat(SkillWeight.FISHING);
+    private SkillStat alchemy = new SkillStat(SkillWeight.ALCHEMY);
+    private SkillStat taming = new SkillStat(SkillWeight.TAMING);
+    private SkillStat carpentry = new SkillStat(null);
+    private SkillStat runecrafting = new SkillStat(null);
 
     public SkillsResponse(boolean apiEnable, boolean hasData) {
         super(apiEnable);
@@ -57,7 +61,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setMining(double level, double experience) {
-        this.mining = new SkillStat(level, experience);
+        this.mining = new SkillStat(SkillWeight.MINING, level, experience);
 
         return this;
     }
@@ -67,7 +71,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setForaging(double level, double experience) {
-        this.foraging = new SkillStat(level, experience);
+        this.foraging = new SkillStat(SkillWeight.FORAGING, level, experience);
 
         return this;
     }
@@ -77,7 +81,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setEnchanting(double level, double experience) {
-        this.enchanting = new SkillStat(level, experience);
+        this.enchanting = new SkillStat(SkillWeight.ENCHANTING, level, experience);
 
         return this;
     }
@@ -87,7 +91,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setFarming(double level, double experience) {
-        this.farming = new SkillStat(level, experience);
+        this.farming = new SkillStat(SkillWeight.FARMING, level, experience);
 
         return this;
     }
@@ -97,7 +101,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setCombat(double level, double experience) {
-        this.combat = new SkillStat(level, experience);
+        this.combat = new SkillStat(SkillWeight.COMBAT, level, experience);
 
         return this;
     }
@@ -107,7 +111,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setFishing(double level, double experience) {
-        this.fishing = new SkillStat(level, experience);
+        this.fishing = new SkillStat(SkillWeight.FISHING, level, experience);
 
         return this;
     }
@@ -117,7 +121,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setAlchemy(double level, double experience) {
-        this.alchemy = new SkillStat(level, experience);
+        this.alchemy = new SkillStat(SkillWeight.ALCHEMY, level, experience);
 
         return this;
     }
@@ -127,7 +131,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setTaming(double level, double experience) {
-        this.taming = new SkillStat(level, experience);
+        this.taming = new SkillStat(SkillWeight.TAMING, level, experience);
 
         return this;
     }
@@ -137,7 +141,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setCarpentry(double level, double experience) {
-        this.carpentry = new SkillStat(level, experience);
+        this.carpentry = new SkillStat(null, level, experience);
 
         return this;
     }
@@ -147,7 +151,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setRunecrafting(double level, double experience) {
-        this.runecrafting = new SkillStat(level, experience);
+        this.runecrafting = new SkillStat(null, level, experience);
 
         return this;
     }
@@ -220,6 +224,20 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
         return combinedExperience;
     }
 
+    public Weight calculateTotalWeight() {
+        double weight = 0D;
+        double overflow = 0D;
+
+        for (SkillWeight value : SkillWeight.values()) {
+            Weight skillWeight = value.getSkillStatsRelation(this).calculateWeight();
+
+            weight += skillWeight.getWeight();
+            overflow += skillWeight.getOverflow();
+        }
+
+        return new Weight(weight, overflow);
+    }
+
     private double getExperienceForLevel(double level) {
         double totalRequiredExperience = 0;
         for (int i = 0; i < Math.min(level, Constants.GENERAL_SKILL_EXPERIENCE.size()); i++) {
@@ -252,15 +270,18 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
 
     public class SkillStat implements Jsonable, HasLevel {
 
+        private final SkillWeight weight;
         private final double level;
         private final double experience;
 
-        SkillStat() {
+        SkillStat(SkillWeight weight) {
+            this.weight = weight;
             this.level = -1;
             this.experience = -1;
         }
 
-        SkillStat(double level, double experience) {
+        SkillStat(SkillWeight weight, double level, double experience) {
+            this.weight = weight;
             this.level = level;
             this.experience = experience;
         }
@@ -273,6 +294,11 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
         @Override
         public double getExperience() {
             return experience;
+        }
+
+        @Nonnull
+        public Weight calculateWeight() {
+            return weight.calculateSkillWeight(experience);
         }
 
         @Override

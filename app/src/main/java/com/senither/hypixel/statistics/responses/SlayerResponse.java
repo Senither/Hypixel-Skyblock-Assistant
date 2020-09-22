@@ -25,15 +25,16 @@ import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
+import com.senither.hypixel.statistics.weight.SlayerWeight;
 
 public class SlayerResponse extends StatisticsResponse implements Jsonable {
 
     private long totalCoinsSpent = 0;
     private long totalSlayerExperience = 0;
 
-    private SlayerStat revenant = new SlayerStat();
-    private SlayerStat tarantula = new SlayerStat();
-    private SlayerStat sven = new SlayerStat();
+    private SlayerStat revenant = new SlayerStat(SlayerWeight.REVENANT);
+    private SlayerStat tarantula = new SlayerStat(SlayerWeight.TARANTULA);
+    private SlayerStat sven = new SlayerStat(SlayerWeight.SVEN);
 
     public SlayerResponse(boolean apiEnable) {
         super(apiEnable);
@@ -64,7 +65,7 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SlayerResponse setRevenant(int experience, int tier1Kills, int tier2Kills, int tier3Kills, int tier4Kills) {
-        this.revenant = new SlayerStat(experience, tier1Kills, tier2Kills, tier3Kills, tier4Kills);
+        this.revenant = new SlayerStat(SlayerWeight.REVENANT, experience, tier1Kills, tier2Kills, tier3Kills, tier4Kills);
 
         return this;
     }
@@ -74,7 +75,7 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SlayerResponse setTarantula(int experience, int tier1Kills, int tier2Kills, int tier3Kills, int tier4Kills) {
-        this.tarantula = new SlayerStat(experience, tier1Kills, tier2Kills, tier3Kills, tier4Kills);
+        this.tarantula = new SlayerStat(SlayerWeight.TARANTULA, experience, tier1Kills, tier2Kills, tier3Kills, tier4Kills);
 
         return this;
     }
@@ -84,9 +85,19 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SlayerResponse setSven(int experience, int tier1Kills, int tier2Kills, int tier3Kills, int tier4Kills) {
-        this.sven = new SlayerStat(experience, tier1Kills, tier2Kills, tier3Kills, tier4Kills);
+        this.sven = new SlayerStat(SlayerWeight.SVEN, experience, tier1Kills, tier2Kills, tier3Kills, tier4Kills);
 
         return this;
+    }
+
+    public double calculateTotalWeight() {
+        double weight = 0D;
+
+        for (SlayerWeight value : SlayerWeight.values()) {
+            weight += value.getSlayerStatsRelation(this).calculateWeight();
+        }
+
+        return weight;
     }
 
     @Override
@@ -106,13 +117,16 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
 
     public class SlayerStat implements Jsonable {
 
+        private final SlayerWeight weight;
         private final int experience;
         private final int tier1Kills;
         private final int tier2Kills;
         private final int tier3Kills;
         private final int tier4Kills;
 
-        SlayerStat() {
+        SlayerStat(SlayerWeight weight) {
+            this.weight = weight;
+
             experience = 0;
             tier1Kills = 0;
             tier2Kills = 0;
@@ -120,7 +134,8 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
             tier4Kills = 0;
         }
 
-        SlayerStat(int experience, int tier1Kills, int tier2Kills, int tier3Kills, int tier4Kills) {
+        SlayerStat(SlayerWeight weight, int experience, int tier1Kills, int tier2Kills, int tier3Kills, int tier4Kills) {
+            this.weight = weight;
             this.experience = experience;
             this.tier1Kills = tier1Kills;
             this.tier2Kills = tier2Kills;
@@ -146,6 +161,10 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
 
         public int getTier4Kills() {
             return tier4Kills;
+        }
+
+        public double calculateWeight() {
+            return weight.calculateSkillWeight(experience);
         }
 
         public double getLevelFromExperience() {

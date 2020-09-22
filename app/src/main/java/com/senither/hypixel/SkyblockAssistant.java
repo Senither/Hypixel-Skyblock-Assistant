@@ -27,6 +27,7 @@ import com.senither.hypixel.commands.administration.*;
 import com.senither.hypixel.commands.calculators.PetsCalculatorCommand;
 import com.senither.hypixel.commands.calculators.SkillsCalculatorCommand;
 import com.senither.hypixel.commands.calculators.SkillsExperienceCalculatorCommand;
+import com.senither.hypixel.commands.calculators.WeightCalculatorCommand;
 import com.senither.hypixel.commands.general.HelpCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.*;
@@ -92,6 +93,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new PetsCalculatorCommand(this));
         commandManager.registerCommand(new SkillsCalculatorCommand(this));
         commandManager.registerCommand(new SkillsExperienceCalculatorCommand(this));
+        commandManager.registerCommand(new WeightCalculatorCommand(this));
         commandManager.registerCommand(new VerifyCommand(this));
         commandManager.registerCommand(new SkillsCommand(this));
         commandManager.registerCommand(new SlayerCommand(this));
