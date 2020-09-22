@@ -42,9 +42,9 @@ public enum SkillWeight {
     ALCHEMY(SkillsResponse::getAlchemy, 1.0, 1103448),
 
     /**
-     * Maxes out taming at 800 points at level 50.
+     * Maxes out taming at 500 points at level 50.
      */
-    TAMING(SkillsResponse::getTaming, 1.22307, 275862);
+    TAMING(SkillsResponse::getTaming, 1.14744, 441379);
 
     private static final double level50Exp = 55172425;
 
