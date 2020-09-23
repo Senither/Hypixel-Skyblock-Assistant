@@ -10,43 +10,41 @@ public enum DungeonWeight {
     /**
      * Maxes out Catacomb at 1,000 points at level 50.
      */
-    CATACOMB(response -> response.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS), 1.258976, 2279238),
+    CATACOMB(response -> response.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS), 1000),
 
     /**
      * Maxes out Healer at 500 points at level 50.
      */
-    HEALER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.HEALER), 1.14744, 4558477),
+    HEALER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.HEALER), 500),
 
     /**
      * Maxes out Mage at 500 points at level 50.
      */
-    MAGE(response -> response.getClassFromType(DungeonResponse.DungeonClassType.MAGE), 1.14744, 4558477),
+    MAGE(response -> response.getClassFromType(DungeonResponse.DungeonClassType.MAGE), 500),
 
     /**
      * Maxes out Berserk at 500 points at level 50.
      */
-    BERSERK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.BERSERK), 1.14744, 4558477),
+    BERSERK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.BERSERK), 500),
 
     /**
      * Maxes out Archer at 500 points at level 50.
      */
-    ARCHER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.ARCHER), 1.14744, 4558477),
+    ARCHER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.ARCHER), 500),
 
     /**
      * Maxes out Tank at 500 points at level 50.
      */
-    TANK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.TANK), 1.14744, 4558477);
+    TANK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.TANK), 500);
 
     private static final double level50Exp = 569809640;
 
     private final DungeonWeightRelationFunction function;
-    private final double exponent;
-    private final double divider;
+    private final double maxPoints;
 
-    DungeonWeight(DungeonWeightRelationFunction function, double exponent, double divider) {
+    DungeonWeight(DungeonWeightRelationFunction function, double maxPoints) {
         this.function = function;
-        this.exponent = exponent;
-        this.divider = divider;
+        this.maxPoints = maxPoints;
     }
 
     public CanCalculateWeight getCalculatorFromDungeon(DungeonResponse response) {
@@ -55,13 +53,16 @@ public enum DungeonWeight {
 
     public Weight calculateWeight(double experience) {
         double level = getLevelFromExperience(experience);
-        double base = Math.pow(level * 10, 0.5 + this.exponent + (level / 100)) / 1250;
+        double base = maxPoints * ((level * 2) / 100);
 
         if (experience <= level50Exp) {
             return new Weight(base, 0D);
         }
 
-        return new Weight(base, Math.pow((experience - level50Exp) / divider, 0.968));
+        double remaining = experience - level50Exp;
+        double splitter = (level50Exp / maxPoints) * 4;
+
+        return new Weight(base, Math.pow(remaining / splitter, 0.968));
     }
 
     private double getLevelFromExperience(double experience) {
