@@ -3,9 +3,12 @@ package com.senither.hypixel.statistics.responses;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
+import com.senither.hypixel.contracts.statistics.CanCalculateWeight;
 import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
+import com.senither.hypixel.statistics.weight.DungeonWeight;
+import com.senither.hypixel.statistics.weight.Weight;
 import com.senither.hypixel.utils.NumberUtil;
 
 import java.util.EnumMap;
@@ -48,7 +51,7 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
     }
 
     public void setDungeonContent(DungeonType dungeonType, JsonObject object) {
-        dungeons.put(dungeonType, new Dungeon(object));
+        dungeons.put(dungeonType, new Dungeon(dungeonType.getWeight(), object));
     }
 
     public EnumMap<DungeonClassType, DungeonClass> getPlayerClasses() {
@@ -60,7 +63,21 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
     }
 
     public void setPlayerClassExperience(DungeonClassType dungeonClassType, double experience) {
-        playerClasses.put(dungeonClassType, new DungeonClass(experience));
+        playerClasses.put(dungeonClassType, new DungeonClass(dungeonClassType.getWeight(), experience));
+    }
+
+    public Weight calculateTotalWeight() {
+        double weight = 0D;
+        double overflow = 0D;
+
+        for (DungeonWeight value : DungeonWeight.values()) {
+            Weight dungeonWeight = value.getCalculatorFromDungeon(this).calculateWeight();
+
+            weight += dungeonWeight.getWeight();
+            overflow += dungeonWeight.getOverflow();
+        }
+
+        return new Weight(weight, overflow);
     }
 
     private double getLevelFromExperience(double experience) {
@@ -98,12 +115,36 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
 
     public enum DungeonType {
 
-        CATACOMBS
+        CATACOMBS(DungeonWeight.CATACOMB);
+
+        private final DungeonWeight weight;
+
+        DungeonType(DungeonWeight weight) {
+            this.weight = weight;
+        }
+
+        public DungeonWeight getWeight() {
+            return weight;
+        }
     }
 
     public enum DungeonClassType {
 
-        HEALER, MAGE, BERSERK, ARCHER, TANK;
+        HEALER(DungeonWeight.HEALER),
+        MAGE(DungeonWeight.MAGE),
+        BERSERK(DungeonWeight.BERSERK),
+        ARCHER(DungeonWeight.ARCHER),
+        TANK(DungeonWeight.TANK);
+
+        private final DungeonWeight weight;
+
+        DungeonClassType(DungeonWeight weight) {
+            this.weight = weight;
+        }
+
+        public DungeonWeight getWeight() {
+            return weight;
+        }
 
         public static DungeonClassType fromName(String name) {
             for (DungeonClassType value : DungeonClassType.values()) {
@@ -115,15 +156,18 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         }
     }
 
-    public class Dungeon implements Jsonable, HasLevel {
+    public class Dungeon implements Jsonable, HasLevel, CanCalculateWeight {
 
+        private final DungeonWeight weight;
         private final double experience;
         private final double level;
         private final int highestFloorCleared;
         private final LinkedHashMap<Integer, Integer> timesPlayed = new LinkedHashMap<>();
         private final LinkedHashMap<Integer, DungeonScore> bestScores = new LinkedHashMap<>();
 
-        public Dungeon(JsonObject object) {
+        public Dungeon(DungeonWeight weight, JsonObject object) {
+            this.weight = weight;
+
             this.experience = object.get("experience").getAsDouble();
             this.level = getLevelFromExperience(experience);
 
@@ -157,6 +201,11 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
 
         public LinkedHashMap<Integer, DungeonScore> getBestScores() {
             return bestScores;
+        }
+
+        @Override
+        public Weight calculateWeight() {
+            return weight.calculateWeight(experience);
         }
 
         @Override
@@ -228,12 +277,15 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         }
     }
 
-    public class DungeonClass implements Jsonable, HasLevel {
+    public class DungeonClass implements Jsonable, HasLevel, CanCalculateWeight {
 
+        private final DungeonWeight weight;
         private final double experience;
         private final double level;
 
-        public DungeonClass(double experience) {
+        public DungeonClass(DungeonWeight weight, double experience) {
+            this.weight = weight;
+
             this.experience = experience;
             this.level = getLevelFromExperience(experience);
         }
@@ -246,6 +298,11 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         @Override
         public double getLevel() {
             return level;
+        }
+
+        @Override
+        public Weight calculateWeight() {
+            return weight.calculateWeight(experience);
         }
 
         @Override

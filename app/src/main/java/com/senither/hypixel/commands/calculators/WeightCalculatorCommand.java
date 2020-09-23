@@ -5,9 +5,12 @@ import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.PlaceholderMessage;
 import com.senither.hypixel.contracts.commands.SkillCommand;
+import com.senither.hypixel.contracts.statistics.CanCalculateWeight;
 import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
 import com.senither.hypixel.statistics.responses.SlayerResponse;
+import com.senither.hypixel.statistics.weight.DungeonWeight;
 import com.senither.hypixel.statistics.weight.SkillWeight;
 import com.senither.hypixel.statistics.weight.SlayerWeight;
 import com.senither.hypixel.statistics.weight.Weight;
@@ -67,6 +70,7 @@ public class WeightCalculatorCommand extends SkillCommand {
 
         Weight skillWeight = applySkillWeight(placeholderMessage, profileReply, playerReply, member);
         Weight slayerWeight = applySlayerWeight(placeholderMessage, profileReply, playerReply, member);
+        Weight dungeonWeight = applyDungeonWeight(placeholderMessage, profileReply, playerReply, member);
 
         message.editMessage(placeholderMessage
             .set("name", getUsernameFromPlayer(playerReply))
@@ -145,6 +149,40 @@ public class WeightCalculatorCommand extends SkillCommand {
         );
 
         return new Weight(totalWeight, 0D);
+    }
+
+    private Weight applyDungeonWeight(PlaceholderMessage message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
+        DungeonResponse dungeonResponse = StatisticsChecker.DUNGEON.checkUser(playerReply, profileReply, member);
+        if (!dungeonResponse.hasData()) {
+            message.addField(
+                "Dungeon Weight (No data)",
+                "There are no dungeon data to calculate the weight for.",
+                false
+            );
+
+            return new Weight();
+        }
+
+        Weight totalWeight = dungeonResponse.calculateTotalWeight();
+
+        List<String> skillWeights = new ArrayList<>();
+        for (DungeonWeight value : DungeonWeight.values()) {
+            CanCalculateWeight skillStatsRelation = value.getCalculatorFromDungeon(dungeonResponse);
+
+            skillWeights.add(String.format("%s > Lvl: %s Weight: %s",
+                padSpaces(prettifyEnumName(value.name()), 10),
+                padSpaces(NumberUtil.formatNicelyWithDecimals(skillStatsRelation.getLevel()), 6),
+                skillStatsRelation.calculateWeight()
+            ));
+        }
+
+        message.addField(
+            "Dungeon Weight: " + totalWeight.toString(),
+            String.format("```scala\n%s```", String.join("\n", skillWeights)),
+            false
+        );
+
+        return totalWeight;
     }
 
     private String prettifyEnumName(String name) {
