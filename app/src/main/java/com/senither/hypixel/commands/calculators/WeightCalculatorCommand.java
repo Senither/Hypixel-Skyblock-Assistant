@@ -60,20 +60,18 @@ public class WeightCalculatorCommand extends SkillCommand {
     protected void handleSkyblockProfile(Message message, SkyBlockProfileReply profileReply, PlayerReply playerReply, String[] args) {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
-        double totalWeight = 0D;
-
         PlaceholderMessage placeholderMessage = MessageFactory.makeInfo(message,
             "**:name's** weight for their **:profile** profile is **:weight**.\n\n"
                 + "> **Note:** This command is still a work in progress, expect wight values to change, and more weight calculations to be added in the future."
         ).setTitle(message.getEmbeds().get(0).getTitle());
 
-        totalWeight += applySkillWeight(placeholderMessage, profileReply, playerReply, member);
-        totalWeight += applySlayerWeight(placeholderMessage, profileReply, playerReply, member);
+        Weight skillWeight = applySkillWeight(placeholderMessage, profileReply, playerReply, member);
+        Weight slayerWeight = applySlayerWeight(placeholderMessage, profileReply, playerReply, member);
 
         message.editMessage(placeholderMessage
             .set("name", getUsernameFromPlayer(playerReply))
             .set("profile", profileReply.getProfile().get("cute_name").getAsString())
-            .set("weight", NumberUtil.formatNicelyWithDecimals(totalWeight))
+            .set("weight", skillWeight.add(slayerWeight))
             .setFooter(String.format(
                 "Profile: %s",
                 profileReply.getProfile().get("cute_name").getAsString()
@@ -82,7 +80,7 @@ public class WeightCalculatorCommand extends SkillCommand {
         ).queueAfter(250, TimeUnit.MILLISECONDS);
     }
 
-    private double applySkillWeight(PlaceholderMessage message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
+    private Weight applySkillWeight(PlaceholderMessage message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
         SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
         if (!skillsResponse.isApiEnable()) {
             message.addField(
@@ -91,7 +89,7 @@ public class WeightCalculatorCommand extends SkillCommand {
                 false
             );
 
-            return 0D;
+            return new Weight();
         }
 
         Weight totalWeight = skillsResponse.calculateTotalWeight();
@@ -113,10 +111,10 @@ public class WeightCalculatorCommand extends SkillCommand {
             false
         );
 
-        return totalWeight.getWeight() + totalWeight.getOverflow();
+        return totalWeight;
     }
 
-    private double applySlayerWeight(PlaceholderMessage message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
+    private Weight applySlayerWeight(PlaceholderMessage message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {
         SlayerResponse slayerResponse = StatisticsChecker.SLAYER.checkUser(playerReply, profileReply, member);
         if (!slayerResponse.isApiEnable()) {
             message.addField(
@@ -125,7 +123,7 @@ public class WeightCalculatorCommand extends SkillCommand {
                 false
             );
 
-            return 0D;
+            return new Weight();
         }
 
         double totalWeight = slayerResponse.calculateTotalWeight();
@@ -146,7 +144,7 @@ public class WeightCalculatorCommand extends SkillCommand {
             false
         );
 
-        return totalWeight;
+        return new Weight(totalWeight, 0D);
     }
 
     private String prettifyEnumName(String name) {

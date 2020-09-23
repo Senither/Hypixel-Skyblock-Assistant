@@ -12,12 +12,23 @@ public class Weight {
         this.overflow = overflow;
     }
 
+    public Weight() {
+        this(0D, 0D);
+    }
+
     public double getWeight() {
         return weight;
     }
 
     public double getOverflow() {
         return overflow;
+    }
+
+    public Weight add(Weight weight) {
+        return new Weight(
+            weight.getWeight() + getWeight(),
+            weight.getOverflow() + getOverflow()
+        );
     }
 
     @Override
