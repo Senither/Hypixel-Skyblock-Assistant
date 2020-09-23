@@ -69,7 +69,8 @@ public enum SkillWeight {
         if (experience <= level50Exp) {
             return new Weight(base, 0D);
         }
-        return new Weight(base, (experience - level50Exp) / divider);
+
+        return new Weight(base, Math.pow((experience - level50Exp) / divider, 0.968));
     }
 
     private double getSkillLevelFromExperience(double experience) {
