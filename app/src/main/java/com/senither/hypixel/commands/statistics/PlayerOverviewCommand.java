@@ -184,11 +184,29 @@ public class PlayerOverviewCommand extends SkillCommand {
             : (int) (craftedMinions < 15 ? 6
             : craftedMinions < 30 ? 7
             : craftedMinions < 50 ? 8
-            : craftedMinions < 300 ? 9 + Math.floor((craftedMinions - 50) / 25)
-            : 19 + Math.floor((craftedMinions - 300) / 50));
+            : craftedMinions < 300 ? 9 + Math.floor((craftedMinions - 50) / 25D)
+            : 19 + Math.floor((craftedMinions - 300) / 50D));
 
-        return String.format("%s _(%s/572 Crafts)_",
-            minionSlots, craftedMinions
+        int communityMinionUpgrade = 0;
+        if (profileReply.getProfile().has("community_upgrades")) {
+            for (JsonElement upgrade : profileReply.getProfile().getAsJsonObject("community_upgrades").getAsJsonArray("upgrade_states")) {
+                if ("minion_slots".equals(upgrade.getAsJsonObject().get("upgrade").getAsString())) {
+                    int tier = upgrade.getAsJsonObject().get("tier").getAsInt();
+                    if (tier > communityMinionUpgrade) {
+                        communityMinionUpgrade = tier;
+                    }
+                }
+            }
+        }
+
+        if (communityMinionUpgrade == 0) {
+            return String.format("%s _(%s/572 Crafts)_",
+                minionSlots, craftedMinions
+            );
+        }
+
+        return String.format("%s +%s _(%s/572 Crafts)_",
+            minionSlots, communityMinionUpgrade, craftedMinions
         );
     }
 
