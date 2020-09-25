@@ -9,6 +9,7 @@ import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 import com.senither.hypixel.statistics.weight.DungeonWeight;
 import com.senither.hypixel.statistics.weight.Weight;
+import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 
 import java.util.EnumMap;
@@ -164,6 +165,7 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         private final int highestFloorCleared;
         private final LinkedHashMap<Integer, Integer> timesPlayed = new LinkedHashMap<>();
         private final LinkedHashMap<Integer, DungeonScore> bestScores = new LinkedHashMap<>();
+        private final LinkedHashMap<Integer, DungeonTime> fastestTime = new LinkedHashMap<>();
 
         public Dungeon(DungeonWeight weight, JsonObject object) {
             this.weight = weight;
@@ -178,6 +180,10 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
 
             for (Map.Entry<String, JsonElement> played : object.getAsJsonObject("best_score").entrySet()) {
                 bestScores.put(NumberUtil.parseInt(played.getKey(), 0), new DungeonScore(played.getValue().getAsInt()));
+            }
+
+            for (Map.Entry<String, JsonElement> time : object.getAsJsonObject("fastest_time").entrySet()) {
+                fastestTime.put(NumberUtil.parseInt(time.getKey(), 0), new DungeonTime(time.getValue().getAsInt()));
             }
         }
 
@@ -201,6 +207,10 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
 
         public LinkedHashMap<Integer, DungeonScore> getBestScores() {
             return bestScores;
+        }
+
+        public LinkedHashMap<Integer, DungeonTime> getFastestTime() {
+            return fastestTime;
         }
 
         @Override
@@ -272,6 +282,37 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
 
             json.addProperty("value", value);
             json.addProperty("score", score);
+
+            return json;
+        }
+    }
+
+    public class DungeonTime implements Jsonable {
+
+        private final String time;
+        private final int seconds;
+
+        public DungeonTime(int timeInMilliseconds) {
+            seconds = timeInMilliseconds / 1000;
+            time = Carbon.now()
+                .addSeconds(seconds)
+                .diffForHumans(true);
+        }
+
+        public int getSeconds() {
+            return seconds;
+        }
+
+        public String getTime() {
+            return time;
+        }
+
+        @Override
+        public JsonObject toJson() {
+            JsonObject json = new JsonObject();
+
+            json.addProperty("time", time);
+            json.addProperty("seconds", seconds);
 
             return json;
         }

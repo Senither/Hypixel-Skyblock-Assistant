@@ -120,6 +120,18 @@ public class CatacombsCommand extends SkillCommand {
             true
         );
 
+        List<String> fastestTime = new ArrayList<>();
+        for (Map.Entry<Integer, DungeonResponse.DungeonTime> dungeonTimeEntry : catacomb.getFastestTime().entrySet()) {
+            String name = dungeonTimeEntry.getKey() == 0 ? "Entrance" : "Floor " + dungeonTimeEntry.getKey();
+            fastestTime.add(padSpaces(name + ": ", 10) + dungeonTimeEntry.getValue().getTime());
+        }
+
+        builder.addField(
+            "Fastest Floor Clears",
+            String.format("```yml\n%s```", String.join("\n", fastestTime)),
+            true
+        );
+
         message.editMessage(builder.build()).queue();
     }
 
