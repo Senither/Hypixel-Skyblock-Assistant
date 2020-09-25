@@ -243,6 +243,15 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
             }
             json.add("best_scores", scores);
 
+            JsonObject times = new JsonObject();
+            for (Map.Entry<Integer, DungeonTime> dungeonTimeEntry : fastestTime.entrySet()) {
+                times.add(
+                    dungeonTimeEntry.getKey() == 0 ? "entrance" : dungeonTimeEntry.getKey().toString(),
+                    dungeonTimeEntry.getValue().toJson()
+                );
+            }
+            json.add("fastest_time", times);
+
             return json;
         }
     }
