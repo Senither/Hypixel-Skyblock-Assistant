@@ -69,26 +69,30 @@
             PlayerReport
         },
         mounted() {
-            let playerRankGroups = { 'Guild Master': [] };
+            let playerRankGroups = { 'Guild Master': { name: 'Guild Master', members: [] } };
             this.report.guildReply.guild.ranks.sort((a, b) => {
                 return a.priority < b.priority ? 1 : -1;
-            }).forEach(rank => playerRankGroups[rank.name] = []);
+            }).forEach(rank => playerRankGroups[rank.name.toLowerCase()] = { name: rank.name, members: [] });
 
             this.report.guildReply.guild.members.forEach(player => {
                 for (let member of this.report.playerReports) {
                     if (member.uuid == player.uuid) {
-                        playerRankGroups[player.rank].push(member);
+                        try {
+                            playerRankGroups[player.rank.toLowerCase()].members.push(member);
+                        } catch (e) {
+                            console.log(`Couldn't find ${player.rank} rank!`);
+                        }
                         continue;
                     }
                 }
             });
 
             for (let rank of Object.keys(playerRankGroups)) {
-                playerRankGroups[rank].sort((a, b) => {
+                playerRankGroups[rank].members.sort((a, b) => {
                     return a.username > b.username ? 1 : -1;
                 }).forEach(player => {
                     player.collaps = true;
-                    player.currentRank = rank;
+                    player.currentRank = playerRankGroups[rank].name;
 
                     this.playerReports.push(player);
                 });
