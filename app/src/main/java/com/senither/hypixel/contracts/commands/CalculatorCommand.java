@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMultiset;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.statistics.HasLevel;
+import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
 
@@ -34,73 +35,177 @@ public abstract class CalculatorCommand extends Command {
         super(app);
     }
 
-    protected final SkillType getSkillTypeFromName(String name, SkillsResponse skillsResponse, DungeonResponse dungeonResponse) {
+    protected final SkillType<?> getSkillTypeFromName(String name, SkillsResponse skillsResponse, DungeonResponse dungeonResponse) {
         switch (name.toLowerCase()) {
             case "mine":
             case "mining":
-                return new SkillType("Mining", skillsResponse.getMining(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Mining",
+                    skillsResponse.getMining(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setMining
+                );
 
             case "tree":
             case "forage":
             case "foraging":
-                return new SkillType("Foraging", skillsResponse.getForaging(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Foraging",
+                    skillsResponse.getForaging(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setForaging
+                );
 
             case "enchant":
             case "enchanting":
-                return new SkillType("Enchanting", skillsResponse.getEnchanting(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Enchanting",
+                    skillsResponse.getEnchanting(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setEnchanting
+                );
 
             case "farm":
             case "farming":
-                return new SkillType("Farming", skillsResponse.getFarming(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Farming",
+                    skillsResponse.getFarming(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setFarming
+                );
 
             case "fight":
             case "combat":
-                return new SkillType("Combat", skillsResponse.getCombat(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Combat",
+                    skillsResponse.getCombat(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setCombat
+                );
 
             case "fish":
             case "fishing":
-                return new SkillType("Fishing", skillsResponse.getFishing(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Fishing",
+                    skillsResponse.getFishing(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setFishing
+                );
 
             case "alch":
             case "alchemy":
-                return new SkillType("Alchemy", skillsResponse.getAlchemy(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Alchemy",
+                    skillsResponse.getAlchemy(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setAlchemy
+                );
 
             case "pet":
             case "pets":
             case "tame":
             case "taming":
-                return new SkillType("Taming", skillsResponse.getTaming(), SkillCalculationType.GENERAL);
+                return new SkillType<>(
+                    "Taming",
+                    skillsResponse.getTaming(),
+                    SkillCalculationType.GENERAL,
+                    SkillsResponse::setTaming);
 
             case "rune":
             case "runecraft":
             case "runecrafting":
-                return new SkillType("Runecrafting", skillsResponse.getRunecrafting(), SkillCalculationType.RUNECRAFTING);
+                return new SkillType<>(
+                    "Runecrafting",
+                    skillsResponse.getRunecrafting(),
+                    SkillCalculationType.RUNECRAFTING,
+                    SkillsResponse::setRunecrafting
+                );
 
             case "ca":
             case "cata":
             case "catacomb":
             case "catacombs":
-                return new SkillType("Catacomb", dungeonResponse.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS), SkillCalculationType.DUNGEON);
+                return new SkillType<DungeonResponse>(
+                    "Catacomb",
+                    dungeonResponse.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS),
+                    SkillCalculationType.DUNGEON,
+                    (response, level, experience) -> {
+                        response.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS)
+                            .setLevelAndExperience(level, experience);
+
+                        return response;
+                    }
+                );
 
             case "heal":
             case "healer":
-                return new SkillType("Healer", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.HEALER), SkillCalculationType.DUNGEON);
+                return new SkillType<DungeonResponse>(
+                    "Healer",
+                    dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.HEALER),
+                    SkillCalculationType.DUNGEON,
+                    (response, level, experience) -> {
+                        response.getClassFromType(DungeonResponse.DungeonClassType.HEALER)
+                            .setLevelAndExperience(level, experience);
+
+                        return response;
+                    }
+                );
 
             case "mage":
             case "mages":
-                return new SkillType("Mage", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.MAGE), SkillCalculationType.DUNGEON);
+                return new SkillType<DungeonResponse>(
+                    "Mage",
+                    dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.MAGE),
+                    SkillCalculationType.DUNGEON,
+                    (response, level, experience) -> {
+                        response.getClassFromType(DungeonResponse.DungeonClassType.MAGE)
+                            .setLevelAndExperience(level, experience);
+
+                        return response;
+                    }
+                );
 
             case "warrior":
             case "berserk":
             case "berserker":
-                return new SkillType("Berserker", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.BERSERK), SkillCalculationType.DUNGEON);
+                return new SkillType<DungeonResponse>(
+                    "Berserker",
+                    dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.BERSERK),
+                    SkillCalculationType.DUNGEON,
+                    (response, level, experience) -> {
+                        response.getClassFromType(DungeonResponse.DungeonClassType.BERSERK)
+                            .setLevelAndExperience(level, experience);
+
+                        return response;
+                    }
+                );
 
             case "bow":
             case "archer":
-                return new SkillType("Archer", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.ARCHER), SkillCalculationType.DUNGEON);
+                return new SkillType<DungeonResponse>(
+                    "Archer",
+                    dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.ARCHER),
+                    SkillCalculationType.DUNGEON,
+                    (response, level, experience) -> {
+                        response.getClassFromType(DungeonResponse.DungeonClassType.ARCHER)
+                            .setLevelAndExperience(level, experience);
+
+                        return response;
+                    }
+                );
 
             case "tank":
-                return new SkillType("Tank", dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.TANK), SkillCalculationType.DUNGEON);
+                return new SkillType<DungeonResponse>(
+                    "Tank",
+                    dungeonResponse.getClassFromType(DungeonResponse.DungeonClassType.TANK),
+                    SkillCalculationType.DUNGEON,
+                    (response, level, experience) -> {
+                        response.getClassFromType(DungeonResponse.DungeonClassType.TANK)
+                            .setLevelAndExperience(level, experience);
+
+                        return response;
+                    }
+                );
 
             default:
                 return null;
@@ -112,16 +217,19 @@ public abstract class CalculatorCommand extends Command {
         GENERAL, RUNECRAFTING, DUNGEON
     }
 
-    protected class SkillType {
+    protected class SkillType<T extends StatisticsResponse> {
 
         private final String name;
         private final HasLevel stat;
         private final SkillCalculationType type;
+        private final SetCalculatableSkill<T> skillFunction;
 
-        public SkillType(String name, HasLevel stat, SkillCalculationType type) {
+        public SkillType(String name, HasLevel stat, SkillCalculationType type, SetCalculatableSkill<T> skillFunction) {
             this.name = name;
             this.stat = stat;
             this.type = type;
+
+            this.skillFunction = skillFunction;
         }
 
         public String getName() {
@@ -134,6 +242,10 @@ public abstract class CalculatorCommand extends Command {
 
         public SkillCalculationType getType() {
             return type;
+        }
+
+        public T setLevelAndExperience(T response, double level, double experience) {
+            return skillFunction.setCalculateableSkill(response, level, experience);
         }
 
         public ImmutableMultiset<Integer> getExperienceList() {

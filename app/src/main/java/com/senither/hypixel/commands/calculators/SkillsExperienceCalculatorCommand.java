@@ -130,7 +130,8 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                 SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
                 DungeonResponse dungeonResponse = StatisticsChecker.DUNGEON.checkUser(playerReply, profileReply, member);
 
-                SkillType type = getSkillTypeFromName(args[0], skillsResponse, dungeonResponse);
+                //noinspection rawtypes
+                CalculatorCommand.SkillType type = getSkillTypeFromName(args[0], skillsResponse, dungeonResponse);
 
                 if (type == null) {
                     message.editMessage(embedBuilder
@@ -176,6 +177,18 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                         NumberUtil.formatNicely(experience),
                         type.getName()
                     );
+
+                if (type.getType().equals(SkillCalculationType.GENERAL)) {
+                    double previousAverage = skillsResponse.getAverageSkillLevel();
+
+                    //noinspection unchecked
+                    SkillsResponse newResponse = (SkillsResponse) type.setLevelAndExperience(skillsResponse, newLevel, combinedXp);
+
+                    note += String.format("\nYou'll go from **%s** skill average to **%s**!",
+                        NumberUtil.formatNicelyWithDecimals(previousAverage),
+                        NumberUtil.formatNicelyWithDecimals(newResponse.getAverageSkillLevel())
+                    );
+                }
 
                 message.editMessage(embedBuilder
                     .setTitle(type.getName() + " XP Calculation for " + username)

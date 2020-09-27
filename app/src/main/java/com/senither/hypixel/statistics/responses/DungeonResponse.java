@@ -160,12 +160,13 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
     public class Dungeon implements Jsonable, HasLevel, CanCalculateWeight {
 
         private final DungeonWeight weight;
-        private final double experience;
-        private final double level;
         private final int highestFloorCleared;
         private final LinkedHashMap<Integer, Integer> timesPlayed = new LinkedHashMap<>();
         private final LinkedHashMap<Integer, DungeonScore> bestScores = new LinkedHashMap<>();
         private final LinkedHashMap<Integer, DungeonTime> fastestTime = new LinkedHashMap<>();
+
+        private double experience;
+        private double level;
 
         public Dungeon(DungeonWeight weight, JsonObject object) {
             this.weight = weight;
@@ -195,6 +196,11 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         @Override
         public double getLevel() {
             return level;
+        }
+
+        public void setLevelAndExperience(double level, double experience) {
+            this.level = level;
+            this.experience = experience;
         }
 
         public int getHighestFloorCleared() {
@@ -330,8 +336,8 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
     public class DungeonClass implements Jsonable, HasLevel, CanCalculateWeight {
 
         private final DungeonWeight weight;
-        private final double experience;
-        private final double level;
+        private double experience;
+        private double level;
 
         public DungeonClass(DungeonWeight weight, double experience) {
             this.weight = weight;
@@ -348,6 +354,11 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         @Override
         public double getLevel() {
             return level;
+        }
+
+        public void setLevelAndExperience(double level, double experience) {
+            this.level = level;
+            this.experience = experience;
         }
 
         @Override

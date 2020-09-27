@@ -158,6 +158,7 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                 SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
                 DungeonResponse dungeonResponse = StatisticsChecker.DUNGEON.checkUser(playerReply, profileReply, member);
 
+                //noinspection rawtypes
                 CalculatorCommand.SkillType type = getSkillTypeFromName(args[0], skillsResponse, dungeonResponse);
 
                 if (type == null) {
@@ -179,12 +180,25 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                     : type.getStat().getExperience();
 
                 int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], type.getExperienceList().size()), 0, type.getExperienceList().size());
-                double diff = getExperienceForLevel(type.getExperienceList(), max) - experience;
+                double levelExperience = getExperienceForLevel(type.getExperienceList(), max);
+                double diff = levelExperience - experience;
 
                 String note = "You need another **%s** XP to reach level **%s**!";
                 if (diff < 0) {
                     diff = diff * -1;
                     note = "You're currently **%s** XP above level **%s**!";
+                }
+
+                if (type.getType().equals(SkillCalculationType.GENERAL)) {
+                    double previousAverage = skillsResponse.getAverageSkillLevel();
+
+                    //noinspection unchecked
+                    SkillsResponse newResponse = (SkillsResponse) type.setLevelAndExperience(skillsResponse, max, levelExperience);
+
+                    note += String.format("\nYou'll go from **%s** skill average to **%s**!",
+                        NumberUtil.formatNicelyWithDecimals(previousAverage),
+                        NumberUtil.formatNicelyWithDecimals(newResponse.getAverageSkillLevel())
+                    );
                 }
 
                 message.editMessage(embedBuilder
