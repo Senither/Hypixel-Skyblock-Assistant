@@ -80,7 +80,7 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
 
     @Override
     public List<String> getTriggers() {
-        return Arrays.asList("calcskill", "calcskills");
+        return Arrays.asList("calcskills", "calcskill", "calcsk", "csk");
     }
 
     @Override
