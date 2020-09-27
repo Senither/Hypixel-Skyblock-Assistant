@@ -182,14 +182,16 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                 int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], type.getExperienceList().size()), 0, type.getExperienceList().size());
                 double levelExperience = getExperienceForLevel(type.getExperienceList(), max);
                 double diff = levelExperience - experience;
+                boolean isMaxLevel = false;
 
                 String note = "You need another **%s** XP to reach level **%s**!";
                 if (diff < 0) {
                     diff = diff * -1;
                     note = "You're currently **%s** XP above level **%s**!";
+                    isMaxLevel = true;
                 }
 
-                if (type.getType().equals(SkillCalculationType.GENERAL)) {
+                if (type.getType().equals(SkillCalculationType.GENERAL) && !isMaxLevel) {
                     double previousAverage = skillsResponse.getAverageSkillLevel();
 
                     //noinspection unchecked
