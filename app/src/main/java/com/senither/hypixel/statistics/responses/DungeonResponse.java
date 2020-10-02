@@ -179,12 +179,16 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
             }
             this.highestFloorCleared = timesPlayed.size() - 1;
 
-            for (Map.Entry<String, JsonElement> played : object.getAsJsonObject("best_score").entrySet()) {
-                bestScores.put(NumberUtil.parseInt(played.getKey(), 0), new DungeonScore(played.getValue().getAsInt()));
+            if (object.has("best_score")) {
+                for (Map.Entry<String, JsonElement> played : object.getAsJsonObject("best_score").entrySet()) {
+                    bestScores.put(NumberUtil.parseInt(played.getKey(), 0), new DungeonScore(played.getValue().getAsInt()));
+                }
             }
 
-            for (Map.Entry<String, JsonElement> time : object.getAsJsonObject("fastest_time").entrySet()) {
-                fastestTime.put(NumberUtil.parseInt(time.getKey(), 0), new DungeonTime(time.getValue().getAsInt()));
+            if (object.has("fastest_time")) {
+                for (Map.Entry<String, JsonElement> time : object.getAsJsonObject("fastest_time").entrySet()) {
+                    fastestTime.put(NumberUtil.parseInt(time.getKey(), 0), new DungeonTime(time.getValue().getAsInt()));
+                }
             }
         }
 

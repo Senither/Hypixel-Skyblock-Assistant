@@ -128,8 +128,10 @@ public class CatacombsCommand extends SkillCommand {
 
         builder.addField(
             "Fastest Floor Clears",
-            String.format("```yml\n%s```", String.join("\n", fastestTime)),
-            true
+            String.format("```yml\n%s```", fastestTime.isEmpty()
+                ? "No clear time data to display"
+                : String.join("\n", fastestTime)
+            ), true
         );
 
         message.editMessage(builder.build()).queue();

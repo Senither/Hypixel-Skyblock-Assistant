@@ -49,6 +49,7 @@ public class DungeonChecker extends Checker<DungeonResponse> {
             && object.has("dungeon_types")
             && object.has("player_classes")
             && object.getAsJsonObject("dungeon_types").has("catacombs")
-            && object.getAsJsonObject("dungeon_types").getAsJsonObject("catacombs").has("experience");
+            && object.getAsJsonObject("dungeon_types").getAsJsonObject("catacombs").has("experience")
+            && object.getAsJsonObject("dungeon_types").getAsJsonObject("catacombs").has("times_played");
     }
 }
