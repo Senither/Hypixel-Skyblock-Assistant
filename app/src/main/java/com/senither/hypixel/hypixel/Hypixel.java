@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.ZonedDateTime;
@@ -139,7 +140,7 @@ public class Hypixel {
         try {
             UUID uuid = getUUIDFromName(name);
             if (uuid == null) {
-                future.completeExceptionally(new FriendlyException("Failed to find a valid UUID for the given username!"));
+                handleResponseException(future, new FriendlyException("Failed to find a valid UUID for the given username!"));
                 return future;
             }
 
@@ -176,7 +177,7 @@ public class Hypixel {
 
             getClientContainer().getNextClient().getPlayerByUuid(uuid).whenCompleteAsync((playerReply, throwable) -> {
                 if (throwable != null) {
-                    future.completeExceptionally(throwable);
+                    handleResponseException(future, throwable);
                     return;
                 }
 
@@ -208,7 +209,7 @@ public class Hypixel {
                 future.complete(playerReply);
             });
         } catch (SQLException e) {
-            future.completeExceptionally(e);
+            handleResponseException(future, e);
         }
 
         return future;
@@ -220,12 +221,12 @@ public class Hypixel {
         getPlayerByName(name).whenComplete((playerReply, throwable) -> {
             if (throwable != null) {
                 log.debug("Failed to get selected skyblock profile for \"{}\" due to an exception while getting Hypixel profile.", name);
-                future.completeExceptionally(throwable);
+                handleResponseException(future, throwable);
                 return;
             }
 
             if (playerReply.getPlayer() == null) {
-                future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
+                handleResponseException(future, new FriendlyException("Failed to find any valid SkyBlock profiles!"));
                 return;
             }
 
@@ -234,7 +235,7 @@ public class Hypixel {
                 if (skyBlockProfileReplies.isEmpty()) {
                     log.debug("Failed to get selected skyblock profile for \"{}\" due to having found no valid profiles.", name);
 
-                    future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
+                    handleResponseException(future, new FriendlyException("Failed to find any valid SkyBlock profiles!"));
                     return;
                 }
 
@@ -254,9 +255,9 @@ public class Hypixel {
 
                 future.complete(skyBlockProfileReply);
             } catch (NullPointerException e) {
-                future.completeExceptionally(new FriendlyException("Found no SkyBlock profiles for " + name));
+                handleResponseException(future, new FriendlyException("Found no SkyBlock profiles for " + name));
             } catch (Exception e) {
-                future.completeExceptionally(e);
+                handleResponseException(future, e);
             }
         });
 
@@ -269,12 +270,12 @@ public class Hypixel {
         getPlayerByName(name).whenComplete((playerReply, throwable) -> {
             if (throwable != null) {
                 log.debug("Failed to get most progressed skyblock profile for \"{}\" due to an exception while getting Hypixel profile.", name);
-                future.completeExceptionally(throwable);
+                handleResponseException(future, throwable);
                 return;
             }
 
             if (playerReply.getPlayer() == null) {
-                future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
+                handleResponseException(future, new FriendlyException("Failed to find any valid SkyBlock profiles!"));
                 return;
             }
 
@@ -283,7 +284,7 @@ public class Hypixel {
                 if (skyBlockProfileReplies.isEmpty()) {
                     log.debug("Failed to get most progressed skyblock profile for \"{}\" due to having found no valid profiles.", name);
 
-                    future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
+                    handleResponseException(future, new FriendlyException("Failed to find any valid SkyBlock profiles!"));
                     return;
                 }
 
@@ -301,9 +302,9 @@ public class Hypixel {
 
                 future.complete(skyBlockProfileReply);
             } catch (NullPointerException e) {
-                future.completeExceptionally(new FriendlyException("Failed to find any valid SkyBlock profiles!"));
+                handleResponseException(future, new FriendlyException("Failed to find any valid SkyBlock profiles!"));
             } catch (Exception e) {
-                future.completeExceptionally(e);
+                handleResponseException(future, e);
             }
         });
 
@@ -357,7 +358,7 @@ public class Hypixel {
         boolean finalHasDatabaseEntry = hasDatabaseEntry;
         clientContainer.getNextClient().getSkyBlockProfile(name).whenComplete((skyBlockProfileReply, throwable) -> {
             if (throwable != null) {
-                future.completeExceptionally(throwable);
+                handleResponseException(future, throwable);
                 return;
             }
 
@@ -402,7 +403,7 @@ public class Hypixel {
 
         clientContainer.getNextClient().getGuildByPlayer(uuid).whenComplete((skyBlockGuildReply, throwable) -> {
             if (throwable != null) {
-                future.completeExceptionally(throwable);
+                handleResponseException(future, throwable);
                 return;
             }
 
@@ -450,7 +451,7 @@ public class Hypixel {
 
         clientContainer.getNextClient().getGuildByName(name).whenComplete((skyBlockGuildReply, throwable) -> {
             if (throwable != null) {
-                future.completeExceptionally(throwable);
+                handleResponseException(future, throwable);
                 return;
             }
 
@@ -871,5 +872,15 @@ public class Hypixel {
 
     private long getLastSaveFromMember(JsonObject object) {
         return object != null && object.has("last_save") ? object.get("last_save").getAsLong() : Long.MIN_VALUE;
+    }
+
+    private void handleResponseException(CompletableFuture<?> future, Throwable throwable) {
+        if (throwable instanceof FriendlyException) {
+            future.completeExceptionally(throwable);
+        } else if (throwable instanceof SSLPeerUnverifiedException) {
+            future.completeExceptionally(new FriendlyException("Hypixels API is currently experiencing some issues, please try again later."));
+        } else {
+            future.completeExceptionally(throwable);
+        }
     }
 }
