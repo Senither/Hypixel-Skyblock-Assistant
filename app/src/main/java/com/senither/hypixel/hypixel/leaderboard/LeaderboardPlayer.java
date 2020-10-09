@@ -238,6 +238,39 @@ public abstract class LeaderboardPlayer {
         return runecrafting_xp <= 0 ? getExperienceForLevel(runecrafting, true) : runecrafting_xp;
     }
 
+    public double getTotalSkillExperience() {
+        if (!isSkillsApiDisabled()) {
+            return getMiningXP()
+                + getForagingXP()
+                + getEnchantingXP()
+                + getFarmingXP()
+                + getCombatXP()
+                + getFishingXP()
+                + getAlchemyXP()
+                + getTamingXP();
+        }
+
+        return getExperienceForLevel(getMining(), false)
+            + getExperienceForLevel(getForaging(), false)
+            + getExperienceForLevel(getEnchanting(), false)
+            + getExperienceForLevel(getFarming(), false)
+            + getExperienceForLevel(getCombat(), false)
+            + getExperienceForLevel(getFishing(), false)
+            + getExperienceForLevel(getAlchemy(), false)
+            + getExperienceForLevel(getTaming(), false);
+    }
+
+    private boolean isSkillsApiDisabled() {
+        return getMiningXP() == -1
+            && getForagingXP() == -1
+            && getEnchantingXP() == -1
+            && getFarmingXP() == -1
+            && getCombatXP() == -1
+            && getFishingXP() == -1
+            && getAlchemyXP() == -1
+            && getTamingXP() == -1;
+    }
+
     private double getExperienceForLevel(double level, boolean isRunecrafting) {
         double totalRequiredExperience = 0;
         ImmutableMultiset<Integer> experienceLevels = isRunecrafting

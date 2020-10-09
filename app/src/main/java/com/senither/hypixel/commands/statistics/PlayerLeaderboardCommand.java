@@ -35,10 +35,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PlayerLeaderboardCommand extends Command {
@@ -126,10 +123,18 @@ public class PlayerLeaderboardCommand extends Command {
         final int[] index = {1};
         final int[] position = {-1};
         final UUID finalUserUUID = userUUID;
-
         List<String> completeRows = new ArrayList<>();
+
+        Comparator<PlayerLeaderboardResponse.Player> comparator = Comparator.comparing(
+            player -> type.getOrderFunction().getStat(player)
+        );
+
+        if (type.getIndexFunction() != null) {
+            comparator = comparator.thenComparing(player -> type.getIndexFunction().getStat(player));
+        }
+
         app.getHypixel().getPlayerLeaderboard().getData().stream()
-            .sorted((o1, o2) -> Double.compare(type.getOrderFunction().getStat(o2), type.getOrderFunction().getStat(o1)))
+            .sorted(comparator.reversed())
             .forEach(player -> {
                 if (player.getUuid().equals(finalUserUUID)) {
                     position[0] = index[0];

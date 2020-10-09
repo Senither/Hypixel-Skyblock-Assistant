@@ -173,8 +173,17 @@ public class LeaderboardCommand extends Command {
         final int[] index = {1};
         final UUID finalUserUUID = userUUID;
         List<String> completeRows = new ArrayList<>();
+
+        Comparator<PlayerLeaderboardResponse.Player> comparator = Comparator.comparing(
+            player -> type.getOrderFunction().getStat(player)
+        );
+
+        if (type.getIndexFunction() != null) {
+            comparator = comparator.thenComparing(player -> type.getIndexFunction().getStat(player));
+        }
+
         leaderboard.getData().stream()
-            .sorted((o1, o2) -> Double.compare(type.getOrderFunction().getStat(o2), type.getOrderFunction().getStat(o1)))
+            .sorted(comparator.reversed())
             .forEach(player -> {
                 if (player.getUuid().equals(finalUserUUID)) {
                     position[0] = index[0];

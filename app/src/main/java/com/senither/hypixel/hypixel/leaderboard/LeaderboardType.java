@@ -35,7 +35,8 @@ public enum LeaderboardType {
     ),
     AVERAGE_SKILL(
         "Average Skill", Arrays.asList("skills", "skill", "sk"),
-        LeaderboardPlayer::getAverageSkillProgress, LeaderboardPlayer::getAverageSkill
+        LeaderboardPlayer::getAverageSkillProgress, LeaderboardPlayer::getAverageSkill,
+        LeaderboardPlayer::getAverageSkillProgress, LeaderboardPlayer::getTotalSkillExperience
     ),
     TOTAL_SLAYER(
         "Total Slayer", Arrays.asList("slayers", "slayer", "sl"),
@@ -117,16 +118,40 @@ public enum LeaderboardType {
     protected final PlayerStatConversionFunction statFunction;
     protected final PlayerStatConversionFunction expFunction;
     protected final PlayerStatConversionFunction orderFunction;
+    protected final PlayerStatConversionFunction indexFunction;
 
-    LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction, PlayerStatConversionFunction expFunction, PlayerStatConversionFunction orderFunction) {
+    LeaderboardType(
+        String name,
+        List<String> aliases,
+        PlayerStatConversionFunction statFunction,
+        PlayerStatConversionFunction expFunction,
+        PlayerStatConversionFunction orderFunction,
+        PlayerStatConversionFunction indexFunction
+    ) {
         this.name = name;
         this.aliases = aliases;
         this.statFunction = statFunction;
         this.expFunction = expFunction;
         this.orderFunction = orderFunction;
+        this.indexFunction = indexFunction;
     }
 
-    LeaderboardType(String name, List<String> aliases, PlayerStatConversionFunction statFunction, PlayerStatConversionFunction expFunction) {
+    LeaderboardType(
+        String name,
+        List<String> aliases,
+        PlayerStatConversionFunction statFunction,
+        PlayerStatConversionFunction expFunction,
+        PlayerStatConversionFunction orderFunction
+    ) {
+        this(name, aliases, statFunction, expFunction, orderFunction, null);
+    }
+
+    LeaderboardType(
+        String name,
+        List<String> aliases,
+        PlayerStatConversionFunction statFunction,
+        PlayerStatConversionFunction expFunction
+    ) {
         this(name, aliases, statFunction, expFunction, statFunction);
     }
 
@@ -162,5 +187,9 @@ public enum LeaderboardType {
 
     public PlayerStatConversionFunction getOrderFunction() {
         return orderFunction;
+    }
+
+    public PlayerStatConversionFunction getIndexFunction() {
+        return indexFunction;
     }
 }
