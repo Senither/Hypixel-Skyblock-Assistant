@@ -118,7 +118,8 @@ public class PlayerLeaderboardCommand extends Command {
 
         final String rowMessage = type.getExpFunction() == null
             ? "%s: %s [%s]\n%s> %s " : type.equals(LeaderboardType.AVERAGE_SKILL)
-            ? "%s: %s [%s]\n%s> %s (%s)" : "%s: %s [%s]\n%s> %s [%s XP]";
+            ? "%s: %s [%s]\n%s> %s (%s)" : type.equals(LeaderboardType.WEIGHT)
+            ? "%s: %s [%s]\n%s> %s + %s" : "%s: %s [%s]\n%s> %s [%s XP]";
 
         final int[] index = {1};
         final int[] position = {-1};

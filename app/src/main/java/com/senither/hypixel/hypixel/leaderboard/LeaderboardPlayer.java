@@ -23,6 +23,7 @@ package com.senither.hypixel.hypixel.leaderboard;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.senither.hypixel.Constants;
+import com.senither.hypixel.utils.NumberUtil;
 
 import java.util.UUID;
 
@@ -73,6 +74,8 @@ public abstract class LeaderboardPlayer {
     protected double carpentry_xp;
     protected double runecrafting;
     protected double runecrafting_xp;
+    // Player Weight
+    protected PlayerWeight weight;
 
     public UUID getUuid() {
         return uuid;
@@ -260,6 +263,10 @@ public abstract class LeaderboardPlayer {
             + getExperienceForLevel(getTaming(), false);
     }
 
+    public PlayerWeight getWeight() {
+        return weight;
+    }
+
     private boolean isSkillsApiDisabled() {
         return getMiningXP() == -1
             && getForagingXP() == -1
@@ -281,5 +288,168 @@ public abstract class LeaderboardPlayer {
             totalRequiredExperience += experienceLevels.asList().get(i);
         }
         return totalRequiredExperience;
+    }
+
+    public class PlayerWeight extends WeightContainer {
+
+        protected double total;
+        protected SkillWeight skills;
+        protected SlayerWeight slayers;
+        protected DungeonWeight dungeons;
+
+        public double getTotal() {
+            return total;
+        }
+
+        public SkillWeight getSkills() {
+            return skills;
+        }
+
+        public SlayerWeight getSlayers() {
+            return slayers;
+        }
+
+        public DungeonWeight getDungeons() {
+            return dungeons;
+        }
+    }
+
+    public class SkillWeight {
+
+        protected WeightContainer total;
+        protected WeightContainer mining;
+        protected WeightContainer foraging;
+        protected WeightContainer enchanting;
+        protected WeightContainer farming;
+        protected WeightContainer combat;
+        protected WeightContainer fishing;
+        protected WeightContainer alchemy;
+        protected WeightContainer taming;
+
+        public WeightContainer getTotal() {
+            return total;
+        }
+
+        public WeightContainer getMining() {
+            return mining;
+        }
+
+        public WeightContainer getForaging() {
+            return foraging;
+        }
+
+        public WeightContainer getEnchanting() {
+            return enchanting;
+        }
+
+        public WeightContainer getFarming() {
+            return farming;
+        }
+
+        public WeightContainer getCombat() {
+            return combat;
+        }
+
+        public WeightContainer getFishing() {
+            return fishing;
+        }
+
+        public WeightContainer getAlchemy() {
+            return alchemy;
+        }
+
+        public WeightContainer getTaming() {
+            return taming;
+        }
+    }
+
+    public class SlayerWeight {
+
+        protected WeightContainer total;
+        protected WeightContainer revenant;
+        protected WeightContainer tarantula;
+        protected WeightContainer sven;
+
+        public WeightContainer getTotal() {
+            return total;
+        }
+
+        public WeightContainer getRevenant() {
+            return revenant;
+        }
+
+        public WeightContainer getTarantula() {
+            return tarantula;
+        }
+
+        public WeightContainer getSven() {
+            return sven;
+        }
+    }
+
+    public class DungeonWeight {
+
+        protected WeightContainer total;
+        protected WeightContainer catacomb;
+        protected WeightContainer healer;
+        protected WeightContainer mage;
+        protected WeightContainer berserk;
+        protected WeightContainer archer;
+        protected WeightContainer tank;
+
+        public WeightContainer getTotal() {
+            return total;
+        }
+
+        public WeightContainer getCatacomb() {
+            return catacomb;
+        }
+
+        public WeightContainer getHealer() {
+            return healer;
+        }
+
+        public WeightContainer getMage() {
+            return mage;
+        }
+
+        public WeightContainer getBerserk() {
+            return berserk;
+        }
+
+        public WeightContainer getArcher() {
+            return archer;
+        }
+
+        public WeightContainer getTank() {
+            return tank;
+        }
+    }
+
+    public class WeightContainer {
+
+        protected double weight;
+        protected double overflow;
+
+        public double getWeight() {
+            return weight;
+        }
+
+        public double getOverflow() {
+            return overflow;
+        }
+
+        public double getTotalWeight() {
+            return getWeight() + getOverflow();
+        }
+
+        @Override
+        public String toString() {
+            if (overflow == 0) {
+                return NumberUtil.formatNicelyWithDecimals(weight);
+            }
+            return NumberUtil.formatNicelyWithDecimals(weight)
+                + " +" + NumberUtil.formatNicelyWithDecimals(overflow);
+        }
     }
 }

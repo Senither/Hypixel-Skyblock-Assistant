@@ -164,7 +164,8 @@ public class LeaderboardCommand extends Command {
 
         final String rowMessage = type.getExpFunction() == null
             ? "%s: %s\n%s> %s " : type.equals(LeaderboardType.AVERAGE_SKILL)
-            ? "%s: %s\n%s> %s (%s)" : "%s: %s\n%s> %s [%s XP]";
+            ? "%s: %s\n%s> %s (%s)" : type.equals(LeaderboardType.WEIGHT)
+            ? "%s: %s\n%s> %s + %s" : "%s: %s\n%s> %s [%s XP]";
 
         AtomicReference<Double> totalStatCounter = new AtomicReference<>(0D);
         AtomicReference<Double> totalExpCounter = new AtomicReference<>(0D);
@@ -244,7 +245,10 @@ public class LeaderboardCommand extends Command {
             .set("type", type.getName().toLowerCase().replace("average", "").trim())
             .set("skill", NumberUtil.formatNicelyWithDecimals(totalStatCounter.get() / totalPlayers.get()))
             .set("xp", NumberUtil.formatNicelyWithDecimals(totalExpCounter.get() / totalPlayers.get()))
-            .set("xptype", type.equals(LeaderboardType.AVERAGE_SKILL) ? " without progress!" : " average XP!")
+            .set("xptype", type.equals(LeaderboardType.WEIGHT)
+                ? " overflow weight!" : type.equals(LeaderboardType.AVERAGE_SKILL)
+                ? " without progress!" : " average XP!"
+            )
             .setFooter("Requested by " + event.getAuthor().getAsTag(), event.getAuthor().getEffectiveAvatarUrl())
             .setTimestamp(Carbon.now().getTime().toInstant())
             .queue();
