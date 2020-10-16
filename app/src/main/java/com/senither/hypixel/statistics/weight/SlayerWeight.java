@@ -21,10 +21,19 @@ public enum SlayerWeight {
         return function.getWeight(response);
     }
 
-    public double calculateSkillWeight(double experience) {
+    public Weight calculateSkillWeight(double experience) {
         if (experience == 0) {
-            return 0D;
+            return new Weight(0D, 0D);
         }
-        return experience / divider;
+
+        if (experience <= 1000000) {
+            return new Weight(experience / divider, 0D);
+        }
+
+        double base = 1000000 / divider;
+        double remaining = experience - 1000000;
+        double overflow = Math.pow(remaining / (divider * 1.5), 0.942);
+
+        return new Weight(base + overflow, 0D);
     }
 }

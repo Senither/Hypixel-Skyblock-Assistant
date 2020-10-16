@@ -130,7 +130,7 @@ public class WeightCalculatorCommand extends SkillCommand {
             return new Weight();
         }
 
-        double totalWeight = slayerResponse.calculateTotalWeight();
+        Weight totalWeight = slayerResponse.calculateTotalWeight();
         List<String> slayerWeights = new ArrayList<>();
         for (SlayerWeight value : SlayerWeight.values()) {
             SlayerResponse.SlayerStat slayerStatsRelation = value.getSlayerStatsRelation(slayerResponse);
@@ -138,17 +138,17 @@ public class WeightCalculatorCommand extends SkillCommand {
             slayerWeights.add(String.format("%s > EXP: %s Weight: %s",
                 padSpaces(prettifyEnumName(value.name()), 10),
                 padSpaces(NumberUtil.formatNicelyWithDecimals(slayerStatsRelation.getExperience()), 10),
-                NumberUtil.formatNicelyWithDecimals(slayerStatsRelation.calculateWeight())
+                slayerStatsRelation.calculateWeight()
             ));
         }
 
         message.addField(
-            "Slayer Weight: " + NumberUtil.formatNicelyWithDecimals(totalWeight),
+            "Slayer Weight: " + totalWeight,
             String.format("```scala\n%s```", String.join("\n", slayerWeights)),
             false
         );
 
-        return new Weight(totalWeight, 0D);
+        return totalWeight;
     }
 
     private Weight applyDungeonWeight(PlaceholderMessage message, SkyBlockProfileReply profileReply, PlayerReply playerReply, JsonObject member) {

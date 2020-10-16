@@ -26,6 +26,7 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 import com.senither.hypixel.statistics.weight.SlayerWeight;
+import com.senither.hypixel.statistics.weight.Weight;
 
 public class SlayerResponse extends StatisticsResponse implements Jsonable {
 
@@ -90,11 +91,11 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
         return this;
     }
 
-    public double calculateTotalWeight() {
-        double weight = 0D;
+    public Weight calculateTotalWeight() {
+        Weight weight = new Weight(0D, 0D);
 
         for (SlayerWeight value : SlayerWeight.values()) {
-            weight += value.getSlayerStatsRelation(this).calculateWeight();
+            weight = weight.add(value.getSlayerStatsRelation(this).calculateWeight());
         }
 
         return weight;
@@ -163,7 +164,7 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
             return tier4Kills;
         }
 
-        public double calculateWeight() {
+        public Weight calculateWeight() {
             return weight.calculateSkillWeight(experience);
         }
 
