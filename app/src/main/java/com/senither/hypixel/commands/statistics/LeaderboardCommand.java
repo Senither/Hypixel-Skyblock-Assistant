@@ -240,7 +240,7 @@ public class LeaderboardCommand extends Command {
         )
             .setTitle(
                 String.format("%s's %s Leaderboard", guild.getName(), type.getName()),
-                String.format("https://hypixel-leaderboard.senither.com/guild/%s", guild.getId())
+                String.format("https://hypixel-leaderboard.senither.com/guilds/%s", guild.getId())
             )
             .set("type", type.getName().toLowerCase().replace("average", "").trim())
             .set("skill", NumberUtil.formatNicelyWithDecimals(totalStatCounter.get() / totalPlayers.get()))
@@ -277,7 +277,7 @@ public class LeaderboardCommand extends Command {
             "> **:weight** guild weight points"
             ))
         )
-            .setTitle(guild.getName() + " Overview", String.format("https://hypixel-leaderboard.senither.com/guild/%s", guild.getId()))
+            .setTitle(guild.getName() + " Overview", String.format("https://hypixel-leaderboard.senither.com/guilds/%s", guild.getId()))
             .set("time", guild.getLastUpdatedAt().diffForHumans())
             .set("skills", NumberUtil.formatNicelyWithDecimals(guild.getAverageSkill() - weekOldMetrics.getAverageSkill()))
             .set("slayers", NumberUtil.formatNicelyWithDecimals(guild.getAverageSlayer() - weekOldMetrics.getAverageSlayer()))
