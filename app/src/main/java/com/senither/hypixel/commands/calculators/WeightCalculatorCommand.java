@@ -75,7 +75,7 @@ public class WeightCalculatorCommand extends SkillCommand {
         message.editMessage(placeholderMessage
             .set("name", getUsernameFromPlayer(playerReply))
             .set("profile", profileReply.getProfile().get("cute_name").getAsString())
-            .set("weight", skillWeight.add(slayerWeight).add(dungeonWeight))
+            .set("weight", skillWeight.add(slayerWeight).add(dungeonWeight).getTotalWeightStringified())
             .setFooter(String.format(
                 "Profile: %s",
                 profileReply.getProfile().get("cute_name").getAsString()
@@ -110,7 +110,7 @@ public class WeightCalculatorCommand extends SkillCommand {
         }
 
         message.addField(
-            "Skills Weight: " + totalWeight.toString(),
+            "Skills Weight: " + totalWeight.getTotalWeightStringified(),
             String.format("```scala\n%s```", String.join("\n", skillWeights)),
             false
         );

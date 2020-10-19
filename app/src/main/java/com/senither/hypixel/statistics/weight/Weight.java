@@ -31,6 +31,17 @@ public class Weight {
         );
     }
 
+    public String getTotalWeightStringified() {
+        if (overflow == 0D) {
+            return NumberUtil.formatNicelyWithDecimals(weight);
+        }
+
+        return String.format("%s (%s Total)",
+            toString(),
+            NumberUtil.formatNicelyWithDecimals(weight + overflow)
+        );
+    }
+
     @Override
     public String toString() {
         if (overflow == 0D) {
