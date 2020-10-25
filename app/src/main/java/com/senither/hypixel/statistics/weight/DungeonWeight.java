@@ -8,45 +8,43 @@ import com.senither.hypixel.statistics.responses.DungeonResponse;
 public enum DungeonWeight {
 
     /**
-     * Maxes out Catacomb at 2,000 points at level 50.
+     * Maxes out Catacomb at 6,500 points at level 50.
      */
-    CATACOMB(response -> response.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS), 10, 1139619),
+    CATACOMB(response -> response.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS), 6500),
 
     /**
-     * Maxes out Healer at 500 points at level 50.
+     * Maxes out Healer at 200 points at level 50.
      */
-    HEALER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.HEALER), 3, 4558477),
+    HEALER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.HEALER), 200),
 
     /**
-     * Maxes out Mage at 500 points at level 50.
+     * Maxes out Mage at 200 points at level 50.
      */
-    MAGE(response -> response.getClassFromType(DungeonResponse.DungeonClassType.MAGE), 3, 4558477),
+    MAGE(response -> response.getClassFromType(DungeonResponse.DungeonClassType.MAGE), 200),
 
     /**
-     * Maxes out Berserk at 500 points at level 50.
+     * Maxes out Berserk at 200 points at level 50.
      */
-    BERSERK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.BERSERK), 3, 4558477),
+    BERSERK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.BERSERK), 200),
 
     /**
-     * Maxes out Archer at 500 points at level 50.
+     * Maxes out Archer at 200 points at level 50.
      */
-    ARCHER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.ARCHER), 3, 4558477),
+    ARCHER(response -> response.getClassFromType(DungeonResponse.DungeonClassType.ARCHER), 200),
 
     /**
-     * Maxes out Tank at 500 points at level 50.
+     * Maxes out Tank at 200 points at level 50.
      */
-    TANK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.TANK), 3, 4558477);
+    TANK(response -> response.getClassFromType(DungeonResponse.DungeonClassType.TANK), 200);
 
     private static final double level50Exp = 569809640;
 
     private final DungeonWeightRelationFunction function;
-    private final double modifier;
-    private final double divider;
+    private final double maxPoints;
 
-    DungeonWeight(DungeonWeightRelationFunction function, double modifier, double divider) {
+    DungeonWeight(DungeonWeightRelationFunction function, double maxPoints) {
         this.function = function;
-        this.modifier = modifier;
-        this.divider = divider;
+        this.maxPoints = maxPoints;
     }
 
     public CanCalculateWeight getCalculatorFromDungeon(DungeonResponse response) {
@@ -55,13 +53,13 @@ public enum DungeonWeight {
 
     public Weight calculateWeight(double experience) {
         double level = getLevelFromExperience(experience);
-        double base = Math.pow(level * 10, 2) * this.modifier / 1250;
+        double base = Math.pow(level * 10, 3) * (this.maxPoints / 100000) / 1250;
 
         if (experience <= level50Exp) {
             return new Weight(base, 0D);
         }
 
-        return new Weight(base, Math.pow((experience - level50Exp) / divider, 0.968));
+        return new Weight(base, Math.pow((experience - level50Exp) / (4 * level50Exp / maxPoints), 0.968));
     }
 
     private double getLevelFromExperience(double experience) {
