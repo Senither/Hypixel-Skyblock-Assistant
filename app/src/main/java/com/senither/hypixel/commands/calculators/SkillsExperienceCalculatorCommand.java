@@ -184,10 +184,17 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                     //noinspection unchecked
                     SkillsResponse newResponse = (SkillsResponse) type.setLevelAndExperience(skillsResponse, newLevel, combinedXp);
 
-                    note += String.format("\nYou'll go from **%s** skill average to **%s**!",
+                    embedBuilder.addField("Average Change", String.format("`%s` \uD83E\uDC52 `%s`",
                         NumberUtil.formatNicelyWithDecimals(previousAverage),
                         NumberUtil.formatNicelyWithDecimals(newResponse.getAverageSkillLevel())
-                    );
+                    ), true);
+                }
+
+                if (!type.getType().equals(SkillCalculationType.RUNECRAFTING)) {
+                    embedBuilder.addField("Weight Change", String.format("`%s` \uD83E\uDC52 `%s`",
+                        type.calculateWeight(skillXp),
+                        type.calculateWeight(combinedXp)
+                    ), true);
                 }
 
                 message.editMessage(embedBuilder

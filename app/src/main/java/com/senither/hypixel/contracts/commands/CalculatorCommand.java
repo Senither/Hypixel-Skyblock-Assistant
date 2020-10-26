@@ -28,6 +28,9 @@ import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
+import com.senither.hypixel.statistics.weight.DungeonWeight;
+import com.senither.hypixel.statistics.weight.SkillWeight;
+import com.senither.hypixel.statistics.weight.Weight;
 
 public abstract class CalculatorCommand extends Command {
 
@@ -43,7 +46,8 @@ public abstract class CalculatorCommand extends Command {
                     "Mining",
                     skillsResponse.getMining(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setMining
+                    SkillsResponse::setMining,
+                    SkillWeight.MINING::calculateSkillWeight
                 );
 
             case "tree":
@@ -53,7 +57,8 @@ public abstract class CalculatorCommand extends Command {
                     "Foraging",
                     skillsResponse.getForaging(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setForaging
+                    SkillsResponse::setForaging,
+                    SkillWeight.FORAGING::calculateSkillWeight
                 );
 
             case "enchant":
@@ -62,7 +67,8 @@ public abstract class CalculatorCommand extends Command {
                     "Enchanting",
                     skillsResponse.getEnchanting(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setEnchanting
+                    SkillsResponse::setEnchanting,
+                    SkillWeight.ENCHANTING::calculateSkillWeight
                 );
 
             case "farm":
@@ -71,7 +77,8 @@ public abstract class CalculatorCommand extends Command {
                     "Farming",
                     skillsResponse.getFarming(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setFarming
+                    SkillsResponse::setFarming,
+                    SkillWeight.FARMING::calculateSkillWeight
                 );
 
             case "fight":
@@ -80,7 +87,8 @@ public abstract class CalculatorCommand extends Command {
                     "Combat",
                     skillsResponse.getCombat(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setCombat
+                    SkillsResponse::setCombat,
+                    SkillWeight.COMBAT::calculateSkillWeight
                 );
 
             case "fish":
@@ -89,7 +97,8 @@ public abstract class CalculatorCommand extends Command {
                     "Fishing",
                     skillsResponse.getFishing(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setFishing
+                    SkillsResponse::setFishing,
+                    SkillWeight.FISHING::calculateSkillWeight
                 );
 
             case "alch":
@@ -98,7 +107,8 @@ public abstract class CalculatorCommand extends Command {
                     "Alchemy",
                     skillsResponse.getAlchemy(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setAlchemy
+                    SkillsResponse::setAlchemy,
+                    SkillWeight.ALCHEMY::calculateSkillWeight
                 );
 
             case "pet":
@@ -109,7 +119,9 @@ public abstract class CalculatorCommand extends Command {
                     "Taming",
                     skillsResponse.getTaming(),
                     SkillCalculationType.GENERAL,
-                    SkillsResponse::setTaming);
+                    SkillsResponse::setTaming,
+                    SkillWeight.TAMING::calculateSkillWeight
+                );
 
             case "rune":
             case "runecraft":
@@ -118,7 +130,8 @@ public abstract class CalculatorCommand extends Command {
                     "Runecrafting",
                     skillsResponse.getRunecrafting(),
                     SkillCalculationType.RUNECRAFTING,
-                    SkillsResponse::setRunecrafting
+                    SkillsResponse::setRunecrafting,
+                    null
                 );
 
             case "ca":
@@ -134,7 +147,8 @@ public abstract class CalculatorCommand extends Command {
                             .setLevelAndExperience(level, experience);
 
                         return response;
-                    }
+                    },
+                    DungeonWeight.CATACOMB::calculateWeight
                 );
 
             case "heal":
@@ -148,7 +162,8 @@ public abstract class CalculatorCommand extends Command {
                             .setLevelAndExperience(level, experience);
 
                         return response;
-                    }
+                    },
+                    DungeonWeight.HEALER::calculateWeight
                 );
 
             case "mage":
@@ -162,7 +177,8 @@ public abstract class CalculatorCommand extends Command {
                             .setLevelAndExperience(level, experience);
 
                         return response;
-                    }
+                    },
+                    DungeonWeight.MAGE::calculateWeight
                 );
 
             case "warrior":
@@ -177,7 +193,8 @@ public abstract class CalculatorCommand extends Command {
                             .setLevelAndExperience(level, experience);
 
                         return response;
-                    }
+                    },
+                    DungeonWeight.BERSERK::calculateWeight
                 );
 
             case "bow":
@@ -191,7 +208,8 @@ public abstract class CalculatorCommand extends Command {
                             .setLevelAndExperience(level, experience);
 
                         return response;
-                    }
+                    },
+                    DungeonWeight.ARCHER::calculateWeight
                 );
 
             case "tank":
@@ -204,7 +222,8 @@ public abstract class CalculatorCommand extends Command {
                             .setLevelAndExperience(level, experience);
 
                         return response;
-                    }
+                    },
+                    DungeonWeight.TANK::calculateWeight
                 );
 
             default:
@@ -223,13 +242,15 @@ public abstract class CalculatorCommand extends Command {
         private final HasLevel stat;
         private final SkillCalculationType type;
         private final SetCalculatableSkill<T> skillFunction;
+        private final GetWeightCalculator weightFunction;
 
-        public SkillType(String name, HasLevel stat, SkillCalculationType type, SetCalculatableSkill<T> skillFunction) {
+        public SkillType(String name, HasLevel stat, SkillCalculationType type, SetCalculatableSkill<T> skillFunction, GetWeightCalculator weightFunction) {
             this.name = name;
             this.stat = stat;
             this.type = type;
 
             this.skillFunction = skillFunction;
+            this.weightFunction = weightFunction;
         }
 
         public String getName() {
@@ -262,6 +283,10 @@ public abstract class CalculatorCommand extends Command {
                 default:
                     throw new RuntimeException("No valid skill experience calculator could be found for type '" + type + "'");
             }
+        }
+
+        public Weight calculateWeight(double experience) {
+            return weightFunction.getWeight(experience);
         }
     }
 }
