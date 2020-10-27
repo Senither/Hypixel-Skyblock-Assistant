@@ -148,15 +148,27 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                 }
 
                 if (type.getStat().getLevel() >= type.getExperienceList().size()) {
-                    message.editMessage(embedBuilder
+                    EmbedBuilder builder = embedBuilder
                         .setColor(MessageType.INFO.getColor())
                         .setTitle("Already max level")
                         .setDescription(String.format(
                             "You have already reached the max level in the **%s** skill.",
                             type.getName()
-                        ))
-                        .build()
-                    ).queue();
+                        ));
+
+                    if (!type.getType().equals(SkillCalculationType.RUNECRAFTING)) {
+                        double experience = getExperienceFromString(args[1]);
+
+                        builder.addField("Weight Change", String.format(
+                            "You'll get the following weight changes after getting **%s** %s XP!\n`%s` \uD83E\uDC52 `%s`",
+                            NumberUtil.formatNicely(experience),
+                            type.getName(),
+                            type.calculateWeight(type.getStat().getExperience()),
+                            type.calculateWeight(type.getStat().getExperience() + experience)
+                        ), true);
+                    }
+
+                    message.editMessage(builder.build()).queue();
                     return;
                 }
 
