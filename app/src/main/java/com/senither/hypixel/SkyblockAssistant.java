@@ -198,12 +198,14 @@ public class SkyblockAssistant {
     }
 
     private ShardManager buildShardManager() throws LoginException {
-        return new DefaultShardManagerBuilder()
+        return DefaultShardManagerBuilder.createDefault(configuration.getDiscordToken())
             .setSessionController(new SessionControllerAdapter())
-            .setToken(configuration.getDiscordToken())
             .setActivity(Activity.watching("the server"))
+            .setMemberCachePolicy(member -> true)
             .setBulkDeleteSplittingEnabled(false)
+            .setEnableShutdownHook(true)
             .setContextEnabled(true)
+            .setAutoReconnect(true)
             .addEventListeners(
                 new ReactionEventListener(),
                 new GenericEventListener(),
