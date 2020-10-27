@@ -127,41 +127,42 @@ public class SplashManager {
             return;
         }
 
-        User userById = app.getShardManager().getUserById(userDiscordId);
-        if (userById == null) {
-            return;
-        }
+        app.getShardManager().retrieveUserById(userDiscordId).queue(user -> {
+            if (user == null) {
+                return;
+            }
 
-        TextChannel channelById = app.getShardManager().getTextChannelById(guild.getSplashChannel());
-        if (channelById == null) {
-            return;
-        }
+            TextChannel channelById = app.getShardManager().getTextChannelById(guild.getSplashChannel());
+            if (channelById == null) {
+                return;
+            }
 
-        boolean shouldPingEveryone = splash.getTime().diffInSeconds(Carbon.now()) <= endingSoonTimer;
+            boolean shouldPingEveryone = splash.getTime().diffInSeconds(Carbon.now()) <= endingSoonTimer;
 
-        if (splash.isEndingSoon() && shouldPingEveryone && !splash.hasNotifiedEveryone()) {
-            channelById.deleteMessageById(splash.getMessageId()).queue(null, null);
+            if (splash.isEndingSoon() && shouldPingEveryone && !splash.hasNotifiedEveryone()) {
+                channelById.deleteMessageById(splash.getMessageId()).queue(null, null);
 
-            splash.setNotifiedEveryone(true);
+                splash.setNotifiedEveryone(true);
 
-            channelById.sendMessage(buildSplashMessage(
-                userById, splash.getTime(), splash.getNote(), splash.getId()
-            )).queue(message -> {
-                try {
-                    app.getDatabaseManager().queryUpdate("UPDATE `splashes` SET `message_id` = ? WHERE `discord_id` = ? and `message_id` = ?",
-                        message.getIdLong(), splash.getDiscordId(), splash.getMessageId()
-                    );
+                channelById.sendMessage(buildSplashMessage(
+                    user, splash.getTime(), splash.getNote(), splash.getId()
+                )).queue(message -> {
+                    try {
+                        app.getDatabaseManager().queryUpdate("UPDATE `splashes` SET `message_id` = ? WHERE `discord_id` = ? and `message_id` = ?",
+                            message.getIdLong(), splash.getDiscordId(), splash.getMessageId()
+                        );
 
-                    splash.setMessageId(message.getIdLong());
-                } catch (SQLException e) {
-                    log.error("Something went wrong while trying to send \"ending soon\" splash message, error: {}", e.getMessage(), e);
-                }
-            });
-        } else {
-            channelById.editMessageById(splash.getMessageId(), buildSplashMessage(
-                userById, splash.getTime(), splash.getNote(), splash.getId()
-            )).queue(null, null);
-        }
+                        splash.setMessageId(message.getIdLong());
+                    } catch (SQLException e) {
+                        log.error("Something went wrong while trying to send \"ending soon\" splash message, error: {}", e.getMessage(), e);
+                    }
+                });
+            } else {
+                channelById.editMessageById(splash.getMessageId(), buildSplashMessage(
+                    user, splash.getTime(), splash.getNote(), splash.getId()
+                )).queue(null, null);
+            }
+        });
     }
 
     public CompletableFuture<Boolean> removeSplashById(SplashContainer splash) {

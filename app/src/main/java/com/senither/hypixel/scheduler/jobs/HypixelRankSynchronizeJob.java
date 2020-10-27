@@ -68,7 +68,7 @@ public class HypixelRankSynchronizeJob extends Job {
 
             try {
                 handleCheckForUser(query.first());
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            } catch (InterruptedException | ExecutionException | TimeoutException | RuntimeException e) {
                 log.error("Failed to fetch player data during Hypixel Rank Synchronize Job, error: {}", e.getMessage(), e);
             } finally {
                 app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `last_checked_at` = NOW() WHERE `discord_id` = ?", query.first().get("discord_id"));
@@ -88,7 +88,7 @@ public class HypixelRankSynchronizeJob extends Job {
     }
 
     private void handleCheckForUser(DataRow row) throws InterruptedException, ExecutionException, TimeoutException {
-        User user = app.getShardManager().getUserById(row.getLong("discord_id"));
+        User user = app.getShardManager().retrieveUserById(row.getLong("discord_id")).complete();
         if (user == null) {
             log.debug("Found no Discord users with an ID of {}, skipping!", row.getLong("discord_id"));
             return;

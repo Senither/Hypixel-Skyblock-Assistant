@@ -30,7 +30,6 @@ import com.senither.hypixel.database.collection.DataRow;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.time.Carbon;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
 import net.hypixel.api.reply.GuildReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,26 +134,27 @@ public class DecayDonationPointsJob extends Job {
             return;
         }
 
-        User userById = app.getShardManager().getUserById(discordId);
-        if (userById == null) {
-            return;
-        }
+        app.getShardManager().retrieveUserById(discordId).queue(user -> {
+            if (user == null) {
+                return;
+            }
 
-        userById.openPrivateChannel().queue(privateChannel -> {
-            privateChannel.sendMessage(
-                MessageFactory.makeEmbeddedMessage(null)
-                    .setColor(MessageType.WARNING.getColor())
-                    .setDescription(String.join("\n",
-                        "You're now at **:points** donation points in the **:guild** guild!",
-                        "Make sure you donate soon so you don't run the risk of getting kicked!",
-                        "",
-                        "You last donated :time."
-                    )).setTitle("You're now at zero points!")
-                    .set("points", points)
-                    .set("guild", guild.getName())
-                    .set("time", player.getTimestamp("last_donated_at").diffForHumans())
-                    .buildEmbed()
-            ).queue();
-        }, null);
+            user.openPrivateChannel().queue(privateChannel -> {
+                privateChannel.sendMessage(
+                    MessageFactory.makeEmbeddedMessage(null)
+                        .setColor(MessageType.WARNING.getColor())
+                        .setDescription(String.join("\n",
+                            "You're now at **:points** donation points in the **:guild** guild!",
+                            "Make sure you donate soon so you don't run the risk of getting kicked!",
+                            "",
+                            "You last donated :time."
+                        )).setTitle("You're now at zero points!")
+                        .set("points", points)
+                        .set("guild", guild.getName())
+                        .set("time", player.getTimestamp("last_donated_at").diffForHumans())
+                        .buildEmbed()
+                ).queue();
+            }, null);
+        });
     }
 }
