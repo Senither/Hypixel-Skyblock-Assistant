@@ -59,6 +59,9 @@ public enum LeaderboardType {
         "Sven Slayer", Arrays.asList("sven", "wolf", "dog"),
         LeaderboardPlayer::getSvenXP, null
     ),
+    SECRETS("Dungeon Secrets Found", Arrays.asList("secrets", "secret", "treasures", "treasure", "sec", "se"),
+        LeaderboardPlayer::getSecretsFound, null
+    ),
     CATACOMB("Catacombs", Arrays.asList("catacomb", "cata", "ca"),
         LeaderboardPlayer::getCatacomb, LeaderboardPlayer::getCatacombXp, LeaderboardPlayer::getCatacombXp
     ),

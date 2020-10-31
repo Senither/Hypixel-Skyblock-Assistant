@@ -234,7 +234,8 @@ public class LeaderboardCommand extends Command {
 
         MessageFactory.makeInfo(event.getMessage(), String.format(
             "The guild :type average is **:skill**%s\n\n```ada\n%s```",
-            type.getExpFunction() == null ? " XP!" : " with **:xp** :xptype",
+            type.equals(LeaderboardType.SECRETS) ? " secrets!"
+                : type.getExpFunction() == null ? " XP!" : " with **:xp** :xptype",
             String.join("\n", rows)) + "\n"
             + note + paginator.generateFooter(command)
         )

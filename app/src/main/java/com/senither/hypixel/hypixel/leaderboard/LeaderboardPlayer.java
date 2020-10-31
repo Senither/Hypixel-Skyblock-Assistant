@@ -41,6 +41,7 @@ public abstract class LeaderboardPlayer {
     protected double tarantula_xp;
     protected double sven_xp;
     // Dungeons
+    protected int secrets_found;
     protected double catacomb;
     protected double catacomb_xp;
     protected double healer;
@@ -111,6 +112,10 @@ public abstract class LeaderboardPlayer {
 
     public double getSvenXP() {
         return sven_xp;
+    }
+
+    public int getSecretsFound() {
+        return secrets_found;
     }
 
     public double getCatacomb() {
