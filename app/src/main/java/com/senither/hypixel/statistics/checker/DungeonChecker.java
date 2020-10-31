@@ -24,6 +24,16 @@ public class DungeonChecker extends Checker<DungeonResponse> {
             : null
         );
 
+        if (playerReply != null && playerReply.getPlayer().has("achievements")) {
+            JsonObject achievements = playerReply.getPlayer().getAsJsonObject("achievements");
+
+            response.setSecretsFound(
+                achievements.has("skyblock_treasure_hunter")
+                    ? achievements.get("skyblock_treasure_hunter").getAsInt()
+                    : -1
+            );
+        }
+
         JsonObject playerClasses = dungeons.getAsJsonObject("player_classes");
         for (DungeonResponse.DungeonClassType dungeonClassType : DungeonResponse.DungeonClassType.values()) {
             JsonObject dungeonClass = playerClasses.getAsJsonObject(dungeonClassType.name().toLowerCase());

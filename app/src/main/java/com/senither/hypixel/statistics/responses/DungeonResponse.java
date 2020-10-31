@@ -24,6 +24,7 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
     private final EnumMap<DungeonClassType, DungeonClass> playerClasses = new EnumMap<>(DungeonClassType.class);
 
     private DungeonClassType selectedClass = null;
+    private int secretsFound = -1;
 
     public DungeonResponse(boolean apiEnable, boolean hasData) {
         super(apiEnable);
@@ -41,6 +42,14 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
 
     public void setSelectedClass(DungeonClassType selectedClass) {
         this.selectedClass = selectedClass;
+    }
+
+    public int getSecretsFound() {
+        return secretsFound;
+    }
+
+    public void setSecretsFound(int secretsFound) {
+        this.secretsFound = secretsFound;
     }
 
     public EnumMap<DungeonType, Dungeon> getDungeons() {
@@ -98,6 +107,7 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
         JsonObject json = new JsonObject();
 
         json.addProperty("selected_class", selectedClass == null ? "none" : selectedClass.name().toLowerCase());
+        json.addProperty("secrets_found", secretsFound == -1 ? null : secretsFound);
 
         JsonObject dungeonClasses = new JsonObject();
         for (Map.Entry<DungeonClassType, DungeonClass> dungeonClassEntry : playerClasses.entrySet()) {
