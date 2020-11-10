@@ -28,7 +28,7 @@ public enum SkillWeight {
     FARMING(SkyBlockSkill.FARMING, SkillsResponse::getFarming, 1.217848139, 220689),
 
     /**
-     * Maxes out taming at 800 points at level 50.
+     * Maxes out combat at 800 points at level 50.
      */
     COMBAT(SkyBlockSkill.COMBAT, SkillsResponse::getCombat, 1.22307, 275862),
 
@@ -79,7 +79,7 @@ public enum SkillWeight {
         for (int toRemove : Constants.GENERAL_SKILL_EXPERIENCE) {
             experience -= toRemove;
             if (experience < 0) {
-                return level + (1D - (experience * -1) / (double) toRemove);
+                return Math.min(level + (1D - (experience * -1) / (double) toRemove), skillType.getMaxLevel());
             }
             level++;
         }
