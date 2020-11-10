@@ -25,7 +25,7 @@ public enum SkillWeight {
     /**
      * Maxes out farming at 1,000 points at level 50.
      */
-    FARMING(SkyBlockSkill.FARMING, SkillsResponse::getFarming, 1.258976, 220689),
+    FARMING(SkyBlockSkill.FARMING, SkillsResponse::getFarming, 1.217848139, 220689),
 
     /**
      * Maxes out taming at 800 points at level 50.
@@ -47,8 +47,6 @@ public enum SkillWeight {
      */
     TAMING(SkyBlockSkill.TAMING, SkillsResponse::getTaming, 1.14744, 441379);
 
-    private static final double level50Exp = 55172425;
-
     private final SkyBlockSkill skillType;
     private final SkillWeightRelationFunction function;
     private final double exponent;
@@ -69,11 +67,11 @@ public enum SkillWeight {
         double level = getSkillLevelFromExperience(experience);
         double base = Math.pow(level * 10, 0.5 + this.exponent + (level / 100)) / 1250;
 
-        if (experience <= level50Exp) {
+        if (experience <= skillType.getMaxLevelExp()) {
             return new Weight(base, 0D);
         }
 
-        return new Weight(base, Math.pow((experience - level50Exp) / divider, 0.968));
+        return new Weight(base, Math.pow((experience - skillType.getMaxLevelExp()) / divider, 0.968));
     }
 
     private double getSkillLevelFromExperience(double experience) {
