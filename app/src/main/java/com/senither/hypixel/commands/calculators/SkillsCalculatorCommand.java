@@ -179,9 +179,10 @@ public class SkillsCalculatorCommand extends CalculatorCommand {
                     ? getExperienceForLevel(type.getExperienceList(), (int) type.getStat().getLevel())
                     : type.getStat().getExperience();
 
-                int max = type.getSkillType() == null
-                    ? NumberUtil.getBetween(NumberUtil.parseInt(args[1], type.getExperienceList().size()), 0, type.getExperienceList().size())
-                    : type.getSkillType().getMaxLevel();
+                int max = NumberUtil.getBetween(NumberUtil.parseInt(args[1], type.getExperienceList().size()), 0, type.getExperienceList().size());
+                if (type.getSkillType() != null) {
+                    max = Math.min(max, type.getSkillType().getMaxLevel());
+                }
 
                 double levelExperience = getExperienceForLevel(type.getExperienceList(), max);
                 double diff = levelExperience - experience;
