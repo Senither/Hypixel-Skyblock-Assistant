@@ -26,6 +26,7 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
+import com.senither.hypixel.hypixel.SkyBlockSkill;
 import com.senither.hypixel.statistics.weight.SkillWeight;
 import com.senither.hypixel.statistics.weight.Weight;
 
@@ -35,16 +36,16 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
 
     private final boolean hasData;
 
-    private SkillStat mining = new SkillStat(SkillWeight.MINING);
-    private SkillStat foraging = new SkillStat(SkillWeight.FORAGING);
-    private SkillStat enchanting = new SkillStat(SkillWeight.ENCHANTING);
-    private SkillStat farming = new SkillStat(SkillWeight.FARMING);
-    private SkillStat combat = new SkillStat(SkillWeight.COMBAT);
-    private SkillStat fishing = new SkillStat(SkillWeight.FISHING);
-    private SkillStat alchemy = new SkillStat(SkillWeight.ALCHEMY);
-    private SkillStat taming = new SkillStat(SkillWeight.TAMING);
-    private SkillStat carpentry = new SkillStat(null);
-    private SkillStat runecrafting = new SkillStat(null);
+    private SkillStat mining = new SkillStat(SkyBlockSkill.MINING, SkillWeight.MINING);
+    private SkillStat foraging = new SkillStat(SkyBlockSkill.FORAGING, SkillWeight.FORAGING);
+    private SkillStat enchanting = new SkillStat(SkyBlockSkill.ENCHANTING, SkillWeight.ENCHANTING);
+    private SkillStat farming = new SkillStat(SkyBlockSkill.FARMING, SkillWeight.FARMING);
+    private SkillStat combat = new SkillStat(SkyBlockSkill.COMBAT, SkillWeight.COMBAT);
+    private SkillStat fishing = new SkillStat(SkyBlockSkill.FISHING, SkillWeight.FISHING);
+    private SkillStat alchemy = new SkillStat(SkyBlockSkill.ALCHEMY, SkillWeight.ALCHEMY);
+    private SkillStat taming = new SkillStat(SkyBlockSkill.TAMING, SkillWeight.TAMING);
+    private SkillStat carpentry = new SkillStat(SkyBlockSkill.CARPENTRY, null);
+    private SkillStat runecrafting = new SkillStat(SkyBlockSkill.RUNECRAFTING, null);
 
     public SkillsResponse(boolean apiEnable, boolean hasData) {
         super(apiEnable);
@@ -61,7 +62,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setMining(double level, double experience) {
-        this.mining = new SkillStat(SkillWeight.MINING, level, experience);
+        this.mining = new SkillStat(SkyBlockSkill.MINING, SkillWeight.MINING, level, experience);
 
         return this;
     }
@@ -71,7 +72,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setForaging(double level, double experience) {
-        this.foraging = new SkillStat(SkillWeight.FORAGING, level, experience);
+        this.foraging = new SkillStat(SkyBlockSkill.FORAGING, SkillWeight.FORAGING, level, experience);
 
         return this;
     }
@@ -81,7 +82,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setEnchanting(double level, double experience) {
-        this.enchanting = new SkillStat(SkillWeight.ENCHANTING, level, experience);
+        this.enchanting = new SkillStat(SkyBlockSkill.ENCHANTING, SkillWeight.ENCHANTING, level, experience);
 
         return this;
     }
@@ -91,7 +92,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setFarming(double level, double experience) {
-        this.farming = new SkillStat(SkillWeight.FARMING, level, experience);
+        this.farming = new SkillStat(SkyBlockSkill.FARMING, SkillWeight.FARMING, level, experience);
 
         return this;
     }
@@ -101,7 +102,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setCombat(double level, double experience) {
-        this.combat = new SkillStat(SkillWeight.COMBAT, level, experience);
+        this.combat = new SkillStat(SkyBlockSkill.COMBAT, SkillWeight.COMBAT, level, experience);
 
         return this;
     }
@@ -111,7 +112,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setFishing(double level, double experience) {
-        this.fishing = new SkillStat(SkillWeight.FISHING, level, experience);
+        this.fishing = new SkillStat(SkyBlockSkill.FISHING, SkillWeight.FISHING, level, experience);
 
         return this;
     }
@@ -121,7 +122,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setAlchemy(double level, double experience) {
-        this.alchemy = new SkillStat(SkillWeight.ALCHEMY, level, experience);
+        this.alchemy = new SkillStat(SkyBlockSkill.ALCHEMY, SkillWeight.ALCHEMY, level, experience);
 
         return this;
     }
@@ -131,7 +132,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setTaming(double level, double experience) {
-        this.taming = new SkillStat(SkillWeight.TAMING, level, experience);
+        this.taming = new SkillStat(SkyBlockSkill.TAMING, SkillWeight.TAMING, level, experience);
 
         return this;
     }
@@ -141,7 +142,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setCarpentry(double level, double experience) {
-        this.carpentry = new SkillStat(null, level, experience);
+        this.carpentry = new SkillStat(SkyBlockSkill.CARPENTRY, null, level, experience);
 
         return this;
     }
@@ -151,7 +152,7 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
     }
 
     public SkillsResponse setRunecrafting(double level, double experience) {
-        this.runecrafting = new SkillStat(null, level, experience);
+        this.runecrafting = new SkillStat(SkyBlockSkill.RUNECRAFTING, null, level, experience);
 
         return this;
     }
@@ -270,25 +271,32 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
 
     public class SkillStat implements Jsonable, HasLevel {
 
+        private final SkyBlockSkill type;
         private final SkillWeight weight;
         private final double level;
         private final double experience;
 
-        SkillStat(SkillWeight weight) {
+        SkillStat(SkyBlockSkill type, SkillWeight weight) {
+            this.type = type;
             this.weight = weight;
             this.level = -1;
             this.experience = -1;
         }
 
-        SkillStat(SkillWeight weight, double level, double experience) {
+        SkillStat(SkyBlockSkill type, SkillWeight weight, double level, double experience) {
+            this.type = type;
             this.weight = weight;
             this.level = level;
             this.experience = experience;
         }
 
+        public SkyBlockSkill getType() {
+            return type;
+        }
+
         @Override
         public double getLevel() {
-            return level;
+            return Math.min(level, type.getMaxLevel());
         }
 
         @Override
@@ -305,8 +313,8 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
         public JsonObject toJson() {
             JsonObject json = new JsonObject();
 
-            json.addProperty("level", level);
-            json.addProperty("experience", experience);
+            json.addProperty("level", getLevel());
+            json.addProperty("experience", getExperience());
 
             return json;
         }

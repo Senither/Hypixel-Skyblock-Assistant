@@ -26,6 +26,7 @@ import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
+import com.senither.hypixel.hypixel.SkyBlockSkill;
 import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
 import com.senither.hypixel.statistics.weight.DungeonWeight;
@@ -47,7 +48,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getMining(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setMining,
-                    SkillWeight.MINING::calculateSkillWeight
+                    SkillWeight.MINING::calculateSkillWeight,
+                    SkyBlockSkill.MINING
                 );
 
             case "tree":
@@ -58,7 +60,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getForaging(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setForaging,
-                    SkillWeight.FORAGING::calculateSkillWeight
+                    SkillWeight.FORAGING::calculateSkillWeight,
+                    SkyBlockSkill.FORAGING
                 );
 
             case "enchant":
@@ -68,7 +71,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getEnchanting(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setEnchanting,
-                    SkillWeight.ENCHANTING::calculateSkillWeight
+                    SkillWeight.ENCHANTING::calculateSkillWeight,
+                    SkyBlockSkill.ENCHANTING
                 );
 
             case "farm":
@@ -78,7 +82,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getFarming(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setFarming,
-                    SkillWeight.FARMING::calculateSkillWeight
+                    SkillWeight.FARMING::calculateSkillWeight,
+                    SkyBlockSkill.FARMING
                 );
 
             case "fight":
@@ -88,7 +93,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getCombat(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setCombat,
-                    SkillWeight.COMBAT::calculateSkillWeight
+                    SkillWeight.COMBAT::calculateSkillWeight,
+                    SkyBlockSkill.COMBAT
                 );
 
             case "fish":
@@ -98,7 +104,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getFishing(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setFishing,
-                    SkillWeight.FISHING::calculateSkillWeight
+                    SkillWeight.FISHING::calculateSkillWeight,
+                    SkyBlockSkill.FISHING
                 );
 
             case "alch":
@@ -108,7 +115,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getAlchemy(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setAlchemy,
-                    SkillWeight.ALCHEMY::calculateSkillWeight
+                    SkillWeight.ALCHEMY::calculateSkillWeight,
+                    SkyBlockSkill.ALCHEMY
                 );
 
             case "pet":
@@ -120,7 +128,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getTaming(),
                     SkillCalculationType.GENERAL,
                     SkillsResponse::setTaming,
-                    SkillWeight.TAMING::calculateSkillWeight
+                    SkillWeight.TAMING::calculateSkillWeight,
+                    SkyBlockSkill.TAMING
                 );
 
             case "rune":
@@ -131,7 +140,8 @@ public abstract class CalculatorCommand extends Command {
                     skillsResponse.getRunecrafting(),
                     SkillCalculationType.RUNECRAFTING,
                     SkillsResponse::setRunecrafting,
-                    null
+                    null,
+                    SkyBlockSkill.RUNECRAFTING
                 );
 
             case "ca":
@@ -243,12 +253,31 @@ public abstract class CalculatorCommand extends Command {
         private final SkillCalculationType type;
         private final SetCalculatableSkill<T> skillFunction;
         private final GetWeightCalculator weightFunction;
+        private final SkyBlockSkill skillType;
 
-        public SkillType(String name, HasLevel stat, SkillCalculationType type, SetCalculatableSkill<T> skillFunction, GetWeightCalculator weightFunction) {
+        public SkillType(
+            String name,
+            HasLevel stat,
+            SkillCalculationType type,
+            SetCalculatableSkill<T> skillFunction,
+            GetWeightCalculator weightFunction
+        ) {
+            this(name, stat, type, skillFunction, weightFunction, null);
+        }
+
+        public SkillType(
+            String name,
+            HasLevel stat,
+            SkillCalculationType type,
+            SetCalculatableSkill<T> skillFunction,
+            GetWeightCalculator weightFunction,
+            SkyBlockSkill skillType
+        ) {
             this.name = name;
             this.stat = stat;
             this.type = type;
 
+            this.skillType = skillType;
             this.skillFunction = skillFunction;
             this.weightFunction = weightFunction;
         }
@@ -287,6 +316,10 @@ public abstract class CalculatorCommand extends Command {
 
         public Weight calculateWeight(double experience) {
             return weightFunction.getWeight(experience);
+        }
+
+        public SkyBlockSkill getSkillType() {
+            return skillType;
         }
     }
 }

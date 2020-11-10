@@ -24,6 +24,7 @@ package com.senither.hypixel.statistics.checker;
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
 import com.senither.hypixel.contracts.statistics.Checker;
+import com.senither.hypixel.hypixel.SkyBlockSkill;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
 import net.hypixel.api.reply.PlayerReply;
 import net.hypixel.api.reply.skyblock.SkyBlockProfileReply;
@@ -52,16 +53,16 @@ public class SkillsChecker extends Checker<SkillsResponse> {
         }
 
         return new SkillsResponse(true, true)
-            .setMining(getSkillLevelFromExperience(mining, false), mining)
-            .setForaging(getSkillLevelFromExperience(foraging, false), foraging)
-            .setEnchanting(getSkillLevelFromExperience(enchanting, false), enchanting)
-            .setFarming(getSkillLevelFromExperience(farming, false), farming)
-            .setCombat(getSkillLevelFromExperience(combat, false), combat)
-            .setFishing(getSkillLevelFromExperience(fishing, false), fishing)
-            .setAlchemy(getSkillLevelFromExperience(alchemy, false), alchemy)
-            .setTaming(getSkillLevelFromExperience(taming, false), taming)
-            .setCarpentry(getSkillLevelFromExperience(carpentry, false), carpentry)
-            .setRunecrafting(getSkillLevelFromExperience(runecrafting, true), runecrafting);
+            .setMining(getSkillLevelFromExperience(SkyBlockSkill.MINING, mining), mining)
+            .setForaging(getSkillLevelFromExperience(SkyBlockSkill.FORAGING, foraging), foraging)
+            .setEnchanting(getSkillLevelFromExperience(SkyBlockSkill.ENCHANTING, enchanting), enchanting)
+            .setFarming(getSkillLevelFromExperience(SkyBlockSkill.FARMING, farming), farming)
+            .setCombat(getSkillLevelFromExperience(SkyBlockSkill.COMBAT, combat), combat)
+            .setFishing(getSkillLevelFromExperience(SkyBlockSkill.FISHING, fishing), fishing)
+            .setAlchemy(getSkillLevelFromExperience(SkyBlockSkill.ALCHEMY, alchemy), alchemy)
+            .setTaming(getSkillLevelFromExperience(SkyBlockSkill.TAMING, taming), taming)
+            .setCarpentry(getSkillLevelFromExperience(SkyBlockSkill.CARPENTRY, carpentry), carpentry)
+            .setRunecrafting(getSkillLevelFromExperience(SkyBlockSkill.RUNECRAFTING, runecrafting), runecrafting);
     }
 
     private SkillsResponse checkUsingAchievements(PlayerReply playerReply) {
@@ -91,15 +92,15 @@ public class SkillsChecker extends Checker<SkillsResponse> {
             .setTaming(taming, -1);
     }
 
-    private double getSkillLevelFromExperience(double experience, boolean isRunecrafting) {
+    private double getSkillLevelFromExperience(SkyBlockSkill skillType, double experience) {
         int level = 0;
-        for (int toRemove : isRunecrafting ? Constants.RUNECRAFTING_SKILL_EXPERIENCE : Constants.GENERAL_SKILL_EXPERIENCE) {
+        for (int toRemove : skillType.equals(SkyBlockSkill.RUNECRAFTING) ? Constants.RUNECRAFTING_SKILL_EXPERIENCE : Constants.GENERAL_SKILL_EXPERIENCE) {
             experience -= toRemove;
             if (experience < 0) {
                 return level + (1D - (experience * -1) / (double) toRemove);
             }
             level++;
         }
-        return level;
+        return Math.min(level, skillType.getMaxLevel());
     }
 }
