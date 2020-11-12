@@ -24,6 +24,10 @@ public class Weight {
         return overflow;
     }
 
+    public double getTotalWeight() {
+        return weight + overflow;
+    }
+
     public Weight add(Weight weight) {
         return new Weight(
             weight.getWeight() + getWeight(),

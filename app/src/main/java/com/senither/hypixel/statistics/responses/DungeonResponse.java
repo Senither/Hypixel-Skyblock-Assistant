@@ -77,6 +77,10 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
     }
 
     public Weight calculateTotalWeight() {
+        if (!hasData()) {
+            return new Weight(0D, 0D);
+        }
+
         double weight = 0D;
         double overflow = 0D;
 

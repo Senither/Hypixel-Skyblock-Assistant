@@ -55,10 +55,7 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -290,11 +287,9 @@ public class Hypixel {
 
                 final String uuid = playerReply.getPlayer().get("uuid").getAsString();
 
-                //noinspection ConstantConditions
                 SkyBlockProfileReply skyBlockProfileReply = skyBlockProfileReplies.stream()
-                    .sorted((profileOne, profileTwo) ->
-                        getSkyblockProfileScore(playerReply, profileOne, uuid) < getSkyblockProfileScore(playerReply, profileTwo, uuid) ? 1 : -1
-                    ).findFirst().get();
+                    .max(Comparator.comparingDouble(profile -> getSkyblockProfileScore(playerReply, profile, uuid)))
+                    .orElseThrow(() -> new FriendlyException("Failed to find any valid SkyBlock profiles!"));
 
                 log.debug("Found selected SkyBlock profile for \"{}\" it was \"{}\" with UUID \"{}\"",
                     name, skyBlockProfileReply.getProfile().get("cute_name").getAsString(), skyBlockProfileReply.getProfile().get("profile_id").getAsString()
@@ -859,15 +854,10 @@ public class Hypixel {
     private double getSkyblockProfileScore(PlayerReply playerReply, SkyBlockProfileReply profileReply, String uuid) {
         final JsonObject member = profileReply.getProfile().getAsJsonObject("members").getAsJsonObject(uuid);
 
-        long totalPetXP = StatisticsChecker.PETS.checkUser(playerReply, profileReply, member).getTotalPetExperience();
-        long totalSlayerXP = StatisticsChecker.SLAYER.checkUser(playerReply, profileReply, member).getTotalSlayerExperience();
-
-        double score = (totalPetXP / 50D) + totalSlayerXP;
-        if (score > 0D) {
-            return score;
-        }
-
-        return StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member).getTotalEffectiveSkillExperience() / 150D;
+        return StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member).calculateTotalWeight()
+            .add(StatisticsChecker.SLAYER.checkUser(playerReply, profileReply, member).calculateTotalWeight())
+            .add(StatisticsChecker.DUNGEON.checkUser(playerReply, profileReply, member).calculateTotalWeight())
+            .getTotalWeight();
     }
 
     private long getLastSaveFromMember(JsonObject object) {

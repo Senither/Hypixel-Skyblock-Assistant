@@ -306,7 +306,12 @@ public class SkillsResponse extends StatisticsResponse implements Jsonable {
 
         @Nonnull
         public Weight calculateWeight() {
-            return weight.calculateSkillWeight(experience);
+            if (level == -1) {
+                return new Weight(0D, 0D);
+            } else if (experience > 0) {
+                return weight.calculateSkillWeight(experience);
+            }
+            return weight.calculateSkillWeight(getExperienceForLevel(level));
         }
 
         @Override
