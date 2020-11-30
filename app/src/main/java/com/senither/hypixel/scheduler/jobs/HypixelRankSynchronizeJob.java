@@ -87,16 +87,26 @@ public class HypixelRankSynchronizeJob extends Job {
         }
     }
 
-    private void handleCheckForUser(DataRow row) throws InterruptedException, ExecutionException, TimeoutException {
+    private void handleCheckForUser(DataRow row) throws InterruptedException, ExecutionException, TimeoutException, SQLException {
+        PlayerReply playerReply = app.getHypixel().getClientContainer().getNextClient().getPlayerByUuid(
+            row.getString("uuid")
+        ).get(5, TimeUnit.SECONDS);
+
+        if (playerReply == null) {
+            log.debug("Player reply returned as null for {}, skipping!", row.getLong("discord_id"));
+            return;
+        }
+
+        app.getDatabaseManager().queryUpdate("UPDATE `uuids` SET `username` = ? WHERE `uuid` = ?",
+            playerReply.getPlayer().get("displayname").getAsString(),
+            row.getString("uuid")
+        );
+
         User user = app.getShardManager().retrieveUserById(row.getLong("discord_id")).complete();
         if (user == null) {
             log.debug("Found no Discord users with an ID of {}, skipping!", row.getLong("discord_id"));
             return;
         }
-
-        PlayerReply playerReply = app.getHypixel().getPlayerByName(
-            row.getString("username"), true
-        ).get(5, TimeUnit.SECONDS);
 
         HypixelRank rank = app.getHypixel().getRankFromPlayer(playerReply);
 
