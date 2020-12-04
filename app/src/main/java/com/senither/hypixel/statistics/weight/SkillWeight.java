@@ -18,9 +18,9 @@ public enum SkillWeight {
     FORAGING(SkyBlockSkill.FORAGING, SkillsResponse::getForaging, 1.232826, 259634),
 
     /**
-     * Maxes out enchanting at 250 points at level 50.
+     * Maxes out enchanting at 450 points at level 60.
      */
-    ENCHANTING(SkyBlockSkill.ENCHANTING, SkillsResponse::getEnchanting, 1.035905, 882758),
+    ENCHANTING(SkyBlockSkill.ENCHANTING, SkillsResponse::getEnchanting, 0.96976583, 882758),
 
     /**
      * Maxes out farming at 1,000 points at level 50.
