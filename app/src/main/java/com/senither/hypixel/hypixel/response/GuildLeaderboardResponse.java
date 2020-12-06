@@ -45,6 +45,7 @@ public class GuildLeaderboardResponse extends Response {
         protected double average_catacomb;
         protected int members;
         protected GuildWeight weight;
+        protected GuildMetaData meta;
         private String last_updated_at;
 
         public String getId() {
@@ -79,6 +80,10 @@ public class GuildLeaderboardResponse extends Response {
             return weight;
         }
 
+        public GuildMetaData getMeta() {
+            return meta;
+        }
+
         public Carbon getLastUpdatedAt() {
             return timestampToCarbonInstance(last_updated_at);
         }
@@ -109,6 +114,15 @@ public class GuildLeaderboardResponse extends Response {
 
             public double getMultiplier() {
                 return multiplier;
+            }
+        }
+
+        public class GuildMetaData {
+
+            protected boolean hidden;
+
+            public boolean isHidden() {
+                return hidden;
             }
         }
     }

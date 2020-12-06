@@ -314,6 +314,7 @@ public class LeaderboardCommand extends Command {
         leaderboardMessages.put("Weight Leaderboard", new ArrayList<>());
         leaderboard.getData().stream()
             .filter(guild -> guild.getName() != null)
+            .filter(guild -> !guild.getMeta().isHidden())
             .sorted((o1, o2) -> Double.compare(o2.getWeight().getTotal(), o1.getWeight().getTotal()))
             .forEachOrdered(guild -> {
                 leaderboardMessages.get("Weight Leaderboard").add(String.format("%s: %s\n    > %s < [%s]",
@@ -328,6 +329,7 @@ public class LeaderboardCommand extends Command {
         leaderboardMessages.put("Skills Leaderboard", new ArrayList<>());
         leaderboard.getData().stream()
             .filter(guild -> guild.getName() != null)
+            .filter(guild -> !guild.getMeta().isHidden())
             .sorted((o1, o2) -> Double.compare(o2.getAverageSkill(), o1.getAverageSkill()))
             .forEachOrdered(guild -> {
                 leaderboardMessages.get("Skills Leaderboard").add(String.format("%s: %s\n    > %s (%s) < [%s]",
@@ -343,6 +345,7 @@ public class LeaderboardCommand extends Command {
         leaderboardMessages.put("Catacombs Leaderboard", new ArrayList<>());
         leaderboard.getData().stream()
             .filter(guild -> guild.getName() != null)
+            .filter(guild -> !guild.getMeta().isHidden())
             .sorted((o1, o2) -> Double.compare(o2.getAverageCatacomb(), o1.getAverageCatacomb()))
             .forEachOrdered(guild -> {
                 leaderboardMessages.get("Catacombs Leaderboard").add(String.format("%s: %s\n    > %s < [%s]",
@@ -357,6 +360,7 @@ public class LeaderboardCommand extends Command {
         leaderboardMessages.put("Slayers Leaderboard", new ArrayList<>());
         leaderboard.getData().stream()
             .filter(guild -> guild.getName() != null)
+            .filter(guild -> !guild.getMeta().isHidden())
             .sorted((o1, o2) -> Double.compare(o2.getAverageSlayer(), o1.getAverageSlayer()))
             .forEachOrdered(guild -> {
                 leaderboardMessages.get("Slayers Leaderboard").add(String.format("%s: %s\n    > %s < [%s]",
