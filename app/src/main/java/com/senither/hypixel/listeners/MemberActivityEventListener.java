@@ -28,7 +28,6 @@ import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
 
 public class MemberActivityEventListener extends ListenerAdapter {
 
@@ -50,8 +49,6 @@ public class MemberActivityEventListener extends ListenerAdapter {
             return;
         }
 
-        event.getGuild().modifyMemberRoles(
-            event.getMember(), Collections.singletonList(role), null
-        ).queue();
+        event.getGuild().addRoleToMember(event.getMember(), role).queue();
     }
 }

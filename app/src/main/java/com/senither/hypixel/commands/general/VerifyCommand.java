@@ -32,6 +32,7 @@ import com.senither.hypixel.contracts.commands.Command;
 import com.senither.hypixel.database.controller.GuildController;
 import com.senither.hypixel.exceptions.FriendlyException;
 import com.senither.hypixel.hypixel.HypixelRank;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
@@ -44,7 +45,6 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class VerifyCommand extends Command {
 
@@ -192,23 +192,34 @@ public class VerifyCommand extends Command {
     }
 
     private void handleAutomaticAssignments(MessageReceivedEvent event, UUID uuid, PlayerReply playerReply) {
-        if (uuid == null) {
+        if (uuid == null || event.getMember() == null) {
             return;
         }
 
-        List<Role> rolesToAdd = new ArrayList<>();
-        List<Role> rolesToRemove = new ArrayList<>();
+        if (!event.getGuild().getSelfMember().hasPermission(Permission.MANAGE_ROLES)) {
+            return;
+        }
 
-        List<Role> roles = event.getGuild().getRolesByName(Constants.VERIFY_ROLE, true);
-        if (!roles.isEmpty() && event.getGuild().getSelfMember().canInteract(roles.get(0))) {
-            rolesToAdd.add(roles.get(0));
+        Member selfMember = event.getGuild().getSelfMember();
+
+        List<Role> verifiedRoles = event.getGuild().getRolesByName(Constants.VERIFY_ROLE, true);
+        if (!verifiedRoles.isEmpty() && selfMember.canInteract(verifiedRoles.get(0))) {
+            if (!hasRole(event.getMember(), verifiedRoles.get(0))) {
+                log.debug("Adding {} to {}", verifiedRoles.get(0).getName(), event.getAuthor().getAsTag());
+
+                event.getGuild().addRoleToMember(event.getMember(), verifiedRoles.get(0)).queue();
+            }
         }
 
         HypixelRank rank = app.getHypixel().getRankFromPlayer(playerReply);
         if (!rank.isDefault()) {
-            roles = event.getGuild().getRolesByName(rank.getName(), true);
-            if (!roles.isEmpty() && event.getGuild().getSelfMember().canInteract(roles.get(0))) {
-                rolesToAdd.add(roles.get(0));
+            List<Role> hypixelRankRoles = event.getGuild().getRolesByName(rank.getName(), true);
+            if (!hypixelRankRoles.isEmpty() && selfMember.canInteract(hypixelRankRoles.get(0))) {
+                if (!hasRole(event.getMember(), hypixelRankRoles.get(0))) {
+                    log.debug("Adding {} to {}", hypixelRankRoles.get(0).getName(), event.getAuthor().getAsTag());
+
+                    event.getGuild().addRoleToMember(event.getMember(), hypixelRankRoles.get(0)).queue();
+                }
             }
         }
 
@@ -218,16 +229,17 @@ public class VerifyCommand extends Command {
             }
 
             List<Role> rankRolesByName = event.getGuild().getRolesByName(hypixelRank.getName(), true);
-            if (!rankRolesByName.isEmpty()) {
-                rolesToRemove.add(rankRolesByName.get(0));
+            if (!rankRolesByName.isEmpty() && selfMember.canInteract(rankRolesByName.get(0))) {
+                if (hasRole(event.getMember(), rankRolesByName.get(0))) {
+                    log.debug("Removing {} from {}", rankRolesByName.get(0).getName(), event.getAuthor().getAsTag());
+
+                    event.getGuild().removeRoleFromMember(event.getMember(), rankRolesByName.get(0)).queue();
+                }
             }
         }
 
         GuildController.GuildEntry guildEntry = GuildController.getGuildById(app.getDatabaseManager(), event.getGuild().getIdLong());
         if (guildEntry == null) {
-            if (!rolesToAdd.isEmpty() || !rolesToRemove.isEmpty()) {
-                assignRolesToMember(event, rolesToAdd, rolesToRemove);
-            }
             return;
         }
 
@@ -242,9 +254,6 @@ public class VerifyCommand extends Command {
 
         GuildReply guildReply = app.getHypixel().getGson().fromJson(guildEntry.getData(), GuildReply.class);
         if (guildReply == null || guildReply.getGuild() == null) {
-            if (!rolesToAdd.isEmpty()) {
-                assignRolesToMember(event, rolesToAdd, rolesToRemove);
-            }
             return;
         }
 
@@ -253,9 +262,6 @@ public class VerifyCommand extends Command {
             .findFirst().orElse(null);
 
         if (member == null) {
-            if (!rolesToAdd.isEmpty()) {
-                assignRolesToMember(event, rolesToAdd, rolesToRemove);
-            }
             return;
         }
 
@@ -272,7 +278,7 @@ public class VerifyCommand extends Command {
                 }
 
                 List<Role> rolesByName = event.getGuild().getRolesByName(guildMember.getRank(), false);
-                if (rolesByName.isEmpty()) {
+                if (rolesByName.isEmpty() || !selfMember.canInteract(rolesByName.get(0))) {
                     continue;
                 }
 
@@ -280,38 +286,41 @@ public class VerifyCommand extends Command {
             }
 
             Role role = discordRoles.getOrDefault(member.getRank(), null);
-            if (role == null) {
-                if (!rolesToAdd.isEmpty()) {
-                    assignRolesToMember(event, rolesToAdd, rolesToRemove);
-                }
-                return;
-            }
+            if (role != null && selfMember.canInteract(role) && !hasRole(event.getMember(), role)) {
+                log.debug("Adding {} to {}", role.getName(), event.getAuthor().getAsTag());
 
-            rolesToRemove.addAll(
+                event.getGuild().addRoleToMember(event.getMember(), role).queue();
+
                 discordRoles.values().stream()
                     .filter(filteringRole -> filteringRole.getIdLong() != role.getIdLong())
-                    .collect(Collectors.toList())
-            );
+                    .filter(filteringRole -> hasRole(event.getMember(), filteringRole))
+                    .filter(selfMember::canInteract)
+                    .forEach(removeRole -> {
+                        log.debug("Removing {} from {}", removeRole.getName(), event.getAuthor().getAsTag());
+
+                        event.getGuild().removeRoleFromMember(event.getMember(), removeRole).queue();
+                    });
+            }
 
             if (guildEntry.getDefaultRole() != null) {
                 Role defaultRole = event.getGuild().getRoleById(guildEntry.getDefaultRole());
-                if (defaultRole != null) {
-                    rolesToRemove.add(defaultRole);
+                if (defaultRole != null && selfMember.canInteract(defaultRole) && hasRole(event.getMember(), defaultRole)) {
+                    log.debug("Removing {} from {}", defaultRole.getName(), event.getAuthor().getAsTag());
+
+                    event.getGuild().removeRoleFromMember(event.getMember(), defaultRole).queue();
                 }
             }
-
-            rolesToAdd.add(role);
         }
         // Adds the guild member role to the user instead of the role matching their in-game
         // guild rank, since there is a default guild member role setup for the server.
         else {
             Role roleById = event.getGuild().getRoleById(guildEntry.getGuildMemberRole());
-            if (roleById != null) {
-                rolesToAdd.add(roleById);
+            if (roleById != null && selfMember.canInteract(roleById) && !hasRole(event.getMember(), roleById)) {
+                log.debug("Adding {} to {}", roleById.getName(), event.getAuthor().getAsTag());
+
+                event.getGuild().addRoleToMember(event.getMember(), roleById).queue();
             }
         }
-
-        assignRolesToMember(event, rolesToAdd, rolesToRemove);
     }
 
     private void sendNoSocialLinksMessage(Message message, User user, PlaceholderMessage embedBuilder, JsonObject player) {
@@ -323,29 +332,6 @@ public class VerifyCommand extends Command {
             .setColor(MessageType.ERROR.getColor())
             .buildEmbed()
         ).queue();
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    private void assignRolesToMember(MessageReceivedEvent event, List<Role> rolesToAdd, List<Role> rolesToRemove) {
-        rolesToAdd.removeIf(role -> hasRole(event.getMember(), role));
-        rolesToRemove.removeIf(role -> !hasRole(event.getMember(), role));
-
-        if (rolesToAdd.isEmpty() && rolesToRemove.isEmpty()) {
-            log.debug("Skipping role assignment for {} while verifying, no roles to assign.",
-                event.getAuthor().getAsTag()
-            );
-            return;
-        }
-
-        log.debug("Attempting to give {} the follow roles ({}), and removing the following roles ({})",
-            event.getAuthor().getAsTag(), rolesToAdd, rolesToRemove
-        );
-
-        event.getGuild().modifyMemberRoles(event.getMember(), rolesToAdd, rolesToRemove).queue(null, throwable -> {
-            log.error("Failed to assign {} to {} due to an error: {}",
-                rolesToAdd, event.getMember().getEffectiveName(), throwable.getMessage(), throwable
-            );
-        });
     }
 
     private boolean hasRole(Member member, Role role) {

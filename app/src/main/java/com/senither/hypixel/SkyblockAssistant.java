@@ -50,6 +50,7 @@ import com.senither.hypixel.splash.SplashManager;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.SessionControllerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +122,7 @@ public class SkyblockAssistant {
         this.scheduleManager = new ScheduleManager(this);
         scheduleManager.registerJob(new SyncMetricsJob(this));
         scheduleManager.registerJob(new SplashQueueJob(this));
-        scheduleManager.registerJob(new RoleAssignmentJob(this));
+        scheduleManager.registerJob(new UpdateGuildDataJob(this));
         scheduleManager.registerJob(new GarbageCollectorJob(this));
         scheduleManager.registerJob(new DrainReportQueueJob(this));
         scheduleManager.registerJob(new DecayDonationPointsJob(this));
@@ -201,7 +202,7 @@ public class SkyblockAssistant {
         return DefaultShardManagerBuilder.createDefault(configuration.getDiscordToken())
             .setSessionController(new SessionControllerAdapter())
             .setActivity(Activity.watching("the server"))
-            .setMemberCachePolicy(member -> true)
+            .setMemberCachePolicy(MemberCachePolicy.NONE)
             .setBulkDeleteSplittingEnabled(false)
             .setEnableShutdownHook(true)
             .setContextEnabled(true)

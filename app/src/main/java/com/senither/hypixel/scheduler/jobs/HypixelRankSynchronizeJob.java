@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +48,7 @@ public class HypixelRankSynchronizeJob extends Job {
     private static final Logger log = LoggerFactory.getLogger(HypixelRankSynchronizeJob.class);
 
     public HypixelRankSynchronizeJob(SkyblockAssistant app) {
-        super(app, 30, 15, TimeUnit.SECONDS);
+        super(app, 30, 30, TimeUnit.SECONDS);
     }
 
     @Override
@@ -111,46 +110,43 @@ public class HypixelRankSynchronizeJob extends Job {
         HypixelRank rank = app.getHypixel().getRankFromPlayer(playerReply);
 
         for (Guild guild : app.getShardManager().getGuilds()) {
-            Member member = guild.getMember(user);
-            if (member == null) {
-                continue;
-            }
-
             if (!guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES)) {
                 continue;
             }
 
-            List<Role> rolesToAdd = new ArrayList<>();
-            List<Role> rolesToRemove = new ArrayList<>();
-
-            if (!rank.isDefault()) {
-                List<Role> rankRolesByName = guild.getRolesByName(rank.getName(), true);
-                if (!rankRolesByName.isEmpty()) {
-                    rolesToAdd.add(rankRolesByName.get(0));
-                }
-            }
-
-            List<Role> verifiedRoleByName = guild.getRolesByName(Constants.VERIFY_ROLE, true);
-            if (!verifiedRoleByName.isEmpty()) {
-                rolesToAdd.add(verifiedRoleByName.get(0));
-            }
-
-            for (HypixelRank hypixelRank : HypixelRank.values()) {
-                if (rank == hypixelRank || hypixelRank.isDefault()) {
-                    continue;
+            guild.retrieveMember(user).queue(member -> {
+                List<Role> verifiedRoleByName = guild.getRolesByName(Constants.VERIFY_ROLE, true);
+                if (!verifiedRoleByName.isEmpty() && !hasRole(member, verifiedRoleByName.get(0))) {
+                    guild.addRoleToMember(member, verifiedRoleByName.get(0)).queue();
                 }
 
-                List<Role> rankRolesByName = guild.getRolesByName(hypixelRank.getName(), true);
-                if (!rankRolesByName.isEmpty()) {
-                    rolesToRemove.add(rankRolesByName.get(0));
+                if (!rank.isDefault()) {
+                    List<Role> rankRolesByName = guild.getRolesByName(rank.getName(), true);
+                    if (!rankRolesByName.isEmpty() && !hasRole(member, rankRolesByName.get(0))) {
+                        guild.addRoleToMember(member, rankRolesByName.get(0)).queue();
+                    }
                 }
-            }
 
-            if (rolesToAdd.isEmpty() && rolesToRemove.isEmpty()) {
-                continue;
-            }
+                for (HypixelRank hypixelRank : HypixelRank.values()) {
+                    if (rank == hypixelRank || hypixelRank.isDefault()) {
+                        continue;
+                    }
 
-            guild.modifyMemberRoles(member, rolesToAdd, rolesToRemove).queue(null, null);
+                    List<Role> rankRolesByName = guild.getRolesByName(hypixelRank.getName(), true);
+                    if (!rankRolesByName.isEmpty() && hasRole(member, rankRolesByName.get(0))) {
+                        guild.removeRoleFromMember(member, rankRolesByName.get(0)).queue();
+                    }
+                }
+            }, null);
         }
+    }
+
+    private boolean hasRole(Member member, Role role) {
+        for (Role memberRole : member.getRoles()) {
+            if (memberRole.getId().equals(role.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
