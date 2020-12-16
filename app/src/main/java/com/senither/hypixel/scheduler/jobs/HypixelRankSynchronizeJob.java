@@ -137,7 +137,10 @@ public class HypixelRankSynchronizeJob extends Job {
                         guild.removeRoleFromMember(member, rankRolesByName.get(0)).queue();
                     }
                 }
-            }, null);
+            }, error -> {
+                // Nothing is done here, this is just here to mute the error
+                // if JDA can't find the user in the current guild.
+            });
         }
     }
 
