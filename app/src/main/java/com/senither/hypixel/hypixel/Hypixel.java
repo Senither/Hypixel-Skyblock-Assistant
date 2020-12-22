@@ -657,7 +657,7 @@ public class Hypixel {
             }
 
             return response.getData().getGuilds() > 0 && response.getData().getPlayers() > 0;
-        } catch (IOException e) {
+        } catch (Exception e) {
             return false;
         }
     }
