@@ -94,7 +94,7 @@ public class CatacombsCommand extends SkillCommand {
         }
 
         List<String> floorClears = new ArrayList<>();
-        for (Map.Entry<Integer, Integer> timesPlayedEntry : catacomb.getTimesPlayed().entrySet()) {
+        for (Map.Entry<Integer, Integer> timesPlayedEntry : catacomb.getTimesCompletions().entrySet()) {
             String name = timesPlayedEntry.getKey() == 0 ? "Entrance" : "Floor " + timesPlayedEntry.getKey();
             floorClears.add(padSpaces(name + ": ", 10) + NumberUtil.formatNicely(timesPlayedEntry.getValue()));
         }

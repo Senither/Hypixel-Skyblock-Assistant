@@ -175,7 +175,7 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
 
         private final DungeonWeight weight;
         private final int highestFloorCleared;
-        private final LinkedHashMap<Integer, Integer> timesPlayed = new LinkedHashMap<>();
+        private final LinkedHashMap<Integer, Integer> timesCompletions = new LinkedHashMap<>();
         private final LinkedHashMap<Integer, DungeonScore> bestScores = new LinkedHashMap<>();
         private final LinkedHashMap<Integer, DungeonTime> fastestTime = new LinkedHashMap<>();
 
@@ -188,10 +188,10 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
             this.experience = object.get("experience").getAsDouble();
             this.level = getLevelFromExperience(experience);
 
-            for (Map.Entry<String, JsonElement> played : object.getAsJsonObject("times_played").entrySet()) {
-                timesPlayed.put(NumberUtil.parseInt(played.getKey(), 0), played.getValue().getAsInt());
+            for (Map.Entry<String, JsonElement> completions : object.getAsJsonObject("tier_completions").entrySet()) {
+                timesCompletions.put(NumberUtil.parseInt(completions.getKey(), 0), completions.getValue().getAsInt());
             }
-            this.highestFloorCleared = timesPlayed.size() - 1;
+            this.highestFloorCleared = timesCompletions.size() - 1;
 
             if (object.has("best_score")) {
                 for (Map.Entry<String, JsonElement> played : object.getAsJsonObject("best_score").entrySet()) {
@@ -225,8 +225,8 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
             return highestFloorCleared;
         }
 
-        public LinkedHashMap<Integer, Integer> getTimesPlayed() {
-            return timesPlayed;
+        public LinkedHashMap<Integer, Integer> getTimesCompletions() {
+            return timesCompletions;
         }
 
         public LinkedHashMap<Integer, DungeonScore> getBestScores() {
@@ -249,14 +249,14 @@ public class DungeonResponse extends StatisticsResponse implements Jsonable {
             json.addProperty("level", level);
             json.addProperty("experience", experience);
 
-            JsonObject played = new JsonObject();
-            for (Map.Entry<Integer, Integer> timesPlayedEntry : timesPlayed.entrySet()) {
-                played.addProperty(
-                    timesPlayedEntry.getKey() == 0 ? "entrance" : timesPlayedEntry.getKey().toString(),
-                    timesPlayedEntry.getValue()
+            JsonObject completions = new JsonObject();
+            for (Map.Entry<Integer, Integer> timesCompletionEntry : timesCompletions.entrySet()) {
+                completions.addProperty(
+                    timesCompletionEntry.getKey() == 0 ? "entrance" : timesCompletionEntry.getKey().toString(),
+                    timesCompletionEntry.getValue()
                 );
             }
-            json.add("times_played", played);
+            json.add("tier_completions", completions);
 
             JsonObject scores = new JsonObject();
             for (Map.Entry<Integer, DungeonScore> bestScoresEntry : bestScores.entrySet()) {
