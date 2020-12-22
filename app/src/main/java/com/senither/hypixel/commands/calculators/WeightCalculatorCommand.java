@@ -40,9 +40,7 @@ public class WeightCalculatorCommand extends SkillCommand {
         return Arrays.asList(
             "This command can be used to calculate the weight of any given SkyBlock profile,",
             "creating a number to represent the progress that have been made on the",
-            "profile thus far.\n\n",
-            "> **Note:** This command is still a work in progress, expect weight values to change,",
-            "and more weight calculations to be added in the future."
+            "profile thus far."
         );
     }
 
@@ -64,8 +62,7 @@ public class WeightCalculatorCommand extends SkillCommand {
         JsonObject member = getProfileMemberFromPlayer(profileReply, playerReply);
 
         PlaceholderMessage placeholderMessage = MessageFactory.makeInfo(message,
-            "**:name's** weight for their **:profile** profile is **:weight**.\n\n"
-                + "> **Note:** This command is still a work in progress, expect weight values to change, and more weight calculations to be added in the future."
+            "**:name's** weight for their **:profile** profile is **:weight**."
         ).setTitle(message.getEmbeds().get(0).getTitle());
 
         Weight skillWeight = applySkillWeight(placeholderMessage, profileReply, playerReply, member);
