@@ -59,10 +59,11 @@ public class CatacombsCommand extends SkillCommand {
             return;
         }
 
+        String usernameFromPlayer = getUsernameFromPlayer(playerReply);
         DungeonResponse.Dungeon catacomb = response.getDungeons().get(DungeonResponse.DungeonType.CATACOMBS);
 
         String description = String.format("**%s** is catacomb level **%s** with",
-            getUsernameFromPlayer(playerReply),
+            usernameFromPlayer,
             NumberUtil.formatNicelyWithDecimals(catacomb.getLevel())
         );
 
@@ -72,6 +73,15 @@ public class CatacombsCommand extends SkillCommand {
             " the **%s** class selected.",
             uppercaseFirstCharacter(response.getSelectedClass().name().toLowerCase())
         );
+
+        int profileSecrets = 0;
+        if (playerReply.getPlayer().has("achievements")) {
+            JsonObject achievements = playerReply.getPlayer().getAsJsonObject("achievements");
+
+            profileSecrets = achievements.has("skyblock_treasure_hunter")
+                ? achievements.get("skyblock_treasure_hunter").getAsInt()
+                : 0;
+        }
 
         EmbedBuilder builder = new EmbedBuilder()
             .setColor(MessageType.SUCCESS.getColor())
@@ -93,6 +103,8 @@ public class CatacombsCommand extends SkillCommand {
             );
         }
 
+        builder.addField("Secrets Found", NumberUtil.formatNicely(profileSecrets), true);
+
         List<String> floorClears = new ArrayList<>();
         for (Map.Entry<Integer, Integer> timesPlayedEntry : catacomb.getTimesCompletions().entrySet()) {
             String name = timesPlayedEntry.getKey() == 0 ? "Entrance" : "Floor " + timesPlayedEntry.getKey();
@@ -100,7 +112,7 @@ public class CatacombsCommand extends SkillCommand {
         }
 
         builder.addField(
-            String.format("Floor Clears (Highest cleared floor is %d)", catacomb.getHighestFloorCleared()),
+            String.format("Floor Clears", catacomb.getHighestFloorCleared()),
             String.format("```yml\n%s```", String.join("\n", floorClears)),
             false
         );
