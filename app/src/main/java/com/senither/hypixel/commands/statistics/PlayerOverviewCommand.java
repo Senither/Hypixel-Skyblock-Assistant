@@ -202,7 +202,7 @@ public class PlayerOverviewCommand extends SkillCommand {
             : 19 + Math.floor((craftedMinions - 300) / 50D));
 
         int communityMinionUpgrade = 0;
-        if (profileReply.getProfile().has("community_upgrades")) {
+        if (profileReply.getProfile().has("community_upgrades") && profileReply.getProfile().getAsJsonObject("community_upgrades").has("upgrade_states")) {
             for (JsonElement upgrade : profileReply.getProfile().getAsJsonObject("community_upgrades").getAsJsonArray("upgrade_states")) {
                 if ("minion_slots".equals(upgrade.getAsJsonObject().get("upgrade").getAsString())) {
                     int tier = upgrade.getAsJsonObject().get("tier").getAsInt();
