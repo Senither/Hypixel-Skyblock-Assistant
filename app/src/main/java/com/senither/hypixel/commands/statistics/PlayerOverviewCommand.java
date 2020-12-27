@@ -31,8 +31,10 @@ import com.senither.hypixel.contracts.commands.SkillCommand;
 import com.senither.hypixel.hypixel.HypixelRank;
 import com.senither.hypixel.rank.items.Collection;
 import com.senither.hypixel.statistics.StatisticsChecker;
+import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
 import com.senither.hypixel.statistics.responses.SlayerResponse;
+import com.senither.hypixel.statistics.weight.Weight;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.entities.Message;
@@ -106,17 +108,27 @@ public class PlayerOverviewCommand extends SkillCommand {
             .setTitle(getUsernameFromPlayer(playerReply) + "'s Profile Overview");
 
         SkillsResponse skillsResponse = StatisticsChecker.SKILLS.checkUser(playerReply, profileReply, member);
+        SlayerResponse slayerResponse = StatisticsChecker.SLAYER.checkUser(playerReply, profileReply, member);
+        DungeonResponse dungeonResponse = StatisticsChecker.DUNGEON.checkUser(playerReply, profileReply, member);
+
+        Weight weight = skillsResponse.calculateTotalWeight()
+            .add(slayerResponse.calculateTotalWeight())
+            .add(dungeonResponse.calculateTotalWeight());
 
         message.editMessage(placeholderMessage
             .addField("Average Skill Level", String.format("%s [%s w/o progress]",
                 NumberUtil.formatNicelyWithDecimals(skillsResponse.getAverageSkillLevel()),
                 NumberUtil.formatNicelyWithDecimals(skillsResponse.getAverageSkillLevelWithoutPorgress())
             ), true)
-            .addField("Collection", getCompletedCollections(profileReply, member), true)
-            .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
-            .addField("Minion Slots", getMinionSlots(profileReply), true)
-            .addField("Coins", getCoins(profileReply, member), true)
+            .addField("Catacombs Level", NumberUtil.formatNicelyWithDecimals(
+                dungeonResponse.getDungeonFromType(DungeonResponse.DungeonType.CATACOMBS).getLevel()
+            ), true)
             .addField("Slayer", getTotalSlayerXp(profileReply, member), true)
+            .addField("Profile Weight", weight.getTotalWeightStringified(), true)
+            .addField("Coins", getCoins(profileReply, member), true)
+            .addField("Minion Slots", getMinionSlots(profileReply), true)
+            .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
+            .addField("Collection", getCompletedCollections(profileReply, member), true)
             .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
             .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .buildEmbed()
