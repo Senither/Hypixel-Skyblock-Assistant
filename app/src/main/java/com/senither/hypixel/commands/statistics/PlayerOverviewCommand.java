@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -129,6 +130,7 @@ public class PlayerOverviewCommand extends SkillCommand {
             .addField("Minion Slots", getMinionSlots(profileReply), true)
             .addField("Pets", NumberUtil.formatNicely(member.get("pets").getAsJsonArray().size()), true)
             .addField("Collection", getCompletedCollections(profileReply, member), true)
+            .addField("Profile Age", getProfileAge(profileReply), true)
             .setFooter(String.format("Profile: %s", profileReply.getProfile().get("cute_name").getAsString()))
             .setTimestamp(Carbon.now().setTimestamp(member.get("last_save").getAsLong() / 1000L).getTime().toInstant())
             .buildEmbed()
@@ -219,6 +221,27 @@ public class PlayerOverviewCommand extends SkillCommand {
 
         return String.format("%s +%s _(%s/572 Crafts)_",
             minionSlots, communityMinionUpgrade, craftedMinions
+        );
+    }
+
+    private String getProfileAge(SkyBlockProfileReply profileReply) {
+        JsonObject members = profileReply.getProfile().getAsJsonObject("members");
+
+        long oldestJoinDate = Long.MAX_VALUE;
+        for (String profileId : members.keySet()) {
+            long joinTimestamp = members.getAsJsonObject(profileId).get("first_join").getAsLong();
+
+            if (joinTimestamp < oldestJoinDate) {
+                oldestJoinDate = joinTimestamp;
+            }
+        }
+
+        Carbon time = new Carbon(new Date(oldestJoinDate));
+        String diffForHumans = time.diffForHumans(true);
+
+        return String.format("%s\n%s",
+            time.toDayDateTimeString(),
+            diffForHumans.substring(0, 1).toUpperCase() + diffForHumans.substring(1)
         );
     }
 

@@ -157,7 +157,7 @@ public final class Carbon {
      *
      * @param date The date to use to create the carbon instance
      */
-    private Carbon(Date date) {
+    public Carbon(Date date) {
         this.time = Calendar.getInstance(Locale.ENGLISH);
 
         this.WEEK_START_AT = GLOBAL_WEEK_START_AT;
