@@ -11,6 +11,7 @@ public enum BazaarProduct {
     ENCHANTED_SEEDS("ENCHANTED_SEEDS", "Enchanted Seeds", "E Seeds", "E Seed"),
     HAY_BLOCK("HAY_BLOCK", "Hay Block", "hay"),
     ENCHANTED_HAY_BLOCK("ENCHANTED_HAY_BLOCK", "Enchanted Hay Block", "E Hay Block", "E Hay"),
+    TIGHTLY_TIED_HAY_BALE("TIGHTLY_TIED_HAY_BALE", "Tightly-Tied Hay Bale", "Tied Hay Bale", "T Hay Bale", "T Hay"),
     BROWN_MUSHROOM("BROWN_MUSHROOM", "Brown Mushroom"),
     RED_MUSHROOM("RED_MUSHROOM", "Red Mushroom"),
     ENCHANTED_RED_MUSHROOM("ENCHANTED_RED_MUSHROOM", "Enchanted Red Mushroom", "E Red Mushroom"),
@@ -50,6 +51,7 @@ public enum BazaarProduct {
     ENCHANTED_CAKE("ENCHANTED_CAKE", "Enchanted Cake", "E Cake"),
     PUMPKIN("PUMPKIN", "Pumpkin"),
     ENCHANTED_PUMPKIN("ENCHANTED_PUMPKIN", "Enchanted Pumpkin", "E Pumpkin"),
+    POLISHED_PUMPKIN("POLISHED_PUMPKIN", "Polished Pumpkin", "P Pumpkin"),
     WHEAT("WHEAT", "Wheat"),
     ENCHANTED_BREAD("ENCHANTED_BREAD", "Enchanted Bread", "E Bread"),
     MUTTON("MUTTON", "Mutton"),
@@ -116,6 +118,7 @@ public enum BazaarProduct {
     NETHERRACK("NETHERRACK", "Netherrack"),
     NETHER_STALK("NETHER_STALK", "Nether Stalk"),
     ENCHANTED_NETHER_STALK("ENCHANTED_NETHER_STALK", "Enchanted Nether Stalk", "E Nether Stalk"),
+    MUTANT_NETHER_STALK("MUTANT_NETHER_STALK", "Mutant Nether Wart", "M Nether Wart", "M Nether"),
     QUARTZ("QUARTZ", "Quartz"),
     ENCHANTED_QUARTZ("ENCHANTED_QUARTZ", "Enchanted Quartz", "E Quartz"),
     ENCHANTED_QUARTZ_BLOCK("ENCHANTED_QUARTZ_BLOCK", "Enchanted Quartz Block", "E Quartz Block"),
@@ -129,6 +132,7 @@ public enum BazaarProduct {
     ENCHANTED_EYE_OF_ENDER("ENCHANTED_EYE_OF_ENDER", "Enchanted Eye of Ender", "E Eye of Ender"),
     BONE("BONE", "Bone"),
     ENCHANTED_BONE("ENCHANTED_BONE", "Enchanted Bone", "E Bone"),
+    ENCHANTED_BONE_BLOCK("ENCHANTED_BONE_BLOCK", "Enchanted Bone Block", "E Bone Block"),
     ROTTEN_FLESH("ROTTEN_FLESH", "Rotten Flesh"),
     ENCHANTED_ROTTEN_FLESH("ENCHANTED_ROTTEN_FLESH", "Enchanted Rotten Flesh", "E Rotten Flesh"),
     SLIME_BALL("SLIME_BALL", "Slime Ball"),
@@ -202,10 +206,16 @@ public enum BazaarProduct {
     STOCK_OF_STONKS("STOCK_OF_STONKS", "Stocks of Stonks", "Stocks", "Stonks"),
     GREEN_CANDY("GREEN_CANDY", "Green Candy"),
     PURPLE_CANDY("PURPLE_CANDY", "Purple Candy"),
+    SOUL_FRAGMENT("SOUL_FRAGMENT", "Soul Fragment", "Soul Frag"),
+    WEREWOLF_SKIN("WEREWOLF_SKIN", "Werewolf Skin", "Werewolf"),
+    ECTOPLASM("ECTOPLASM", "Ectoplasm", "Ecto"),
+    PUMPKIN_GUTS("PUMPKIN_GUTS", "Pumpkin Guts", "Pumpkin Gut", "Guts"),
+    SPOOKY_SHARD("SPOOKY_SHARD", "Spooky Shard", "SShard"),
     WHITE_GIFT("WHITE_GIFT", "White Gift"),
     GREEN_GIFT("GREEN_GIFT", "Green Gift"),
     RED_GIFT("RED_GIFT", "Red Gift"),
     CATALYST("CATALYST", "Catalyst"),
+    HYPER_CATALYST("HYPER_CATALYST", "Hyper Catalyst", "H Catalyst", "HCatalyst"),
     HAMSTER_WHEEL("HAMSTER_WHEEL", "Hamster Wheel", "Hamster"),
     HOT_POTATO_BOOK("HOT_POTATO_BOOK", "Hot Potato Book", "Hot Potato"),
     TARANTULA_WEB("TARANTULA_WEB", "Tarantula Web"),
@@ -224,6 +234,7 @@ public enum BazaarProduct {
     YOUNG_FRAGMENT("YOUNG_FRAGMENT", "Young Fragment", "Young Frag"),
     UNSTABLE_FRAGMENT("UNSTABLE_FRAGMENT", "Unstable Fragment", "Unstable Frag"),
     SUPERIOR_FRAGMENT("SUPERIOR_FRAGMENT", "Superior Fragment", "Superior Frag", "Sup Frag"),
+    HOLY_FRAGMENT("HOLY_FRAGMENT", "Holy Fragment", "Holy Frag"),
     SUMMONING_EYE("SUMMONING_EYE", "Summoning Eye", "Eye"),
     GRIFFIN_FEATHER("GRIFFIN_FEATHER", "Griffin Feather", "Griffin"),
     DAEDALUS_STICK("DAEDALUS_STICK", "Daedalus Stick", "Daedalus"),
@@ -231,7 +242,12 @@ public enum BazaarProduct {
     ENCHANTED_ANCIENT_CLAW("ENCHANTED_ANCIENT_CLAW", "Enchanted Ancient Claw", "E Ancient Claw"),
     REFINED_MINERAL("REFINED_MINERAL", "Refined Mineral", "R Mineral", "Mineral"),
     RECOMBOBULATOR_3000("RECOMBOBULATOR_3000", "Recombobulator 3000", "Recomb 3000", "Recomb"),
-    BOOSTER_COOKIE("BOOSTER_COOKIE", "Booster Cookie", "Boost");
+    BOOSTER_COOKIE("BOOSTER_COOKIE", "Booster Cookie", "Boost"),
+    JACOBS_TICKET("JACOBS_TICKET", "Jacob's Ticket", "tickets", "ticket"),
+    EXP_BOTTLE("EXP_BOTTLE", "Experience Bottle", "Exp Bottle", "XP Bottle"),
+    GRAND_EXP_BOTTLE("GRAND_EXP_BOTTLE", "Grand Experience Bottle", "Grand Exp Bottle", "Grand XP Bottle", "GXP Bottle"),
+    TITANIC_EXP_BOTTLE("TITANIC_EXP_BOTTLE", "Titanic Experience Bottle", "Titanic Exp Bottle", "Titanic XP Bottle", "TXP Bottle"),
+    COLOSSAL_EXP_BOTTLE("COLOSSAL_EXP_BOTTLE", "Colossal Experience Bottle", "Colossal Exp Bottle", "Colossal XP Bottle", "CXP Bottle");
 
     private final String key;
     private final String name;
@@ -271,4 +287,4 @@ public enum BazaarProduct {
         }
         return null;
     }
-}
+    }
