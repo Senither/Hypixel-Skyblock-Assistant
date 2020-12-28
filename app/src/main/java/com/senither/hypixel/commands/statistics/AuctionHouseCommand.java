@@ -64,6 +64,12 @@ public class AuctionHouseCommand extends SkillCommand {
         );
 
         if (auctions == null) {
+            auctions = app.getHypixel().getAuctionsFromProfile(
+                profileReply.getProfile().get("profile_id").getAsString()
+            );
+        }
+
+        if (auctions == null) {
             MessageFactory.makeError(message,
                 "Failed to load your auction information, please try again later!"
             ).queue();
