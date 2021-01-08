@@ -229,7 +229,9 @@ public class PlayerOverviewCommand extends SkillCommand {
 
         long oldestJoinDate = Long.MAX_VALUE;
         for (String profileId : members.keySet()) {
-            long joinTimestamp = members.getAsJsonObject(profileId).get("first_join").getAsLong();
+            long joinTimestamp = members.getAsJsonObject(profileId).has("first_join")
+                ? members.getAsJsonObject(profileId).get("first_join").getAsLong()
+                : Long.MAX_VALUE;
 
             if (joinTimestamp < oldestJoinDate) {
                 oldestJoinDate = joinTimestamp;
