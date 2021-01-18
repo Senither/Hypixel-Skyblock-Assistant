@@ -2,7 +2,7 @@ package com.senither.hypixel.hypixel;
 
 public enum SkyBlockSkill {
 
-    MINING(50),
+    MINING(60),
     FORAGING(50),
     ENCHANTING(60),
     FARMING(60),

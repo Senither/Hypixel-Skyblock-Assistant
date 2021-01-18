@@ -8,9 +8,9 @@ import com.senither.hypixel.statistics.responses.SkillsResponse;
 public enum SkillWeight {
 
     /**
-     * Maxes out mining at 850 points at level 50.
+     * Maxes out mining at 1,750 points at level 60.
      */
-    MINING(SkyBlockSkill.MINING, SkillsResponse::getMining, 1.232826, 259634),
+    MINING(SkyBlockSkill.MINING, SkillsResponse::getMining, 1.18207448, 259634),
 
     /**
      * Maxes out foraging at 850 points at level 50.
@@ -23,7 +23,7 @@ public enum SkillWeight {
     ENCHANTING(SkyBlockSkill.ENCHANTING, SkillsResponse::getEnchanting, 0.96976583, 882758),
 
     /**
-     * Maxes out farming at 1,000 points at level 50.
+     * Maxes out farming at 2,200 points at level 60.
      */
     FARMING(SkyBlockSkill.FARMING, SkillsResponse::getFarming, 1.217848139, 220689),
 
