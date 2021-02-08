@@ -28,6 +28,7 @@ import com.senither.hypixel.commands.calculators.PetsCalculatorCommand;
 import com.senither.hypixel.commands.calculators.SkillsCalculatorCommand;
 import com.senither.hypixel.commands.calculators.SkillsExperienceCalculatorCommand;
 import com.senither.hypixel.commands.calculators.WeightCalculatorCommand;
+import com.senither.hypixel.commands.general.AmIBanned;
 import com.senither.hypixel.commands.general.HelpCommand;
 import com.senither.hypixel.commands.general.VerifyCommand;
 import com.senither.hypixel.commands.misc.*;
@@ -115,6 +116,7 @@ public class SkyblockAssistant {
         commandManager.registerCommand(new BoopOptCommand(this));
         commandManager.registerCommand(new BotStatsCommand(this));
         commandManager.registerCommand(new InformationCommand(this));
+        commandManager.registerCommand(new AmIBanned(this));
         commandManager.registerCommand(new HelpCommand(this));
         log.info("{} commands have been registered!", commandManager.getCommands().size());
 
