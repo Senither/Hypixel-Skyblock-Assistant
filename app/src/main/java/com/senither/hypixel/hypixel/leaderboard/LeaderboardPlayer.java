@@ -76,7 +76,7 @@ public abstract class LeaderboardPlayer {
     protected double runecrafting;
     protected double runecrafting_xp;
     // Player Weight
-    protected PlayerWeight weight;
+    protected PlayerWeight raw_weight;
 
     public UUID getUuid() {
         return uuid;
@@ -268,8 +268,8 @@ public abstract class LeaderboardPlayer {
             + getExperienceForLevel(getTaming(), false);
     }
 
-    public PlayerWeight getWeight() {
-        return weight;
+    public PlayerWeight getRawWeight() {
+        return raw_weight;
     }
 
     private boolean isSkillsApiDisabled() {

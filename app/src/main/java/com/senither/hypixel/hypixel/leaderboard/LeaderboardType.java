@@ -39,9 +39,9 @@ public enum LeaderboardType {
         LeaderboardPlayer::getAverageSkillProgress, LeaderboardPlayer::getTotalSkillExperience
     ),
     WEIGHT("Weight", Arrays.asList("weight", "we"),
-        player -> player.getWeight().getWeight(),
-        player -> player.getWeight().getOverflow(),
-        player -> player.getWeight().getTotal()
+        player -> player.getRawWeight().getWeight(),
+        player -> player.getRawWeight().getOverflow(),
+        player -> player.getRawWeight().getTotal()
     ),
     TOTAL_SLAYER(
         "Total Slayer", Arrays.asList("slayers", "slayer", "sl"),
