@@ -287,4 +287,4 @@ public enum BazaarProduct {
         }
         return null;
     }
-    }
+}
