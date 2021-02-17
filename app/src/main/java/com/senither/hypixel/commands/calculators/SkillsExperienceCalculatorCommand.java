@@ -23,6 +23,7 @@ package com.senither.hypixel.commands.calculators;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.google.gson.JsonObject;
+import com.senither.hypixel.Constants;
 import com.senither.hypixel.SkyblockAssistant;
 import com.senither.hypixel.chat.MessageFactory;
 import com.senither.hypixel.chat.MessageType;
@@ -30,6 +31,8 @@ import com.senither.hypixel.contracts.commands.CalculatorCommand;
 import com.senither.hypixel.statistics.StatisticsChecker;
 import com.senither.hypixel.statistics.responses.DungeonResponse;
 import com.senither.hypixel.statistics.responses.SkillsResponse;
+import com.senither.hypixel.statistics.responses.SlayerResponse;
+import com.senither.hypixel.statistics.weight.SlayerWeight;
 import com.senither.hypixel.time.Carbon;
 import com.senither.hypixel.utils.NumberUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -58,14 +61,14 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
     @Override
     public List<String> getDescription() {
         return Collections.singletonList(
-            "Calculates the level you'll get to after gaining the given amount of XP for any given skill."
+            "Calculates the level you'll get to after gaining the given amount of XP for any given skill, dungeon class, or slayer type."
         );
     }
 
     @Override
     public List<String> getUsageInstructions() {
         return Collections.singletonList(
-            "`:command <skill> <xp>` - Calculates the level you'll get after gaining the given amount of XP."
+            "`:command <type> <xp>` - Calculates the level you'll get after gaining the given amount of XP."
         );
     }
 
@@ -74,7 +77,9 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
         return Arrays.asList(
             "`:command combat 75000` - Calculates your level after getting 75,000 XP.",
             "`:command enchanting 20k` - Calculates your level after getting 20,000 XP.",
-            "`:command farming 1.5m` - Calculates your level after getting 1,500,000 XP."
+            "`:command farming 1.5m` - Calculates your level after getting 1,500,000 XP.",
+            "`:command mage 50m` - Calculates your level after getting 50,000,000 XP.",
+            "`:command sven 10m` - Calculates your level after getting 10,000,000 XP."
         );
     }
 
@@ -87,7 +92,7 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
     public void onCommand(MessageReceivedEvent event, String[] args) {
         if (args.length == 0) {
             MessageFactory.makeError(event.getMessage(),
-                "You must specify the skill type you want the calculate the level XP for."
+                "You must specify the skill or slayer type you want the calculate the level XP for."
             ).setTitle("Missing argument").queue();
             return;
         }
@@ -134,13 +139,18 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                 CalculatorCommand.SkillType type = getSkillTypeFromName(args[0], skillsResponse, dungeonResponse);
 
                 if (type == null) {
+                    type = getSlayerTypeFromName(args[0], StatisticsChecker.SLAYER.checkUser(playerReply, profileReply, member));
+                }
+
+                if (type == null) {
                     message.editMessage(embedBuilder
                         .setColor(MessageType.WARNING.getColor())
-                        .setTitle("Invalid skill type given!")
+                        .setTitle("Invalid skill or slayer type given!")
                         .setDescription(String.join("\n", Arrays.asList(
                             "Invalid skill type provided, the skill type must be one of the following:",
                             "`mining`, `foraging`, `enchanting`, `farming`, `combat`, `fishing`, `alchemy`, "
-                                + "`taming`, `catacomb`, `healer`, `mage`, `berserk`, `archer`, or `tank`"
+                                + "`taming`, `catacomb`, `healer`, `mage`, `berserk`, `archer`, `tank`, "
+                                + "`sven`, `tara`, or `rev`"
                         )))
                         .build()
                     ).queue();
@@ -152,8 +162,9 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                         .setColor(MessageType.INFO.getColor())
                         .setTitle("Already max level")
                         .setDescription(String.format(
-                            "You have already reached the max level in the **%s** skill.",
-                            type.getName()
+                            "You have already reached the max level in the **%s** %s.",
+                            type.getName(),
+                            type.getType().equals(SkillCalculationType.SLAYERS) ? "slayer" : "skill"
                         ));
 
                     if (!type.getType().equals(SkillCalculationType.RUNECRAFTING)) {
@@ -178,11 +189,13 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                     : type.getStat().getExperience());
 
                 double combinedXp = experience + skillXp;
-                double newLevel = getLevelFromExperience(type.getExperienceList(), combinedXp);
+                double newLevel = getLevelFromExperience(type, type.getExperienceList(), combinedXp);
 
                 String note = newLevel >= type.getExperienceList().size() ?
-                    String.format("You'll reach level **%s** and max out your %s skill after gaining **%s** XP!",
-                        type.getExperienceList().size(), type.getName(), NumberUtil.formatNicelyWithDecimals(experience)
+                    String.format("You'll reach level **%s** and max out your %s %s after gaining **%s** XP!",
+                        type.getExperienceList().size(), type.getName(),
+                        type.getType().equals(SkillCalculationType.SLAYERS) ? "slayer" : "skill",
+                        NumberUtil.formatNicelyWithDecimals(experience)
                     ) :
                     String.format("You'll reach level **%s** after gaining **%s** %s XP!",
                         NumberUtil.formatNicelyWithDecimals(newLevel),
@@ -227,6 +240,76 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
         });
     }
 
+    private SkillType getSlayerTypeFromName(String name, SlayerResponse slayerResponse) {
+        switch (name.toLowerCase()) {
+            case "rev":
+            case "zombie":
+            case "zombies":
+            case "revenant":
+            case "revenants":
+                return new SkillType<SlayerResponse>(
+                    "Revenant",
+                    slayerResponse.getRevenant(),
+                    SkillCalculationType.SLAYERS,
+                    (response, level, experience) -> {
+                        response.setRevenant(
+                            (int) experience,
+                            response.getRevenant().getTier1Kills(),
+                            response.getRevenant().getTier2Kills(),
+                            response.getRevenant().getTier3Kills(),
+                            response.getRevenant().getTier4Kills()
+                        );
+
+                        return response;
+                    },
+                    SlayerWeight.REVENANT::calculateSkillWeight
+                );
+
+            case "tara":
+            case "spider":
+            case "tarantula":
+                return new SkillType<SlayerResponse>(
+                    "Tarantula",
+                    slayerResponse.getTarantula(),
+                    SkillCalculationType.SLAYERS,
+                    (response, level, experience) -> {
+                        response.setTarantula(
+                            (int) experience,
+                            response.getTarantula().getTier1Kills(),
+                            response.getTarantula().getTier2Kills(),
+                            response.getTarantula().getTier3Kills(),
+                            response.getTarantula().getTier4Kills()
+                        );
+
+                        return response;
+                    },
+                    SlayerWeight.TARANTULA::calculateSkillWeight
+                );
+
+            case "dog":
+            case "wolf":
+            case "sven":
+                return new SkillType<SlayerResponse>(
+                    "Sven",
+                    slayerResponse.getTarantula(),
+                    SkillCalculationType.SLAYERS,
+                    (response, level, experience) -> {
+                        response.setSven(
+                            (int) experience,
+                            response.getSven().getTier1Kills(),
+                            response.getSven().getTier2Kills(),
+                            response.getSven().getTier3Kills(),
+                            response.getSven().getTier4Kills()
+                        );
+
+                        return response;
+                    },
+                    SlayerWeight.SVEN::calculateSkillWeight
+                );
+        }
+        return null;
+    }
+
     private double getExperienceFromString(String experience) {
         try {
             return Double.max(Double.parseDouble(experience), 0);
@@ -249,7 +332,18 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
         return totalRequiredExperience;
     }
 
-    private double getLevelFromExperience(ImmutableMultiset<Integer> experience, double exp) {
+    private double getLevelFromExperience(SkillType type, ImmutableMultiset<Integer> experience, double exp) {
+        if (type.getType().equals(SkillCalculationType.SLAYERS)) {
+            for (int level = 0; level < experience.size(); level++) {
+                double requirement = experience.asList().get(level);
+                if (exp < requirement) {
+                    double lastRequirement = level == 0 ? 0D : Constants.SLAYER_EXPERIENCE.asList().get(level - 1);
+                    return level + (exp - lastRequirement) / (requirement - lastRequirement);
+                }
+            }
+            return 9D;
+        }
+
         int level = 0;
         for (int toRemove : experience) {
             exp -= toRemove;

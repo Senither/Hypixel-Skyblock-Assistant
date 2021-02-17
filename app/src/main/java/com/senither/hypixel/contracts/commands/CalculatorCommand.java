@@ -243,7 +243,7 @@ public abstract class CalculatorCommand extends Command {
 
     protected enum SkillCalculationType {
 
-        GENERAL, RUNECRAFTING, DUNGEON
+        GENERAL, RUNECRAFTING, DUNGEON, SLAYERS
     }
 
     protected class SkillType<T extends StatisticsResponse> {
@@ -308,6 +308,9 @@ public abstract class CalculatorCommand extends Command {
 
                 case DUNGEON:
                     return Constants.DUNGEON_EXPERIENCE;
+
+                case SLAYERS:
+                    return Constants.SLAYER_EXPERIENCE;
 
                 default:
                     throw new RuntimeException("No valid skill experience calculator could be found for type '" + type + "'");

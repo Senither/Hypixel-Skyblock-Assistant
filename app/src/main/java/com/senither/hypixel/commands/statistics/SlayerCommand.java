@@ -125,7 +125,7 @@ public class SlayerCommand extends SkillCommand {
             .set("boss3", NumberUtil.formatNicely(stats.getTier3Kills()))
             .set("boss4", NumberUtil.formatNicely(stats.getTier4Kills()))
             .set("experience", NumberUtil.formatNicely(stats.getExperience()))
-            .set("level", NumberUtil.formatNicelyWithDecimals(stats.getLevelFromExperience()))
+            .set("level", NumberUtil.formatNicelyWithDecimals(stats.getLevel()))
             .toString();
     }
 }

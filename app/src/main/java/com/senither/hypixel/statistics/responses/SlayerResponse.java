@@ -23,6 +23,7 @@ package com.senither.hypixel.statistics.responses;
 
 import com.google.gson.JsonObject;
 import com.senither.hypixel.Constants;
+import com.senither.hypixel.contracts.statistics.HasLevel;
 import com.senither.hypixel.contracts.statistics.Jsonable;
 import com.senither.hypixel.contracts.statistics.StatisticsResponse;
 import com.senither.hypixel.statistics.weight.SlayerWeight;
@@ -116,7 +117,7 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
         return json;
     }
 
-    public class SlayerStat implements Jsonable {
+    public class SlayerStat implements Jsonable, HasLevel {
 
         private final SlayerWeight weight;
         private final int experience;
@@ -144,7 +145,20 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
             this.tier4Kills = tier4Kills;
         }
 
-        public int getExperience() {
+        @Override
+        public double getLevel() {
+            for (int level = 0; level < Constants.SLAYER_EXPERIENCE.size(); level++) {
+                double requirement = Constants.SLAYER_EXPERIENCE.asList().get(level);
+                if (this.experience < requirement) {
+                    double lastRequirement = level == 0 ? 0D : Constants.SLAYER_EXPERIENCE.asList().get(level - 1);
+                    return level + (this.experience - lastRequirement) / (requirement - lastRequirement);
+                }
+            }
+            return 9D;
+        }
+
+        @Override
+        public double getExperience() {
             return experience;
         }
 
@@ -168,21 +182,10 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
             return weight.calculateSkillWeight(experience);
         }
 
-        public double getLevelFromExperience() {
-            for (int level = 0; level < Constants.SLAYER_EXPERIENCE.size(); level++) {
-                double requirement = Constants.SLAYER_EXPERIENCE.asList().get(level);
-                if (this.experience < requirement) {
-                    double lastRequirement = level == 0 ? 0D : Constants.SLAYER_EXPERIENCE.asList().get(level - 1);
-                    return level + (this.experience - lastRequirement) / (requirement - lastRequirement);
-                }
-            }
-            return 9;
-        }
-
         @Override
         public JsonObject toJson() {
             JsonObject json = new JsonObject();
-            json.addProperty("level", getLevelFromExperience());
+            json.addProperty("level", getLevel());
             json.addProperty("experience", getExperience());
 
             JsonObject kills = new JsonObject();
