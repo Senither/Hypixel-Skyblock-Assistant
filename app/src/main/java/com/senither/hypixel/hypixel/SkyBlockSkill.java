@@ -6,7 +6,7 @@ public enum SkyBlockSkill {
     FORAGING(50),
     ENCHANTING(60),
     FARMING(60),
-    COMBAT(50),
+    COMBAT(60),
     FISHING(50),
     ALCHEMY(50),
     TAMING(50),

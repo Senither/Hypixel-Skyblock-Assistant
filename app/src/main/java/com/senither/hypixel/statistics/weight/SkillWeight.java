@@ -28,9 +28,9 @@ public enum SkillWeight {
     FARMING(SkyBlockSkill.FARMING, SkillsResponse::getFarming, 1.217848139, 220689),
 
     /**
-     * Maxes out combat at 800 points at level 50.
+     * Maxes out combat at 1,500 points at level 60.
      */
-    COMBAT(SkyBlockSkill.COMBAT, SkillsResponse::getCombat, 1.22307, 275862),
+    COMBAT(SkyBlockSkill.COMBAT, SkillsResponse::getCombat, 1.15797687265, 275862),
 
     /**
      * Maxes out fishing at 2,500 points at level 50.
