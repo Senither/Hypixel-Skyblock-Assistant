@@ -189,7 +189,10 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                     : type.getStat().getExperience());
 
                 double combinedXp = experience + skillXp;
-                double newLevel = getLevelFromExperience(type, type.getExperienceList(), combinedXp);
+                double newLevel = Math.min(
+                    type.getSkillType().getMaxLevel(),
+                    getLevelFromExperience(type, type.getExperienceList(), combinedXp)
+                );
 
                 String note = newLevel >= type.getExperienceList().size() ?
                     String.format("You'll reach level **%s** and max out your %s %s after gaining **%s** XP!",
