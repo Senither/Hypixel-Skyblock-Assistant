@@ -117,6 +117,7 @@ public class SlayerCommand extends SkillCommand {
             "**Tier 2:** :boss2",
             "**Tier 3:** :boss3",
             "**Tier 4:** :boss4",
+            "**Tier 5:** :boss5",
             "**EXP:** :experience",
             "**LvL:** :level"
         )))
@@ -124,6 +125,7 @@ public class SlayerCommand extends SkillCommand {
             .set("boss2", NumberUtil.formatNicely(stats.getTier2Kills()))
             .set("boss3", NumberUtil.formatNicely(stats.getTier3Kills()))
             .set("boss4", NumberUtil.formatNicely(stats.getTier4Kills()))
+            .set("boss5", NumberUtil.formatNicely(stats.getTier5Kills()))
             .set("experience", NumberUtil.formatNicely(stats.getExperience()))
             .set("level", NumberUtil.formatNicelyWithDecimals(stats.getLevel()))
             .toString();

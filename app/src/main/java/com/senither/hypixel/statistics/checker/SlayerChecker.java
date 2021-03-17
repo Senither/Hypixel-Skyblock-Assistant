@@ -61,7 +61,8 @@ public class SlayerChecker extends Checker<SlayerResponse> {
             getEntryFromSlayerData(slayer, "boss_kills_tier_0"),
             getEntryFromSlayerData(slayer, "boss_kills_tier_1"),
             getEntryFromSlayerData(slayer, "boss_kills_tier_2"),
-            getEntryFromSlayerData(slayer, "boss_kills_tier_3")
+            getEntryFromSlayerData(slayer, "boss_kills_tier_3"),
+            getEntryFromSlayerData(slayer, "boss_kills_tier_4")
         );
     }
 
@@ -75,10 +76,11 @@ public class SlayerChecker extends Checker<SlayerResponse> {
 
             for (String type : jsonObject.keySet()) {
                 JsonObject slayerType = jsonObject.getAsJsonObject(type);
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_0") * 100;
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_1") * 2000;
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_2") * 10000;
-                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_3") * 50000;
+                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_0") * 100L;
+                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_1") * 2000L;
+                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_2") * 10000L;
+                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_3") * 50000L;
+                totalCoins += getEntryFromSlayerData(slayerType.getAsJsonObject(), "boss_kills_tier_4") * 100000L;
             }
 
             return totalCoins;

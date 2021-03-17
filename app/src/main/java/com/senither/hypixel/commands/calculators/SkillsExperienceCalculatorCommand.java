@@ -260,7 +260,8 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                             response.getRevenant().getTier1Kills(),
                             response.getRevenant().getTier2Kills(),
                             response.getRevenant().getTier3Kills(),
-                            response.getRevenant().getTier4Kills()
+                            response.getRevenant().getTier4Kills(),
+                            response.getRevenant().getTier5Kills()
                         );
 
                         return response;
@@ -281,7 +282,8 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                             response.getTarantula().getTier1Kills(),
                             response.getTarantula().getTier2Kills(),
                             response.getTarantula().getTier3Kills(),
-                            response.getTarantula().getTier4Kills()
+                            response.getTarantula().getTier4Kills(),
+                            response.getTarantula().getTier5Kills()
                         );
 
                         return response;
@@ -302,7 +304,8 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                             response.getSven().getTier1Kills(),
                             response.getSven().getTier2Kills(),
                             response.getSven().getTier3Kills(),
-                            response.getSven().getTier4Kills()
+                            response.getSven().getTier4Kills(),
+                            response.getSven().getTier5Kills()
                         );
 
                         return response;
