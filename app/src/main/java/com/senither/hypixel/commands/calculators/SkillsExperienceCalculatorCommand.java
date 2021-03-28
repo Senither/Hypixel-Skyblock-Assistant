@@ -296,7 +296,7 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
             case "sven":
                 return new SkillType<SlayerResponse>(
                     "Sven",
-                    slayerResponse.getTarantula(),
+                    slayerResponse.getSven(),
                     SkillCalculationType.SLAYERS,
                     (response, level, experience) -> {
                         response.setSven(
