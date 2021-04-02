@@ -5,16 +5,18 @@ import com.senither.hypixel.statistics.responses.SlayerResponse;
 
 public enum SlayerWeight {
 
-    REVENANT(SlayerResponse::getRevenant, 2208),
-    TARANTULA(SlayerResponse::getTarantula, 2118),
-    SVEN(SlayerResponse::getSven, 1962);
+    REVENANT(SlayerResponse::getRevenant, 2208, .15),
+    TARANTULA(SlayerResponse::getTarantula, 2118, .08),
+    SVEN(SlayerResponse::getSven, 1962, .015);
 
     private final SlayerWeightRelationFunction function;
     private final double divider;
+    private final double modifier;
 
-    SlayerWeight(SlayerWeightRelationFunction function, double divider) {
+    SlayerWeight(SlayerWeightRelationFunction function, double divider, double modifier) {
         this.function = function;
         this.divider = divider;
+        this.modifier = modifier;
     }
 
     public SlayerResponse.SlayerStat getSlayerStatsRelation(SlayerResponse response) {
@@ -32,7 +34,17 @@ public enum SlayerWeight {
 
         double base = 1000000 / divider;
         double remaining = experience - 1000000;
-        double overflow = Math.pow(remaining / (divider * 1.5), 0.942);
+
+        double modifier = this.modifier;
+        double overflow = 0;
+
+        while (remaining > 0) {
+            double left = Math.min(remaining, 1000000);
+
+            overflow += Math.pow(left / (divider * (1.5 + modifier)), 0.942);
+            remaining -= left;
+            modifier += this.modifier;
+        }
 
         return new Weight(base + overflow, 0D);
     }
