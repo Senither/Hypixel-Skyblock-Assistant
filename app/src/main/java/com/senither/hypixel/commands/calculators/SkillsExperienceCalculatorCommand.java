@@ -190,7 +190,7 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
 
                 double combinedXp = experience + skillXp;
                 double newLevel = Math.min(
-                    type.getSkillType().getMaxLevel(),
+                    type.getSkillType() == null ? type.getExperienceList().size() : type.getSkillType().getMaxLevel(),
                     getLevelFromExperience(type, type.getExperienceList(), combinedXp)
                 );
 
