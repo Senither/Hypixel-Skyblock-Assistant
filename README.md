@@ -19,7 +19,7 @@ Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](ht
  	* Scanning the entire guild to calculate guild averages, and to see who meets what rank requirements.
  	* Donation & Splash trackers to see who contribute the most to the guild.
  	* Broadcasting system to announce messages through the bot.
- 	* Settings command to configure and customize all the features above. 
+ 	* Settings command to configure and customize all the features above.
 
 <hr>
 
@@ -30,16 +30,20 @@ Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](ht
  - [Installing Guild Report Web UI](#installing-guild-report-web-ui)
  - [Using a custom Guild Leaderboard](#using-a-custom-guild-leaderboard)
  - [Configuration](#configuration)
- 
+ - [Third Party Licenses](#third-party-licenses)
+ - [License](#license)
+
 ### Prerequisites
 
 ##### App (Bot)
+
  * Java >= 8
  * Gradle >= 4
  * MySQL/MariaDB Server
  * Git
 
 #### Web UI
+
  * NodeJS >= 11
  * Yarn >= 1.15
  * Git
@@ -54,7 +58,7 @@ Next go into the `Hypixel-Skyblock-Assistant/app` folder to build the project us
 
     ./gradlew build
 
-If the build ran successfully there should now be a jar file called `HypixelSkyblockAssistant.jar` inside the `app`directory of the project, this will be used to run the actual bot, you can now run the bot once to generate the `config.json` file.
+If the build ran successfully there should now be a jar file called `HypixelSkyblockAssistant.jar` inside the `app` directory of the project, this will be used to run the actual bot, you can now run the bot once to generate the `config.json` file.
 
     java -jar HypixelSkyblockAssistant.jar
 
@@ -70,7 +74,7 @@ Next go into the `Hypixel-Skyblock-Assistant/web` folder and install all the dep
 
     yarn
 
-While the dependencies are being installed go to the config file to setup the app URL, the config can be found at `web/assets/js/config.js`, once that's done and the installation have finished, you can now build the project.
+While the dependencies are being installed go to the config file to setup the app URL, the config can be found at `web/assets/js/config.js` , once that's done and the installation have finished, you can now build the project.
 
     yarn prod
 
@@ -90,11 +94,11 @@ The Discord token is used to login into Discords web services, allowing the bot 
 
 #### Hypixel Token
 
-The Hypixel token is used to communicate with Hypixels API, allowing to bot to get player, profile, and guild information for the Skyblock gamemode. If you don't already have a Hypixel API token you can get one by logging into the server using `mc.hypixel.net` and running `/api`.
+The Hypixel token is used to communicate with Hypixels API, allowing to bot to get player, profile, and guild information for the Skyblock gamemode. If you don't already have a Hypixel API token you can get one by logging into the server using `mc.hypixel.net` and running `/api` .
 
 #### Leaderboard URI
 
-The leaderboard URI is the URI that the [leaderboard tracker](https://github.com/Senither/Hypixel-Skyblock-Leaderboard) is hosted at, when a custom URI is provided the bot will instead use that API for all guild and player leaderboards, however if the value is left at `null`, the bot will default back to using the public leaderboard API.
+The leaderboard URI is the URI that the [leaderboard tracker](https://github.com/Senither/Hypixel-Skyblock-Leaderboard) is hosted at, when a custom URI is provided the bot will instead use that API for all guild and player leaderboards, however if the value is left at `null` , the bot will default back to using the public leaderboard API.
 
 #### Database
 
@@ -107,7 +111,7 @@ The database properties are used to connect to the database that the bot should 
 The web servlet sets up a JSON API that runs within the bot itself, the API is used by the `web` portion of the bot, allowing people to view guild scan reports in an easy to read and understand way.
 The `app_url` property is the link to where the `web UI` is hosted, so linked for guild scan reports can be generated correctly.
 
-> **Note:** Make sure the port the web servlet is running on is open and accessible by the web UI.  
+> **Note:** Make sure the port the web servlet is running on is open and accessible by the web UI.
 
 ## Third Party Licenses
 
