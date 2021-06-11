@@ -101,6 +101,7 @@ public class SlayerCommand extends SkillCommand {
             .addField("Revenant Horror", buildSlayerStatsFromType(response.getRevenant()), true)
             .addField("Tarantula Broodfather", buildSlayerStatsFromType(response.getTarantula()), true)
             .addField("Sven Packmaster", buildSlayerStatsFromType(response.getSven()), true)
+            .addField("Enderman", buildSlayerStatsFromType(response.getEnderman()), true)
             .setFooter(String.format("%s has a total of %s Slayer experience. | Profile: %s",
                 getUsernameFromPlayer(playerReply),
                 NumberUtil.formatNicely(response.getTotalSlayerExperience()),

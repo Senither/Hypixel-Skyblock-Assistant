@@ -40,6 +40,7 @@ public abstract class LeaderboardPlayer {
     protected double revenant_xp;
     protected double tarantula_xp;
     protected double sven_xp;
+    protected double enderman_xp;
     // Dungeons
     protected int secrets_found;
     protected double catacomb;
@@ -112,6 +113,10 @@ public abstract class LeaderboardPlayer {
 
     public double getSvenXP() {
         return sven_xp;
+    }
+
+    public double getEndermanXp() {
+        return enderman_xp;
     }
 
     public int getSecretsFound() {
@@ -374,6 +379,7 @@ public abstract class LeaderboardPlayer {
         protected WeightContainer revenant;
         protected WeightContainer tarantula;
         protected WeightContainer sven;
+        protected WeightContainer enderman;
 
         public WeightContainer getTotal() {
             return total;
@@ -388,6 +394,10 @@ public abstract class LeaderboardPlayer {
         }
 
         public WeightContainer getSven() {
+            return sven;
+        }
+
+        public WeightContainer getEnderman() {
             return sven;
         }
     }

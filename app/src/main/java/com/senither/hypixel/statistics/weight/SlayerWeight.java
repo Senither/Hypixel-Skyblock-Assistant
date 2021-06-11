@@ -7,7 +7,8 @@ public enum SlayerWeight {
 
     REVENANT(SlayerResponse::getRevenant, 2208, .15),
     TARANTULA(SlayerResponse::getTarantula, 2118, .08),
-    SVEN(SlayerResponse::getSven, 1962, .015);
+    SVEN(SlayerResponse::getSven, 1962, .015),
+    ENDERMAN(SlayerResponse::getEnderman, 1430, .017);
 
     private final SlayerWeightRelationFunction function;
     private final double divider;

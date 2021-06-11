@@ -312,6 +312,27 @@ public class SkillsExperienceCalculatorCommand extends CalculatorCommand {
                     },
                     SlayerWeight.SVEN::calculateSkillWeight
                 );
+
+            case "ender":
+            case "enderman":
+                return new SkillType<SlayerResponse>(
+                    "Enderman",
+                    slayerResponse.getEnderman(),
+                    SkillCalculationType.SLAYERS,
+                    (response, level, experience) -> {
+                        response.setEnderman(
+                            (int) experience,
+                            response.getEnderman().getTier1Kills(),
+                            response.getEnderman().getTier2Kills(),
+                            response.getEnderman().getTier3Kills(),
+                            response.getEnderman().getTier4Kills(),
+                            response.getEnderman().getTier5Kills()
+                        );
+
+                        return response;
+                    },
+                    SlayerWeight.ENDERMAN::calculateSkillWeight
+                );
         }
         return null;
     }

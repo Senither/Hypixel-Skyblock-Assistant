@@ -59,6 +59,10 @@ public enum LeaderboardType {
         "Sven Slayer", Arrays.asList("sven", "wolf", "dog"),
         LeaderboardPlayer::getSvenXP, null
     ),
+    ENDERMAN(
+        "Enderman Slayer", Arrays.asList("enderman", "ender"),
+        LeaderboardPlayer::getEndermanXp, null
+    ),
     SECRETS("Dungeon Secrets Found", Arrays.asList("secrets", "secret", "treasures", "treasure", "sec", "se"),
         LeaderboardPlayer::getSecretsFound, null
     ),

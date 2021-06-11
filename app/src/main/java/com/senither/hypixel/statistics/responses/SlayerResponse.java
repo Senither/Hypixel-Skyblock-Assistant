@@ -37,6 +37,7 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
     private SlayerStat revenant = new SlayerStat(SlayerWeight.REVENANT);
     private SlayerStat tarantula = new SlayerStat(SlayerWeight.TARANTULA);
     private SlayerStat sven = new SlayerStat(SlayerWeight.SVEN);
+    private SlayerStat enderman = new SlayerStat(SlayerWeight.ENDERMAN);
 
     public SlayerResponse(boolean apiEnable) {
         super(apiEnable);
@@ -92,6 +93,16 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
         return this;
     }
 
+    public SlayerStat getEnderman() {
+        return enderman;
+    }
+
+    public SlayerResponse setEnderman(int experience, int tier1Kills, int tier2Kills, int tier3Kills, int tier4Kills, int tier5Kills) {
+        this.enderman = new SlayerStat(SlayerWeight.ENDERMAN, experience, tier1Kills, tier2Kills, tier3Kills, tier4Kills, tier5Kills);
+
+        return this;
+    }
+
     public Weight calculateTotalWeight() {
         Weight weight = new Weight(0D, 0D);
 
@@ -112,6 +123,7 @@ public class SlayerResponse extends StatisticsResponse implements Jsonable {
         bosses.add("revenant", revenant.toJson());
         bosses.add("tarantula", tarantula.toJson());
         bosses.add("sven", sven.toJson());
+        bosses.add("enderman", enderman.toJson());
         json.add("bosses", bosses);
 
         return json;

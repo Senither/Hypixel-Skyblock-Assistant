@@ -51,6 +51,7 @@ public class SlayerChecker extends Checker<SlayerResponse> {
         generateSlayerStatsResponse(slayerBosses.getAsJsonObject("zombie"), response::setRevenant);
         generateSlayerStatsResponse(slayerBosses.getAsJsonObject("spider"), response::setTarantula);
         generateSlayerStatsResponse(slayerBosses.getAsJsonObject("wolf"), response::setSven);
+        generateSlayerStatsResponse(slayerBosses.getAsJsonObject("enderman"), response::setEnderman);
 
         return response;
     }
