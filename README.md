@@ -21,6 +21,8 @@ Hypixel Skyblock Assistant is a Discord bot created for the [Hypixel Network](ht
  	* Broadcasting system to announce messages through the bot.
  	* Settings command to configure and customize all the features above.
 
+> **Note:** If you're not looking for a Discord bot but still want a weight calculator you can checkout [LappySheep/hypixel-skyblock-weight](https://github.com/LappySheep/hypixel-skyblock-weight) for a different take on the weight calculation.
+
 <hr>
 
 ## Table of Content
