@@ -158,7 +158,7 @@ public class VerifyCommand extends Command {
             return;
         }
 
-        if (!player.getAsJsonObject("socialMedia").getAsJsonObject("links").get("DISCORD").getAsString().equalsIgnoreCase(event.getAuthor().getAsTag())) {
+        if (!player.getAsJsonObject("socialMedia").getAsJsonObject("links").get("DISCORD").getAsString().equals(event.getAuthor().getAsTag())) {
             sendNoSocialLinksMessage(message, event.getAuthor(), embedBuilder, player);
             return;
         }
